@@ -1,6 +1,7 @@
 package com.example.Payroll.Controller;
 
 
+import com.example.Payroll.Static.SessionData;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +20,7 @@ public class LoginController {
             @RequestParam String password,
             Model model) {
 
-        if (email.equals("admin@example.com") && password.equals("1234")) {
+        if (SessionData.USERNAME.equals(email) && SessionData.PASSWORD.equals(password)) {
             return "redirect:/dashboard";
         } else {
             model.addAttribute("error", "Invalid email or password");

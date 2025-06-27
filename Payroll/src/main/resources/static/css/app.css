@@ -1,0 +1,43 @@
+body {
+    overflow-x: hidden;
+    background-color: #f8f9fa;
+}
+.sidebar {
+    min-height: 100vh;
+    background-color: #ffffff;
+    border-right: 1px solid #dee2e6;
+}
+.sidebar a {
+    display: block;
+    padding: 15px 20px;
+    color: #212529;
+    text-decoration: none;
+}
+.sidebar a:hover {
+    background-color: #e9ecef;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  display: none; /* hidden by default */
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-container {
+  background: white;
+  padding: 1em;
+  border-radius: 4px;
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
