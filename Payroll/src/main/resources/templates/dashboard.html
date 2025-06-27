@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Dashboard</title>
@@ -7,66 +7,57 @@
     <style>
         body {
             overflow-x: hidden;
+            background-color: #f8f9fa;
         }
         .sidebar {
             min-height: 100vh;
-            background-color: #343a40;
+            background-color: #ffffff;
+            border-right: 1px solid #dee2e6;
         }
         .sidebar a {
-            color: #fff;
-            padding: 10px;
             display: block;
+            padding: 15px 20px;
+            color: #212529;
             text-decoration: none;
         }
         .sidebar a:hover {
-            background-color: #495057;
+            background-color: #e9ecef;
         }
-        .navbar-brand {
-            font-weight: bold;
-        }
+
+
     </style>
 </head>
 <body>
-
-<!-- Header/Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="#">MySite</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto"> <!-- Align links to the right -->
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Logout</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
-
-<!-- Body Content -->
 <div class="container-fluid">
     <div class="row">
-        <!-- Sidebar -->
-        <nav class="col-md-3 col-lg-2 d-md-block sidebar">
-            <div class="position-sticky">
-                <a href="#">Dashboard</a>
-                <a href="#">Employees</a>
-                <a href="#">Attendance</a>
-                <a href="#">Payroll</a>
-                <a href="#">Report</a>
-                <a href="#">Settings</a>
-                <a href="#">User Management</a>
-                <a href="#">Logout</a>
+
+        <nav class="col-md-2 sidebar">
+            <div class="text-center my-3">
+                <img src="168.png" alt="Logo" class="img-fluid" style="max-height: 80px;">
             </div>
+            <a href="#">Dashboard</a>
+            <a href="#">Employees</a>
+            <a href="#">Attendance</a>
+            <a href="#">Payroll</a>
+            <a href="#">Reports</a>
+            <a href="#">Settings</a>
+            <a href="#">User Management</a>
+            <a href="#">Logout</a>
         </nav>
 
-        <!-- Main content -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-            <h1 class="mt-4">Main Content Area</h1>
-            <p>This is your main content.</p>
+
+        <main class="col-md-10 p-4">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4>Welcome, Mr. John </h4>
+
+                </div>
+
+            </div>
+
+
+
         </main>
     </div>
 </div>
