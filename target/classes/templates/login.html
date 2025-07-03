@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>168 Construction</title>
+</head>
+<body>
+<h2>168 Construction</h2>
+<form th:action="@{/login}" method="post">
+    <label>Email:</label><br>
+    <input type="text" name="email"><br><br>
+
+    <label>Password:</label><br>
+    <input type="password" name="password"><br><br>
+
+    <button type="submit">Login</button>
+</form>
+
+<p th:if="${error}" th:text="${error}"></p>
+</body>
+</html>
