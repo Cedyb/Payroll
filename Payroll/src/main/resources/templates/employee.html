@@ -1,0 +1,116 @@
+<!-- employee.html -->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/app.css" />
+    <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/employee.js"></script> <!-- make sure filename matches -->
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <nav th:replace="fragments/nav :: nav"></nav>
+        <main class="col-md-10 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4>Welcome, Mr. John</h4>
+                    <h2>Employees</h2>
+                    <button id="openModalBtn" type="button" class="btn btn-primary">Add Employee</button>
+                    <br>
+                    <table class="table table-striped-columns mt-3" th:if="${not #lists.isEmpty(employeeList)}">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Role</th>
+                            <th>Hire Date</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="emp : ${employeeList}">
+                            <td th:text="${emp.employeeId}"></td>
+                            <td th:text="${emp.username}"></td>
+                            <td th:text="${emp.firstName + ' ' + emp.lastName}"></td>
+                            <td th:text="${emp.email}"></td>
+                            <td th:text="${emp.phone}"></td>
+                            <td th:text="${emp.role}"></td>
+                            <td th:text="${emp.hireDate}"></td>
+                            <td th:data-id="${emp.employeeId}" class="js-employee-delete text-danger" style="cursor:pointer;">DELETE</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="employeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Add Employee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <form th:action="@{/employees/create}" th:object="${employeeForm}" id="employeeModalForm" method="post">
+                    <div class="form-group mb-2">
+                        <label>Username</label>
+                        <input type="text" th:field="*{username}" class="form-control" required>
+                    </div>
+                    <div class="form-group mb-2">
+                        <label>Password</label>
+                        <input type="password" th:field="*{password}" class="form-control" required>
+                    </div>
+                    <div class="form-group mb-2">
+                        <label>Role</label>
+                        <input type="text" th:field="*{role}" class="form-control" placeholder="e.g. admin, user" required>
+                    </div>
+                    <div class="form-group mb-2">
+                        <label>First Name</label>
+                        <input type="text" th:field="*{firstName}" class="form-control" required>
+                    </div>
+                    <div class="form-group mb-2">
+                        <label>Last Name</label>
+                        <input type="text" th:field="*{lastName}" class="form-control" required>
+                    </div>
+                    <div class="form-group mb-2">
+                        <label>Email</label>
+                        <input type="email" th:field="*{email}" class="form-control">
+                    </div>
+                    <div class="form-group mb-2">
+                        <label>Address</label>
+                        <textarea th:field="*{address}" class="form-control"></textarea>
+                    </div>
+                    <div class="form-group mb-2">
+                        <label>Phone</label>
+                        <input type="text" th:field="*{phone}" class="form-control">
+                    </div>
+                    <div class="form-group mb-2">
+                        <label>Hire Date</label>
+                        <input type="date" th:field="*{hireDate}" class="form-control" required>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" form="employeeModalForm" class="btn btn-primary">Submit</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>
