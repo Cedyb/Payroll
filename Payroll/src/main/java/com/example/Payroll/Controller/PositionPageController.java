@@ -33,6 +33,12 @@ public class PositionPageController {
         return "redirect:/positions";
     }
 
+    @PostMapping("/update")
+    public String update(@ModelAttribute PositionsForm positionsForm) {
+        positionsService.updatePosition(positionsForm);
+        return "redirect:/positions";
+    }
+
     @GetMapping("/delete/{id}")
     public String create(@PathVariable(value = "id", required = true) Long id)
     {

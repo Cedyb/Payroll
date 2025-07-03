@@ -1,9 +1,13 @@
 package com.example.Payroll.Forms;
 
 public class PositionsForm {
+    private Long positionId;
     private String title;
     private String department;
     private Integer hourlyRate;
+
+    public Long getPositionId() { return positionId; }
+    public void setPositionId(Long positionId) { this.positionId = positionId; }
 
     public String getTitle() {
         return title;
