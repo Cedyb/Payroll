@@ -1,42 +1,42 @@
-package com.example.Payroll.Controller;
+    package com.example.Payroll.Controller;
 
-import com.example.Payroll.Entity.Positions;
-import com.example.Payroll.Forms.PositionsForm;
-import com.example.Payroll.Service.PositionsService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+    import com.example.Payroll.Entity.Positions;
+    import com.example.Payroll.Forms.PositionsForm;
+    import com.example.Payroll.Service.PositionsService;
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.stereotype.Controller;
+    import org.springframework.ui.Model;
+    import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+    import java.util.List;
 
-@Controller
-@RequestMapping("/positions")
-public class PositionPageController {
+    @Controller
+    @RequestMapping("/positions")
+    public class PositionPageController {
 
-    @Autowired
-    private PositionsService positionsService;
+        @Autowired
+        private PositionsService positionsService;
 
-    @GetMapping
-    public String showPage(Model model)
-    {
-        List<Positions> positions = positionsService.getAllPositions();
-        model.addAttribute("positionList", positions);
-        model.addAttribute("positionsForm", new PositionsForm());
-        return "position";
+        @GetMapping
+        public String showPage(Model model)
+        {
+            List<Positions> positions = positionsService.getAllPositions();
+            model.addAttribute("positionList", positions);
+            model.addAttribute("positionsForm", new PositionsForm());
+            return "position";
+        }
+
+        @PostMapping("/create")
+        public String create(@ModelAttribute PositionsForm positionsForm)
+        {
+            positionsService.createPosition(positionsForm);
+            return "redirect:/positions";
+        }
+
+        @GetMapping("/delete/{id}")
+        public String create(@PathVariable(value = "id", required = true) Long id)
+        {
+            positionsService.deletePosition(id);
+            return "redirect:/positions";
+        }
     }
-
-    @PostMapping("/create")
-    public String create(@ModelAttribute PositionsForm positionsForm)
-    {
-        positionsService.createPosition(positionsForm);
-        return "redirect:/positions";
-    }
-
-    @GetMapping("/delete/{id}")
-    public String create(@PathVariable(value = "id", required = true) Long id)
-    {
-        positionsService.deletePosition(id);
-        return "redirect:/positions";
-    }
-}
