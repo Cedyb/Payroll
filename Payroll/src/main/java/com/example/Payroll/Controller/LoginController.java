@@ -32,4 +32,9 @@ public class LoginController {
     public String dashboard() {
         return "dashboard";
     }
+
+    @GetMapping("/logout")
+    public String logout() {
+        return "redirect:/login?logout";
+    }
 }

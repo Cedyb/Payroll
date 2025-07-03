@@ -17,7 +17,7 @@ public class PositionsServiceImpl implements PositionsService {
 
     @Override
     public List<Positions> getAllPositions() {
-       return positionsRepository.findByIsActiveTrue();
+        return positionsRepository.findByIsActiveTrue();
     }
 
     @Override
@@ -28,6 +28,16 @@ public class PositionsServiceImpl implements PositionsService {
         positions.setHourlyRate(positionsForm.getHourlyRate());
         positions.setActive(true);
         return positionsRepository.save(positions);
+    }
+    @Override
+    public Positions updatePosition(PositionsForm form) {
+        Positions position = positionsRepository.findById(form.getPositionId())
+                .orElseThrow(() -> new IllegalArgumentException("Position not found"));
+
+        position.setTitle(form.getTitle());
+        position.setDepartment(form.getDepartment());
+        position.setHourlyRate(form.getHourlyRate());
+        return positionsRepository.save(position);
     }
 
     @Override
