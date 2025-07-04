@@ -7,12 +7,12 @@ import java.util.List;
 
 
 public interface PositionsService {
-    //READ
+
     List<Positions> getAllPositions();
 
     Positions updatePosition(PositionsForm positionsForm);
 
-    //CREATE
+
     Positions createPosition(PositionsForm positionsForm);
 
     void deletePosition(Long id);

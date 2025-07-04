@@ -40,7 +40,7 @@ public class PositionPageController {
     }
 
     @GetMapping("/delete/{id}")
-    public String create(@PathVariable(value = "id", required = true) Long id)
+    public String delete(@PathVariable(value = "id", required = true) Long id)
     {
         positionsService.deletePosition(id);
         return "redirect:/positions";

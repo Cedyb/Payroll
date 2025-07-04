@@ -18,7 +18,7 @@ import java.time.LocalDate;
         initialValue = 202500,
         allocationSize = 1
 )
-public class employee {
+public class Employee {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "employee_seq")

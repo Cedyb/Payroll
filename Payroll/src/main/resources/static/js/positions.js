@@ -1,10 +1,10 @@
 $(document).ready(function () {
-    // Create button opens create modal
+
     $('#openModalBtn').on('click', function () {
         $('#myModal').modal('show');
     });
 
-    // Update button fills form and opens update modal
+
     $('.js-positions-update').on('click', function () {
         const id = $(this).data('id');
         const row = $(this).closest('tr');
@@ -21,7 +21,7 @@ $(document).ready(function () {
         $('#myUpdateModal').modal('show');
     });
 
-    // Delete button redirects
+
     $('.js-positions-delete').on('click', function () {
         const id = $(this).data('id');
         if (confirm('Are you sure you want to delete this position?')) {
