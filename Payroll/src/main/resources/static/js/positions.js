@@ -1,5 +1,12 @@
 $(document).ready(function () {
 
+const hash=window.location.hash
+
+if (hash == '#updatecomplete')
+{
+    alert('complete')
+}
+
     $('#openModalBtn').on('click', function () {
         $('#myModal').modal('show');
     });
@@ -28,4 +35,5 @@ $(document).ready(function () {
             window.location.href = '/positions/delete/' + id;
         }
     });
+
 });

@@ -22,7 +22,25 @@ $(function () {
 
         const modal = new bootstrap.Modal(document.getElementById('myUpdateModal'));
         modal.show();
+        getPosition();
+
+
     });
+function getPosition(){
+$.ajax({
+url: '/positions/retrieve', // endpoint
+method: 'GET',
+success: function (data) {
+// Assuming data is an array of position objects or strings
+data.forEach(function (position) {
+$('#positions-list').append('<li>' + position.title + '</li>');
+});
+},
+error: function (xhr, status, error) {
+console.error("Error retrieving positions:", error);
+}
+});}
+
 
 
     $('.js-employee-delete').on('click', function () {

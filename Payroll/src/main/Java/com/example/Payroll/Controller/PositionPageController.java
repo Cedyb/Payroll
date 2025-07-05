@@ -36,7 +36,7 @@ public class PositionPageController {
     @PostMapping("/update")
     public String update(@ModelAttribute PositionsForm positionsForm) {
         positionsService.updatePosition(positionsForm);
-        return "redirect:/positions";
+        return "redirect:/positions#udpatecomplete" ;
     }
 
     @GetMapping("/delete/{id}")
@@ -45,4 +45,14 @@ public class PositionPageController {
         positionsService.deletePosition(id);
         return "redirect:/positions";
     }
+
+
+    @GetMapping("/retrieve")
+    @ResponseBody
+    public List<Positions> getAllPositions (Model model){
+        List<Positions> positions = positionsService.getAllPositions();
+    return positions;
+    }
+
+
 }
