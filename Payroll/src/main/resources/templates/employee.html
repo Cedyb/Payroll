@@ -32,7 +32,8 @@
                             <th>Address</th>
                             <th>Phone</th>
                             <th>Role</th>
-                            <th>Hire Date</th>
+                            <th>Hire Date
+                            <th>Position</th>
                             <th>Actions</th>
                         </tr>
                         </thead>
@@ -48,11 +49,17 @@
                             <td class="emp-phone" th:text="${emp.phone}"></td>
                             <td class="emp-role" th:text="${emp.role}"></td>
                             <td class="emp-hiredate" th:text="${emp.hireDate}"></td>
+
+                            <!-- ✅ ADD THESE -->
+                            <td class="emp-positionid" th:text="${emp.position != null ? emp.position.positionId : ''}" hidden></td>
+                            <td th:text="${emp.position != null ? emp.position.title : 'N/A'}"></td>
+
                             <td>
                                 <span class="js-employee-update text-primary" style="cursor:pointer;">UPDATE</span> |
                                 <span class="js-employee-delete text-danger" th:data-id="${emp.employeeId}" style="cursor:pointer;">DELETE</span>
                             </td>
                         </tr>
+
                         </tbody>
                     </table>
                 </div>
@@ -82,9 +89,13 @@
                         <input type="password" th:field="*{password}" class="form-control" required>
                     </div>
                     <div class="form-group mb-2">
-                        <label>Role</label>
-                        <input type="text" th:field="*{role}" class="form-control" required>
+                        <label>Role / Position</label>
+                        <select th:field="*{positionId}" class="form-control" required>
+                            <option value="">Select a Position</option>
+                            <option th:each="pos : ${positionList}" th:value="${pos.positionId}" th:text="${pos.title}"></option>
+                        </select>
                     </div>
+
                     <div class="form-group mb-2">
                         <label>First Name</label>
                         <input type="text" th:field="*{firstName}" class="form-control" required>
@@ -149,9 +160,12 @@
                         <input type="password" id="passwordUpdate" name="password" class="form-control" required>
                     </div>
                     <div class="form-group mb-2">
-                        <label>Role</label>
-                        <input type="text" id="roleUpdate" name="role" class="form-control" required>
+                        <label>Position</label>
+                        <select id="positionUpdateDropdown" name="positionId" class="form-control" required>
+                            <option value="">Select Position</option>
+                        </select>
                     </div>
+
                     <div class="form-group mb-2">
                         <label>First Name</label>
                         <input type="text" id="firstNameUpdate" name="firstName" class="form-control" required>
