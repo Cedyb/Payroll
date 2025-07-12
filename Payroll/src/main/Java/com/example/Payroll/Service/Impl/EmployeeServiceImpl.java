@@ -31,7 +31,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = new Employee();
         employee.setUsername(employeeForm.getUsername());
         employee.setPassword(employeeForm.getPassword());
-        employee.setRole(employeeForm.getRole());
         employee.setFirstName(employeeForm.getFirstName());
         employee.setLastName(employeeForm.getLastName());
         employee.setEmail(employeeForm.getEmail());
@@ -39,10 +38,12 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setPhone(employeeForm.getPhone());
         employee.setHireDate(employeeForm.getHireDate());
 
-
         if (employeeForm.getPositionId() != null) {
             Optional<Positions> position = positionsRepository.findById(employeeForm.getPositionId());
-            position.ifPresent(employee::setPosition);
+            position.ifPresent(pos -> {
+                employee.setPosition(pos);
+                employee.setRole(pos.getTitle()); // ✅ Automatically assign role
+            });
         }
 
         return employeeRepository.save(employee);
@@ -58,7 +59,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = optionalEmployee.get();
         employee.setUsername(employeeForm.getUsername());
         employee.setPassword(employeeForm.getPassword());
-        employee.setRole(employeeForm.getRole());
         employee.setFirstName(employeeForm.getFirstName());
         employee.setLastName(employeeForm.getLastName());
         employee.setEmail(employeeForm.getEmail());
@@ -66,9 +66,16 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setPhone(employeeForm.getPhone());
         employee.setHireDate(employeeForm.getHireDate());
 
+        if (employeeForm.getPositionId() != null) {
+            Optional<Positions> position = positionsRepository.findById(employeeForm.getPositionId());
+            position.ifPresent(pos -> {
+                employee.setPosition(pos);
+                employee.setRole(pos.getTitle()); // ✅ Update role on position change
+            });
+        }
+
         return employeeRepository.save(employee);
     }
-
 
     @Override
     public void deleteEmployee(Long id) {
@@ -78,6 +85,5 @@ public class EmployeeServiceImpl implements EmployeeService {
             employee.setActive(false);
             employeeRepository.save(employee);
         }
-
     }
 }

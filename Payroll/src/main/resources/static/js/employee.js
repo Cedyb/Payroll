@@ -26,7 +26,6 @@ $(function () {
 
         const modal = new bootstrap.Modal(document.getElementById('myUpdateModal'));
         modal.show();
-        getPosition();
 
 
     });
