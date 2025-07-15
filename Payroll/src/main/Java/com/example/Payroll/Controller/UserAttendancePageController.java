@@ -7,11 +7,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@RequestMapping("/userPayroll")
-public class UserPayrollController {
+@RequestMapping("/userAttendance")
+public class UserAttendancePageController {
 
     @RequestMapping("")
-    public String showUserPayroll(HttpSession session, Model model) {
+    public String showUserAttendance(HttpSession session, Model model) {
         User user = (User) session.getAttribute("user");
 
         if (user == null) {
@@ -21,6 +21,6 @@ public class UserPayrollController {
         model.addAttribute("user", user);
 
 
-        return "employee/userPayroll";
+        return "employee/userAttendance";
     }
 }

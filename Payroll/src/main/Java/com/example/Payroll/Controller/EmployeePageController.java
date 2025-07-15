@@ -26,7 +26,7 @@ public class EmployeePageController {
         model.addAttribute("employeeList", employees);
         model.addAttribute("employeeForm", new EmployeeForm());
         model.addAttribute("positionList", positionsService.getAllPositions()); // ✅ Corrected
-        return "employee"; // the Thymeleaf template
+        return "admin/employee"; // the Thymeleaf template
     }
 
 
@@ -34,19 +34,19 @@ public class EmployeePageController {
     @PostMapping("/create")
     public String create(@ModelAttribute EmployeeForm employeeForm) {
         employeeService.createEmployee(employeeForm);
-        return "redirect:/employees";
+        return "redirect:/admin/employees";
     }
 
     @PostMapping("/update")
     public String update(@ModelAttribute EmployeeForm employeeForm, @RequestParam("id") Long id) {
         employeeService.updateEmployee(id, employeeForm);
-        return "redirect:/employees";
+        return "redirect:/admin/employees";
     }
 
 
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable(value = "id", required = true) Long id) {
         employeeService.deleteEmployee(id);
-        return "redirect:/employees";
+        return "redirect:/admin/employees";
     }
 }

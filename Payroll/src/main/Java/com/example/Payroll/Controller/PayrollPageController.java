@@ -10,6 +10,6 @@ public class PayrollPageController {
 
     @RequestMapping("")
     public String showPayrollPage() {
-        return "payroll";
+        return "admin/payroll";
     }
 }

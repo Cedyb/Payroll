@@ -21,6 +21,6 @@ public class UserSettingsController {
         model.addAttribute("user", user);
 
 
-        return "userSettings";
+        return "employee/userSettings";
     }
 }

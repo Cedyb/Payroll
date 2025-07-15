@@ -23,27 +23,27 @@ public class PositionPageController {
         List<Positions> positions = positionsService.getAllPositions();
         model.addAttribute("positionList", positions);
         model.addAttribute("positionsForm", new PositionsForm());
-        return "position";
+        return "admin/position";
     }
 
     @PostMapping("/create")
     public String create(@ModelAttribute PositionsForm positionsForm)
     {
         positionsService.createPosition(positionsForm);
-        return "redirect:/positions";
+        return "redirect:/admin/positions";
     }
 
     @PostMapping("/update")
     public String update(@ModelAttribute PositionsForm positionsForm) {
         positionsService.updatePosition(positionsForm);
-        return "redirect:/positions#udpatecomplete" ;
+        return "redirect:/admin/positions#udpatecomplete" ;
     }
 
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable(value = "id", required = true) Long id)
     {
         positionsService.deletePosition(id);
-        return "redirect:/positions";
+        return "redirect:/admin/positions";
     }
 
 

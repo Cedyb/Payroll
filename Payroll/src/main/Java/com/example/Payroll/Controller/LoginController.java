@@ -32,14 +32,14 @@ public class LoginController {
 
         if (SessionData.USERNAME.equals(email) && SessionData.PASSWORD.equals(password)) {
             session.setAttribute("admin", true);
-            return "redirect:/dashboard";
+            return "redirect:/admin/dashboard";
         }
 
 
         User user = userRepository.findByEmail(email);
         if (user != null && user.getPassword().equals(password  )) {
             session.setAttribute("user", user);
-            return "redirect:/userDashboard";
+            return "redirect:/employee/userDashboard";
         }
 
 
@@ -48,7 +48,7 @@ public class LoginController {
     }
 
 
-    @GetMapping("/userDashboard")
+    @GetMapping("/employee/userDashboard")
     public String showUserDashboard(HttpSession session, Model model) {
         User user = (User) session.getAttribute("user");
 
@@ -57,7 +57,7 @@ public class LoginController {
         }
 
         model.addAttribute("user", user);
-        return "userDashboard";
+        return "employee/userDashboard";
     }
 
     // Admin dashboard
@@ -69,7 +69,7 @@ public class LoginController {
             return "redirect:/login";
         }
 
-        return "dashboard";
+        return "admin/dashboard";
     }
 
     @GetMapping("/logout")

@@ -9,6 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class SettingsPageController {
     @RequestMapping("")
     public String showSettingsPage() {
-        return "settings";
+        return "admin/settings";
     }
 }

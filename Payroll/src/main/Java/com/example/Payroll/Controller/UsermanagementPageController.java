@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class UsermanagementPageController {
     @RequestMapping("")
     public String showUsermanagementPage() {
-        return "usermanagement";
+        return "admin/usermanagement";
     }
 
 

@@ -21,6 +21,6 @@ public class UserDashboardController {
         model.addAttribute("user", user);
 
 
-        return "userDashboard";
+        return "employee/userDashboard";
     }
 }
