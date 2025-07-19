@@ -19,8 +19,6 @@ public class UserDashboardController {
         }
 
         model.addAttribute("user", user);
-
-
-        return "employee/userDashboard";
+        return "employee/userDashboard";  // This is the HTML page
     }
 }

@@ -16,13 +16,37 @@
 
         <main class="col-md-10 p-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h4 th:text="'Welcome, ' + ${user.fullName}">Welcome, User</h4>
-
-                </div>
+                <h4 th:text="'Welcome, ' + ${user.fullName}">Welcome, User</h4>
             </div>
 
-            <p>This is your dashboard. You can view your attendance, salary info, and more.</p>
+            <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+            <h2>Record Attendance</h2>
+
+            <!-- Clock In Form -->
+            <form method="post" action="/user/attendance" class="mb-3">
+                <input type="hidden" name="type" value="in" />
+                <input type="hidden" name="userId" th:value="${user.id}" />
+
+                <label for="datetime-in" class="form-label">Clock In Date & Time:</label>
+                <input type="datetime-local" id="datetime-in" name="dateTime" class="form-control" required />
+                <button type="submit" class="btn btn-success mt-2">Clock In</button>
+            </form>
+
+            <!-- Clock Out Form -->
+            <form method="post" action="/user/attendance">
+                <input type="hidden" name="type" value="out" />
+                <input type="hidden" name="userId" th:value="${user.id}" />
+
+                <label for="datetime-out" class="form-label">Clock Out Date & Time:</label>
+                <input type="datetime-local" id="datetime-out" name="dateTime" class="form-control" required />
+                <button type="submit" class="btn btn-danger mt-2">Clock Out</button>
+            </form>
+
+            <div class="mt-4">
+                <a href="/logout" class="btn btn-outline-secondary">Logout</a>
+            </div>
         </main>
     </div>
 </div>
