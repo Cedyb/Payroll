@@ -18,6 +18,10 @@ public class Attendance {
 
     private LocalTime clockOut;
 
+    private double regularHours;
+
+    private String status;
+
     @ManyToOne
     @JoinColumn(name = "employee_id", nullable = false)
     private User user;
@@ -55,6 +59,22 @@ public class Attendance {
 
     public void setClockOut(LocalTime clockOut) {
         this.clockOut = clockOut;
+    }
+
+    public double getRegularHours() {
+        return regularHours;
+    }
+
+    public void setRegularHours(double regularHours) {
+        this.regularHours = regularHours;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public User getUser() {
