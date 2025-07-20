@@ -13,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import com.example.Payroll.Service.AttendanceService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -79,6 +80,9 @@ public class UserAttendanceController {
     }
 
     // Show attendance summary page
+    @Autowired
+    private AttendanceService attendanceService;
+
     @GetMapping("/attendance")
     public String showAttendancePage(
             @RequestParam(value = "date", required = false)
@@ -90,12 +94,16 @@ public class UserAttendanceController {
             date = LocalDate.now();
         }
 
+        // Compute summary automatically from logs
+        attendanceService.computeAndSaveDailyAttendance(user, date);
+
         Optional<Attendance> attendanceOpt = attendanceRepo.findByUserAndDate(user, date);
 
         model.addAttribute("user", user);
         model.addAttribute("attendance", attendanceOpt.orElse(null));
         model.addAttribute("selectedDate", date.toString());
 
-        return "employee/userAttendance"; // This is the summary page only
+        return "employee/userAttendance";
     }
+
 }

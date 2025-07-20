@@ -39,20 +39,29 @@
             <th>Date</th>
             <th>Clock In</th>
             <th>Clock Out</th>
+            <th>Morning In</th>
+            <th>Morning Out</th>
+            <th>Afternoon In</th>
+            <th>Afternoon Out</th>
             <th>Hours Worked</th>
             <th>Status</th>
           </tr>
           </thead>
           <tbody>
           <tr>
-            <td th:text="${attendance.date}">2025-07-19</td>
+            <td th:text="${attendance.date}">2025-07-20</td>
             <td th:text="${attendance.clockIn != null ? attendance.clockIn : 'N/A'}">08:00</td>
             <td th:text="${attendance.clockOut != null ? attendance.clockOut : 'N/A'}">17:00</td>
-            <td th:text="${#numbers.formatDecimal(attendance.regularHours, 1, 'POINT')}">8.0</td>
+            <td th:text="${attendance.morningIn != null ? attendance.morningIn : 'N/A'}">08:00</td>
+            <td th:text="${attendance.morningOut != null ? attendance.morningOut : 'N/A'}">11:30</td>
+            <td th:text="${attendance.afternoonIn != null ? attendance.afternoonIn : 'N/A'}">13:00</td>
+            <td th:text="${attendance.afternoonOut != null ? attendance.afternoonOut : 'N/A'}">16:30</td>
+            <td th:text="${attendance.regularHours != null ? #numbers.formatDecimal(attendance.regularHours, 1, 2) : '0.00'}">8.00</td>
             <td th:text="${attendance.status}">Present</td>
           </tr>
           </tbody>
         </table>
+
       </div>
 
       <div th:if="${attendance == null}" class="alert alert-info">

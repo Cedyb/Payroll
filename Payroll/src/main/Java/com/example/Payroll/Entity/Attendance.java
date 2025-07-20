@@ -13,13 +13,15 @@ public class Attendance {
     private Long id;
 
     private LocalDate date;
-
     private LocalTime clockIn;
-
     private LocalTime clockOut;
 
-    private double regularHours;
+    private LocalTime morningIn;
+    private LocalTime morningOut;
+    private LocalTime afternoonIn;
+    private LocalTime afternoonOut;
 
+    private double regularHours;
     private String status;
 
     @ManyToOne
@@ -33,55 +35,37 @@ public class Attendance {
         this.user = user;
     }
 
-    public Long getId() {
-        return id;
-    }
+    // Getters and Setters...
 
-    public LocalDate getDate() {
-        return date;
-    }
+    public Long getId() { return id; }
 
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
+    public LocalDate getDate() { return date; }
+    public void setDate(LocalDate date) { this.date = date; }
 
-    public LocalTime getClockIn() {
-        return clockIn;
-    }
+    public LocalTime getClockIn() { return clockIn; }
+    public void setClockIn(LocalTime clockIn) { this.clockIn = clockIn; }
 
-    public void setClockIn(LocalTime clockIn) {
-        this.clockIn = clockIn;
-    }
+    public LocalTime getClockOut() { return clockOut; }
+    public void setClockOut(LocalTime clockOut) { this.clockOut = clockOut; }
 
-    public LocalTime getClockOut() {
-        return clockOut;
-    }
+    public LocalTime getMorningIn() { return morningIn; }
+    public void setMorningIn(LocalTime morningIn) { this.morningIn = morningIn; }
 
-    public void setClockOut(LocalTime clockOut) {
-        this.clockOut = clockOut;
-    }
+    public LocalTime getMorningOut() { return morningOut; }
+    public void setMorningOut(LocalTime morningOut) { this.morningOut = morningOut; }
 
-    public double getRegularHours() {
-        return regularHours;
-    }
+    public LocalTime getAfternoonIn() { return afternoonIn; }
+    public void setAfternoonIn(LocalTime afternoonIn) { this.afternoonIn = afternoonIn; }
 
-    public void setRegularHours(double regularHours) {
-        this.regularHours = regularHours;
-    }
+    public LocalTime getAfternoonOut() { return afternoonOut; }
+    public void setAfternoonOut(LocalTime afternoonOut) { this.afternoonOut = afternoonOut; }
 
-    public String getStatus() {
-        return status;
-    }
+    public double getRegularHours() { return regularHours; }
+    public void setRegularHours(double regularHours) { this.regularHours = regularHours; }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 }
