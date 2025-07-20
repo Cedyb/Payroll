@@ -6,6 +6,7 @@ import com.example.Payroll.Entity.User;
 import com.example.Payroll.Repository.AttendanceLogRepository;
 import com.example.Payroll.Repository.AttendanceRepository;
 import com.example.Payroll.Repository.UserRepository;
+import com.example.Payroll.Service.AttendanceService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import com.example.Payroll.Service.AttendanceService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -32,6 +32,9 @@ public class UserAttendanceController {
 
     @Autowired
     private UserRepository userRepo;
+
+    @Autowired
+    private AttendanceService attendanceService;
 
     // Handle clock in/out submission
     @PostMapping("/attendance")
@@ -55,34 +58,33 @@ public class UserAttendanceController {
             return "redirect:/employee/userDashboard";
         }
 
+        // Save new log
         AttendanceLog log = new AttendanceLog();
         log.setUser(user);
         log.setTimestamp(dateTime);
         log.setType(type.toUpperCase());
         attendanceLogRepo.save(log);
 
+        // Optionally store basic clockIn/Out (not required since compute handles it)
         LocalDate date = dateTime.toLocalDate();
         LocalTime time = dateTime.toLocalTime();
-
         Attendance attendance = attendanceRepo.findByUserAndDate(user, date)
                 .orElse(new Attendance(date, user));
-
         if (type.equalsIgnoreCase("in")) {
             attendance.setClockIn(time);
         } else if (type.equalsIgnoreCase("out")) {
             attendance.setClockOut(time);
         }
-
         attendanceRepo.save(attendance);
 
+        // ✅ Recompute full summary immediately after log entry
+        attendanceService.computeAndSaveDailyAttendance(user, date);
+
         redirectAttributes.addFlashAttribute("message", "Clock " + type + " recorded.");
-        return "redirect:/employee/userDashboard"; // back to dashboard after submitting
+        return "redirect:/employee/userDashboard";
     }
 
     // Show attendance summary page
-    @Autowired
-    private AttendanceService attendanceService;
-
     @GetMapping("/attendance")
     public String showAttendancePage(
             @RequestParam(value = "date", required = false)
@@ -94,7 +96,6 @@ public class UserAttendanceController {
             date = LocalDate.now();
         }
 
-        // Compute summary automatically from logs
         attendanceService.computeAndSaveDailyAttendance(user, date);
 
         Optional<Attendance> attendanceOpt = attendanceRepo.findByUserAndDate(user, date);
@@ -105,5 +106,4 @@ public class UserAttendanceController {
 
         return "employee/userAttendance";
     }
-
 }

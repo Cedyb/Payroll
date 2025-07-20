@@ -25,47 +25,52 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Override
     public void computeAndSaveDailyAttendance(User user, LocalDate date) {
         List<AttendanceLog> logs = attendanceLogRepo.findByUserAndDate(user, date);
-
         if (logs == null || logs.isEmpty()) return;
 
-        // Initialize
+        LocalTime MORNING_END = LocalTime.of(12, 0);
+        LocalTime AFTERNOON_START = LocalTime.of(12, 0);
+
         LocalTime morningIn = null, morningOut = null;
         LocalTime afternoonIn = null, afternoonOut = null;
 
-        // Time slots
-        LocalTime MORNING_START = LocalTime.of(7, 30);
-        LocalTime MORNING_END = LocalTime.of(11, 30);
-        LocalTime AFTERNOON_START = LocalTime.of(13, 0);
-        LocalTime AFTERNOON_END = LocalTime.of(16, 30);
-
-        // Parse valid IN/OUT pairs
-        boolean expectingIn = true;
+        AttendanceLog previous = null;
         for (AttendanceLog log : logs) {
-            LocalTime time = log.getTimestamp().toLocalTime();
-            if (expectingIn && log.getType().equalsIgnoreCase("IN")) {
-                if (time.isBefore(MORNING_END)) {
-                    if (morningIn == null) morningIn = time;
-                } else if (time.isAfter(AFTERNOON_START.minusMinutes(1))) {
-                    if (afternoonIn == null) afternoonIn = time;
+            if (previous == null) {
+                if (log.getType().equalsIgnoreCase("IN")) {
+                    previous = log;
                 }
-                expectingIn = false;
-            } else if (!expectingIn && log.getType().equalsIgnoreCase("OUT")) {
-                if (time.isBefore(MORNING_END.plusHours(1))) {
-                    if (morningOut == null) morningOut = time;
-                } else if (time.isAfter(AFTERNOON_START.minusMinutes(1))) {
-                    if (afternoonOut == null) afternoonOut = time;
+                continue;
+            }
+
+            if (previous.getType().equalsIgnoreCase("IN") && log.getType().equalsIgnoreCase("OUT")) {
+                LocalTime inTime = previous.getTimestamp().toLocalTime();
+                LocalTime outTime = log.getTimestamp().toLocalTime();
+
+                if (inTime.isBefore(MORNING_END)) {
+                    if (morningIn == null) morningIn = inTime;
+                    if (morningOut == null) morningOut = outTime;
+                } else {
+                    if (afternoonIn == null) afternoonIn = inTime;
+                    if (afternoonOut == null) afternoonOut = outTime;
                 }
-                expectingIn = true;
+                previous = null; // reset for next IN
+            } else {
+                // Reset if sequence is broken
+                if (log.getType().equalsIgnoreCase("IN")) {
+                    previous = log;
+                } else {
+                    previous = null;
+                }
             }
         }
 
-        // Compute totals
+        // Compute total hours
         double totalHours = 0;
         if (morningIn != null && morningOut != null) {
-            totalHours += (double) (java.time.Duration.between(morningIn, morningOut).toMinutes()) / 60;
+            totalHours += java.time.Duration.between(morningIn, morningOut).toMinutes() / 60.0;
         }
         if (afternoonIn != null && afternoonOut != null) {
-            totalHours += (double) (java.time.Duration.between(afternoonIn, afternoonOut).toMinutes()) / 60;
+            totalHours += java.time.Duration.between(afternoonIn, afternoonOut).toMinutes() / 60.0;
         }
 
         String status;
@@ -78,7 +83,6 @@ public class AttendanceServiceImpl implements AttendanceService {
         Attendance attendance = attendanceRepo.findByUserAndDate(user, date)
                 .orElse(new Attendance(date, user));
 
-        // Save summary
         attendance.setClockIn(logs.get(0).getTimestamp().toLocalTime());
         attendance.setClockOut(logs.get(logs.size() - 1).getTimestamp().toLocalTime());
         attendance.setRegularHours(totalHours);
@@ -90,4 +94,5 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         attendanceRepo.save(attendance);
     }
+
 }

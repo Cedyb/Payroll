@@ -10,18 +10,34 @@ public class Attendance {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "attendance_id")
     private Long id;
 
+    @Column(name = "date")
     private LocalDate date;
+
+    @Column(name = "clock_in")
     private LocalTime clockIn;
+
+    @Column(name = "clock_out")
     private LocalTime clockOut;
 
+    @Column(name = "morning_in")
     private LocalTime morningIn;
+
+    @Column(name = "morning_out")
     private LocalTime morningOut;
+
+    @Column(name = "afternoon_in")
     private LocalTime afternoonIn;
+
+    @Column(name = "afternoon_out")
     private LocalTime afternoonOut;
 
+    @Column(name = "regular_hours")
     private double regularHours;
+
+    @Column(name = "status")
     private String status;
 
     @ManyToOne
