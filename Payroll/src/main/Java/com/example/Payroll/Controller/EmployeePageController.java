@@ -34,19 +34,19 @@ public class EmployeePageController {
     @PostMapping("/create")
     public String create(@ModelAttribute EmployeeForm employeeForm) {
         employeeService.createEmployee(employeeForm);
-        return "redirect:/admin/employees";
+        return "redirect:/employees";
     }
 
     @PostMapping("/update")
     public String update(@ModelAttribute EmployeeForm employeeForm, @RequestParam("id") Long id) {
         employeeService.updateEmployee(id, employeeForm);
-        return "redirect:/admin/employees";
+        return "redirect:/employees";
     }
 
 
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable(value = "id", required = true) Long id) {
         employeeService.deleteEmployee(id);
-        return "redirect:/admin/employees";
+        return "redirect:/employees";
     }
 }

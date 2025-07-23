@@ -11,19 +11,88 @@
 <div class="container-fluid">
   <div class="row">
 
-
     <nav th:replace="fragments/nav :: nav"></nav>
 
     <main class="col-md-10 p-4">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-        </div>
+      <h2 class="text-center">168 Global Construction & Development Corp</h2>
+      <h3 class="text-center">Kamias-Symfoni 2 Project</h3>
+      <p class="text-center">Period Covered: September 18–24, 2024</p>
+      <h3>Name: <span class="employee-name">Juan Dela Cruz (20233000456)</span></h3>
+      <h3>ID: <span class="id-name">20233000456</span></h3>
+
+      <div class="mb-3">
+        <label for="from-date" class="form-label">From:</label>
+        <input type="date" class="form-control" id="from-date" />
+        <label for="to-date" class="form-label mt-2">To:</label>
+        <input type="date" class="form-control" id="to-date" />
       </div>
 
-      <p>PAYROLL</p>
+      <!-- Timesheet Section -->
+      <div class="table-responsive mb-4">
+        <table class="table table-bordered text-center">
+          <thead class="table-dark">
+          <tr>
+            <th rowspan="2">Date</th>
+            <th colspan="2">Morning</th>
+            <th colspan="2">Afternoon</th>
+            <th colspan="2">Overtime</th>
+            <th rowspan="2">Reg<br>Hours</th>
+            <th rowspan="2">OT<br>Hours</th>
+            <th rowspan="2">Total<br>Hours</th>
+          </tr>
+          <tr>
+            <th>IN</th><th>OUT</th><th>IN</th><th>OUT</th><th>IN</th><th>OUT</th>
+          </tr>
+          </thead>
+          <tbody>
+          <!-- Sample rows -->
+          <tr><td>5-Sep-24</td><td>7:00 AM</td><td>12:00 PM</td><td>1:00 PM</td><td>4:00 PM</td><td>5:00 PM</td><td>7:00 PM</td><td>8</td><td>2</td><td>10</td></tr>
+          <tr><td>6-Sep-24</td><td>7:00 AM</td><td>12:00 PM</td><td>1:00 PM</td><td>4:00 PM</td><td>5:00 PM</td><td>7:00 PM</td><td>8</td><td>2</td><td>10</td></tr>
+          <!-- Add more rows as needed -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mb-4 d-flex gap-2">
+        <button class="btn btn-warning">Edit</button>
+        <button class="btn btn-primary">Print</button>
+        <button class="btn btn-danger">Delete</button>
+      </div>
+
+      <!-- Payroll Summary -->
+      <div class="table-responsive mb-4">
+        <table class="table table-bordered">
+          <thead class="table-dark text-center">
+          <tr>
+            <th colspan="2">EARNINGS</th>
+            <th colspan="2">DEDUCTIONS</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr><td>Basic Pay</td><td>5,118.75</td><td>Savings</td><td>-</td></tr>
+          <tr><td>Regular Overtime</td><td>-</td><td>SSS</td><td>-</td></tr>
+          <tr><td>Leave</td><td>-</td><td>PhilHealth</td><td>-</td></tr>
+          <tr><td>Regular Holiday</td><td>-</td><td>PagIbig</td><td>-</td></tr>
+          <tr><td>Special Holiday</td><td>-</td><td>Canteen</td><td>-</td></tr>
+          <tr><td>COLA</td><td>-</td><td>Cash Advance/Loan</td><td>-</td></tr>
+          <tr><td>Allowance</td><td>-</td><td>Medical</td><td>-</td></tr>
+          <tr><td>Adjustment</td><td>-</td><td>Insurance</td><td>-</td></tr>
+          <tr><td></td><td></td><td>Utilities</td><td>-</td></tr>
+          <tr><td></td><td></td><td>Sub-total</td><td>-</td></tr>
+          <tr class="fw-bold">
+            <td class="text-center">Gross Pay</td><td>5,118.75</td>
+            <td class="text-center">Net Pay</td><td>5,118.75</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mb-4 d-flex gap-2">
+        <button class="btn btn-warning">Edit</button>
+        <button class="btn btn-success">Generate Payslip</button>
+      </div>
     </main>
   </div>
 </div>
 </body>
 </html>
-

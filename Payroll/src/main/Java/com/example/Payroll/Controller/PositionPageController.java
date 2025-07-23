@@ -30,20 +30,20 @@ public class PositionPageController {
     public String create(@ModelAttribute PositionsForm positionsForm)
     {
         positionsService.createPosition(positionsForm);
-        return "redirect:/admin/positions";
+        return "redirect:/positions";
     }
 
     @PostMapping("/update")
     public String update(@ModelAttribute PositionsForm positionsForm) {
         positionsService.updatePosition(positionsForm);
-        return "redirect:/admin/positions#udpatecomplete" ;
+        return "redirect:/positions#udpatecomplete" ;
     }
 
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable(value = "id", required = true) Long id)
     {
         positionsService.deletePosition(id);
-        return "redirect:/admin/positions";
+        return "redirect:/positions";
     }
 
 
