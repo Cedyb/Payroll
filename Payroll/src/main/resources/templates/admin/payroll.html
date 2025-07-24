@@ -2,97 +2,131 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>User Dashboard</title>
+  <title>Payroll</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/css/app.css" />
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</head>
+</head> <!-- ✅ this was missing -->
 <body>
+
 <div class="container-fluid">
   <div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-2 bg-light min-vh-100 p-0" th:replace="fragments/nav :: nav"></div>
 
-    <nav th:replace="fragments/nav :: nav"></nav>
-
-    <main class="col-md-10 p-4">
-      <h2 class="text-center">168 Global Construction & Development Corp</h2>
-      <h3 class="text-center">Kamias-Symfoni 2 Project</h3>
+    <!-- Main Content -->
+    <div class="col-md-10 p-4">
+      <h3 class="text-center fw-bold">168 Global Construction & Development Corp</h3>
+      <h5 class="text-center">Kamias-Symfoni 2 Project</h5>
       <p class="text-center">Period Covered: September 18–24, 2024</p>
-      <h3>Name: <span class="employee-name">Juan Dela Cruz (20233000456)</span></h3>
-      <h3>ID: <span class="id-name">20233000456</span></h3>
 
-      <div class="mb-3">
-        <label for="from-date" class="form-label">From:</label>
-        <input type="date" class="form-control" id="from-date" />
-        <label for="to-date" class="form-label mt-2">To:</label>
-        <input type="date" class="form-control" id="to-date" />
+      <!-- Dropdown beside Name -->
+      <div class="row mb-3 align-items-center">
+        <div class="col-auto fw-bold">Name:</div>
+        <div class="col-auto">
+          <form method="get" th:action="@{/payroll/view}">
+            <select class="form-select" name="userId" id="userSelect" onchange="this.form.submit()">
+              <option value="" disabled selected>Select Employee</option>
+              <option th:each="user : ${users}"
+                      th:value="${user.employeeId}"
+                      th:text="${user.firstName + ' ' + user.lastName + ' (' + user.employeeId + ')'}"
+                      th:selected="${selectedUser != null and user.employeeId == selectedUser.employeeId}">
+              </option>
+            </select>
+          </form>
+        </div>
+        <div class="col-auto">
+          <strong>ID:</strong>
+          <span th:text="${selectedUser != null ? selectedUser.employeeId : ''}"></span>
+        </div>
       </div>
 
-      <!-- Timesheet Section -->
-      <div class="table-responsive mb-4">
-        <table class="table table-bordered text-center">
+      <!-- Date Filter -->
+      <div class="row mb-3">
+        <div class="col">
+          <label>From:</label>
+          <input type="date" class="form-control" />
+        </div>
+        <div class="col">
+          <label>To:</label>
+          <input type="date" class="form-control" />
+        </div>
+      </div>
+
+      <!-- Attendance Table -->
+      <div class="table-responsive">
+        <table class="table table-bordered text-center align-middle">
           <thead class="table-dark">
           <tr>
             <th rowspan="2">Date</th>
             <th colspan="2">Morning</th>
             <th colspan="2">Afternoon</th>
             <th colspan="2">Overtime</th>
-            <th rowspan="2">Reg<br>Hours</th>
-            <th rowspan="2">OT<br>Hours</th>
-            <th rowspan="2">Total<br>Hours</th>
+            <th rowspan="2">Reg Hours</th>
+            <th rowspan="2">OT Hours</th>
+            <th rowspan="2">Total Hours</th>
           </tr>
           <tr>
-            <th>IN</th><th>OUT</th><th>IN</th><th>OUT</th><th>IN</th><th>OUT</th>
+            <th>IN</th><th>OUT</th>
+            <th>IN</th><th>OUT</th>
+            <th>IN</th><th>OUT</th>
           </tr>
           </thead>
           <tbody>
-          <!-- Sample rows -->
-          <tr><td>5-Sep-24</td><td>7:00 AM</td><td>12:00 PM</td><td>1:00 PM</td><td>4:00 PM</td><td>5:00 PM</td><td>7:00 PM</td><td>8</td><td>2</td><td>10</td></tr>
-          <tr><td>6-Sep-24</td><td>7:00 AM</td><td>12:00 PM</td><td>1:00 PM</td><td>4:00 PM</td><td>5:00 PM</td><td>7:00 PM</td><td>8</td><td>2</td><td>10</td></tr>
-          <!-- Add more rows as needed -->
+          <tr th:each="attendance : ${attendanceList}">
+            <td th:text="${#dates.format(attendance.date, 'd-MMM-yy')}"></td>
+            <td th:text="${attendance.morningIn}"></td>
+            <td th:text="${attendance.morningOut}"></td>
+            <td th:text="${attendance.afternoonIn}"></td>
+            <td th:text="${attendance.afternoonOut}"></td>
+            <td th:text="${attendance.overtimeIn}"></td>
+            <td th:text="${attendance.overtimeOut}"></td>
+            <td th:text="${attendance.regularHours}"></td>
+            <td th:text="${attendance.otHours}"></td>
+            <td th:text="${attendance.totalHours}"></td>
+          </tr>
           </tbody>
         </table>
       </div>
 
-      <div class="mb-4 d-flex gap-2">
+      <!-- Action Buttons -->
+      <div class="mb-3">
         <button class="btn btn-warning">Edit</button>
         <button class="btn btn-primary">Print</button>
         <button class="btn btn-danger">Delete</button>
       </div>
 
-      <!-- Payroll Summary -->
-      <div class="table-responsive mb-4">
-        <table class="table table-bordered">
-          <thead class="table-dark text-center">
-          <tr>
-            <th colspan="2">EARNINGS</th>
-            <th colspan="2">DEDUCTIONS</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr><td>Basic Pay</td><td>5,118.75</td><td>Savings</td><td>-</td></tr>
-          <tr><td>Regular Overtime</td><td>-</td><td>SSS</td><td>-</td></tr>
-          <tr><td>Leave</td><td>-</td><td>PhilHealth</td><td>-</td></tr>
-          <tr><td>Regular Holiday</td><td>-</td><td>PagIbig</td><td>-</td></tr>
-          <tr><td>Special Holiday</td><td>-</td><td>Canteen</td><td>-</td></tr>
-          <tr><td>COLA</td><td>-</td><td>Cash Advance/Loan</td><td>-</td></tr>
-          <tr><td>Allowance</td><td>-</td><td>Medical</td><td>-</td></tr>
-          <tr><td>Adjustment</td><td>-</td><td>Insurance</td><td>-</td></tr>
-          <tr><td></td><td></td><td>Utilities</td><td>-</td></tr>
-          <tr><td></td><td></td><td>Sub-total</td><td>-</td></tr>
-          <tr class="fw-bold">
-            <td class="text-center">Gross Pay</td><td>5,118.75</td>
-            <td class="text-center">Net Pay</td><td>5,118.75</td>
-          </tr>
-          </tbody>
-        </table>
+      <!-- Earnings and Deductions -->
+      <div class="row">
+        <div class="col-md-6">
+          <table class="table table-bordered">
+            <thead class="table-dark">
+            <tr><th colspan="2">EARNINGS</th></tr>
+            </thead>
+            <tr><td>Basic Pay</td><td>5,118.75</td></tr>
+            <tr><td>Regular Overtime</td><td>-</td></tr>
+            <tr><td>Leave</td><td>-</td></tr>
+            <tr><td>Regular Holiday</td><td>-</td></tr>
+            <tr><td>Special Holiday</td><td>-</td></tr>
+          </table>
+        </div>
+        <div class="col-md-6">
+          <table class="table table-bordered">
+            <thead class="table-dark">
+            <tr><th colspan="2">DEDUCTIONS</th></tr>
+            </thead>
+            <tr><td>Savings</td><td>-</td></tr>
+            <tr><td>SSS</td><td>-</td></tr>
+            <tr><td>PhilHealth</td><td>-</td></tr>
+            <tr><td>PagIbig</td><td>-</td></tr>
+            <tr><td>Canteen</td><td>-</td></tr>
+          </table>
+        </div>
       </div>
 
-      <div class="mb-4 d-flex gap-2">
-        <button class="btn btn-warning">Edit</button>
-        <button class="btn btn-success">Generate Payslip</button>
-      </div>
-    </main>
-  </div>
-</div>
+    </div> <!-- col-md-10 -->
+  </div> <!-- row -->
+</div> <!-- container-fluid -->
+
 </body>
 </html>

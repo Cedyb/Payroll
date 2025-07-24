@@ -1,11 +1,11 @@
-package com.example.Payroll.Service;
+package com.example.Payroll.Service.Impl;
 
 import com.example.Payroll.Entity.Attendance;
 import com.example.Payroll.Entity.AttendanceLog;
-import com.example.Payroll.Entity.User;
+import com.example.Payroll.Entity.Employee;
 import com.example.Payroll.Repository.AttendanceLogRepository;
 import com.example.Payroll.Repository.AttendanceRepository;
-
+import com.example.Payroll.Service.AttendanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,8 +23,8 @@ public class AttendanceServiceImpl implements AttendanceService {
     private AttendanceRepository attendanceRepo;
 
     @Override
-    public void computeAndSaveDailyAttendance(User user, LocalDate date) {
-        List<AttendanceLog> logs = attendanceLogRepo.findByUserAndDate(user, date);
+    public void computeAndSaveDailyAttendance(Employee employee, LocalDate date) {
+        List<AttendanceLog> logs = attendanceLogRepo.findByEmployeeAndDate(employee, date);
         if (logs == null || logs.isEmpty()) return;
 
         LocalTime MORNING_END = LocalTime.of(12, 0);
@@ -80,8 +80,8 @@ public class AttendanceServiceImpl implements AttendanceService {
             status = "absent";
         }
 
-        Attendance attendance = attendanceRepo.findByUserAndDate(user, date)
-                .orElse(new Attendance(date, user));
+        Attendance attendance = attendanceRepo.findByEmployeeAndDate(employee, date)
+                .orElse(new Attendance(date, employee));
 
         attendance.setClockIn(logs.get(0).getTimestamp().toLocalTime());
         attendance.setClockOut(logs.get(logs.size() - 1).getTimestamp().toLocalTime());

@@ -12,8 +12,8 @@ public class AttendanceLog {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "employee_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "employee_id")
+    private Employee employee;
 
     @Column(name = "timestamp", nullable = false)
     private LocalDateTime timestamp;
@@ -24,8 +24,8 @@ public class AttendanceLog {
     // Constructors
     public AttendanceLog() {}
 
-    public AttendanceLog(User user, LocalDateTime timestamp, String type) {
-        this.user = user;
+    public AttendanceLog(Employee employee, LocalDateTime timestamp, String type) {
+        this.employee = employee;
         this.timestamp = timestamp;
         this.type = type;
     }
@@ -39,12 +39,12 @@ public class AttendanceLog {
         this.id = id;
     }
 
-    public User getUser() {
-        return user;
+    public Employee getEmployee() {
+        return employee;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setEmployee(Employee employee) {
+        this.employee = employee;
     }
 
     public LocalDateTime getTimestamp() {

@@ -1,18 +1,24 @@
 package com.example.Payroll.Controller;
 
-
+import com.example.Payroll.Entity.Attendance;
+import com.example.Payroll.Repository.AttendanceRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+
+import java.util.List;
 
 @Controller
-@RequestMapping("attendance")
+@RequiredArgsConstructor
 public class AttendancePageController {
 
-    @RequestMapping("")
-    public String showAttendancePage() {
+    private final AttendanceRepository attendanceRepo;
+
+    @GetMapping("/attendance")
+    public String viewAllAttendance(Model model) {
+        List<Attendance> allAttendance = attendanceRepo.findAll();
+        model.addAttribute("attendanceList", allAttendance);
         return "admin/attendance";
     }
 }
-
-
-

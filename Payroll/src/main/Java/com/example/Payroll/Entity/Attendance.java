@@ -42,16 +42,15 @@ public class Attendance {
 
     @ManyToOne
     @JoinColumn(name = "employee_id", nullable = false)
-    private User user;
+    private Employee employee;
 
     public Attendance() {}
 
-    public Attendance(LocalDate date, User user) {
+    public Attendance(LocalDate date, Employee employee) {
         this.date = date;
-        this.user = user;
+        this.employee = employee;
     }
 
-    // Getters and Setters...
 
     public Long getId() { return id; }
 
@@ -82,6 +81,7 @@ public class Attendance {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
+    public Employee getEmployee() { return employee; }
+    public void setEmployee(Employee employee) { this.employee = employee; }
+
 }

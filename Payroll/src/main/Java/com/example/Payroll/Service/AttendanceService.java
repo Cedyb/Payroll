@@ -1,8 +1,8 @@
 package com.example.Payroll.Service;
 
 import java.time.LocalDate;
-import com.example.Payroll.Entity.User;
+import com.example.Payroll.Entity.Employee;
 
 public interface AttendanceService {
-    void computeAndSaveDailyAttendance(User user, LocalDate date);
+    void computeAndSaveDailyAttendance(Employee employee, LocalDate date);
 }
