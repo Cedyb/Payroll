@@ -86,4 +86,10 @@ public class EmployeeServiceImpl implements EmployeeService {
             employeeRepository.save(employee);
         }
     }
+
+    @Override
+    public List<Employee> searchEmployeesByKeyword(String keyword) {
+        return employeeRepository.searchByNameOrId(keyword);
+    }
+
 }

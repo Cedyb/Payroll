@@ -16,7 +16,7 @@
 
         <main class="col-md-10 p-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 th:text="'Welcome, ' + ${user.fullName}">Welcome, User</h4>
+                <h4 th:text="'Welcome, ' + ${employee.fullName}">Welcome, Employee</h4>
             </div>
 
             <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
@@ -25,9 +25,9 @@
             <h2>Record Attendance</h2>
 
             <!-- Clock In Form -->
-            <form method="post" action="/user/attendance" class="mb-3">
+            <form method="post" action="/userAttendance/attendance" class="mb-3">
                 <input type="hidden" name="type" value="in" />
-                <input type="hidden" name="userId" th:value="${user.id}" />
+                <input type="hidden" name="employeeId" th:value="${employee.employeeId}" />
 
                 <label for="datetime-in" class="form-label">Clock In Date & Time:</label>
                 <input type="datetime-local" id="datetime-in" name="dateTime" class="form-control" required />
@@ -35,9 +35,9 @@
             </form>
 
             <!-- Clock Out Form -->
-            <form method="post" action="/user/attendance">
+            <form method="post" action="/userAttendance/attendance">
                 <input type="hidden" name="type" value="out" />
-                <input type="hidden" name="userId" th:value="${user.id}" />
+                <input type="hidden" name="employeeId" th:value="${employee.employeeId}" />
 
                 <label for="datetime-out" class="form-label">Clock Out Date & Time:</label>
                 <input type="datetime-local" id="datetime-out" name="dateTime" class="form-control" required />
@@ -45,7 +45,7 @@
             </form>
 
             <div class="mt-4">
-                <a href="/user/attendance" class="btn btn-primary">View Attendance Summary</a>
+                <a href="/userAttendance" class="btn btn-primary">View Attendance Summary</a>
                 <a href="/logout" class="btn btn-outline-secondary">Logout</a>
             </div>
         </main>
@@ -53,17 +53,17 @@
 </div>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const forms = document.querySelectorAll('form');
+        const forms = document.querySelectorAll('form');
 
-      forms.forEach(form => {
-        form.addEventListener('submit', () => {
-          const button = form.querySelector('button[type="submit"]');
-          if (button) {
-            button.disabled = true;
-            button.innerText = 'Submitting...';
-          }
+        forms.forEach(form => {
+            form.addEventListener('submit', () => {
+                const button = form.querySelector('button[type="submit"]');
+                if (button) {
+                    button.disabled = true;
+                    button.innerText = 'Submitting...';
+                }
+            });
         });
-      });
     });
 </script>
 </body>

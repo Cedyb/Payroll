@@ -21,7 +21,7 @@ import java.time.LocalTime;
 import java.util.Optional;
 
 @Controller
-@RequestMapping("/user")
+@RequestMapping("/userAttendance")
 public class UserAttendanceController {
 
     @Autowired
@@ -40,22 +40,25 @@ public class UserAttendanceController {
     public String recordAttendance(
             @RequestParam("type") String type,
             @RequestParam("dateTime") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateTime,
-            @RequestParam("userId") Long employeeId,
+            @RequestParam("employeeId") Long employeeId,
+
             RedirectAttributes redirectAttributes
     ) {
         Optional<Employee> employeeOpt = employeeRepo.findById(employeeId);
         if (employeeOpt.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Invalid employee.");
-            return "redirect:/employee/userDashboard";
+            return "redirect:/userDashboard";
         }
 
         Employee employee = employeeOpt.get();
 
         AttendanceLog lastLog = attendanceLogRepo.findTopByEmployeeOrderByTimestampDesc(employee);
-        if (lastLog != null && lastLog.getType().equalsIgnoreCase(type)) {
-            redirectAttributes.addFlashAttribute("error", "You already clocked " + type + ".");
-            return "redirect:/employee/userDashboard";
+        if (lastLog != null && lastLog.getType().equalsIgnoreCase(type)
+                && lastLog.getTimestamp().toLocalDate().equals(dateTime.toLocalDate())) {
+            redirectAttributes.addFlashAttribute("error", "You already clocked " + type + " today.");
+            return "redirect:/userDashboard";
         }
+
 
         AttendanceLog log = new AttendanceLog();
         log.setEmployee(employee);
@@ -77,28 +80,28 @@ public class UserAttendanceController {
         attendanceService.computeAndSaveDailyAttendance(employee, date);
 
         redirectAttributes.addFlashAttribute("message", "Clock " + type + " recorded.");
-        return "redirect:/employee/userDashboard";
+        return "redirect:/userDashboard";
     }
 
-    @GetMapping("/attendance")
+    @GetMapping("")
     public String showAttendancePage(
             @RequestParam(value = "date", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @SessionAttribute("employee") Employee employee,
             Model model) {
 
-        if (date == null) {
-            date = LocalDate.now();
-        }
-
-        attendanceService.computeAndSaveDailyAttendance(employee, date);
-
-        Optional<Attendance> attendanceOpt = attendanceRepo.findByEmployeeAndDate(employee, date);
-
         model.addAttribute("employee", employee);
-        model.addAttribute("attendance", attendanceOpt.orElse(null));
-        model.addAttribute("selectedDate", date.toString());
+        model.addAttribute("selectedDate", date != null ? date.toString() : "");
+
+        if (date != null) {
+            attendanceService.computeAndSaveDailyAttendance(employee, date);
+            Optional<Attendance> attendanceOpt = attendanceRepo.findByEmployeeAndDate(employee, date);
+            model.addAttribute("attendance", attendanceOpt.orElse(null));
+        } else {
+            model.addAttribute("attendanceList", attendanceRepo.findByEmployeeOrderByDateDesc(employee));
+        }
 
         return "employee/userAttendance";
     }
+
 }

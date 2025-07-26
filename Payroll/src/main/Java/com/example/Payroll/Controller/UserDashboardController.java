@@ -1,6 +1,6 @@
 package com.example.Payroll.Controller;
 
-import com.example.Payroll.Entity.User;
+import com.example.Payroll.Entity.Employee;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,13 +12,14 @@ public class UserDashboardController {
 
     @RequestMapping("")
     public String showUserDashboard(HttpSession session, Model model) {
-        User user = (User) session.getAttribute("user");
+        Employee employee = (Employee) session.getAttribute("employee");
 
-        if (user == null) {
+
+        if (employee == null) {
             return "redirect:/login";
         }
 
-        model.addAttribute("user", user);
+        model.addAttribute("employee", employee);
         return "employee/userDashboard";  // This is the HTML page
     }
 }

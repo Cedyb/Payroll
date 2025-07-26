@@ -16,6 +16,16 @@
     <!-- Main Content (right) -->
     <div class="col-md-10 mt-4">
       <h2>Attendance Records</h2>
+      
+      <form method="get" th:action="@{/attendance}" class="mb-3">
+        <div class="input-group" style="max-width: 300px;">
+          <input type="date" class="form-control" name="date"
+                 th:value="${selectedDate}"
+                 th:attr="max=${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}">
+          <button class="btn btn-primary" type="submit">Filter</button>
+        </div>
+      </form>
+
 
       <table class="table table-bordered mt-3">
         <thead>
@@ -31,12 +41,12 @@
         </thead>
         <tbody>
         <tr th:each="att : ${attendanceList}">
-          <td th:text="${att.employee.firstName + ' ' + att.employee.lastName}">Name</td>
+          <td th:text="${att.employee?.firstName + ' ' + att.employee?.lastName}">Name</td>
           <td th:text="${att.date}">2025-07-18</td>
-          <td th:text="${att.morningTimeIn}">--</td>
-          <td th:text="${att.morningTimeOut}">--</td>
-          <td th:text="${att.afternoonTimeIn}">--</td>
-          <td th:text="${att.afternoonTimeOut}">--</td>
+          <td th:text="${att.morningIn != null ? att.morningIn : '--'}">--</td>
+          <td th:text="${att.morningOut != null ? att.morningOut : '--'}">--</td>
+          <td th:text="${att.afternoonIn != null ? att.afternoonIn : '--'}">--</td>
+          <td th:text="${att.afternoonOut != null ? att.afternoonOut : '--'}">--</td>
           <td th:text="${att.status}">present</td>
         </tr>
         </tbody>

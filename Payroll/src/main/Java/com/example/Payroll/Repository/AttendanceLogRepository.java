@@ -2,7 +2,6 @@ package com.example.Payroll.Repository;
 
 import com.example.Payroll.Entity.AttendanceLog;
 import com.example.Payroll.Entity.Employee;
-import com.example.Payroll.Entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

@@ -40,7 +40,7 @@ public class Employee {
     @Column(name = "last_name", nullable = false, length = 50)
     private String lastName;
 
-    @Column(length = 100)
+    @Column(length = 100, unique = true)
     private String email;
 
     @Column(columnDefinition = "TEXT")
@@ -56,16 +56,19 @@ public class Employee {
     @JoinColumn(name = "position_id", referencedColumnName = "position_id", foreignKey = @ForeignKey(name = "fk_employee_position"))
     private Positions position;
 
-    // ✅ Add this field to support findByIsActiveTrue()
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
-    // Explicit getter for Spring to recognize `isActive`
     public boolean isActive() {
         return isActive;
     }
 
     public void setActive(boolean active) {
         isActive = active;
+    }
+
+    @Transient
+    public String getFullName() {
+        return firstName + " " + lastName;
     }
 }

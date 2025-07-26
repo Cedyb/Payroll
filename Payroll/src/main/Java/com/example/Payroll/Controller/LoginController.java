@@ -1,7 +1,7 @@
 package com.example.Payroll.Controller;
 
-import com.example.Payroll.Entity.User;
-import com.example.Payroll.Repository.UserRepository;
+import com.example.Payroll.Entity.Employee;
+import com.example.Payroll.Repository.EmployeeRepository;
 import com.example.Payroll.Static.SessionData;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,14 +13,12 @@ import org.springframework.web.bind.annotation.*;
 public class LoginController {
 
     @Autowired
-    private UserRepository userRepository;
-
+    private EmployeeRepository employeeRepository;
 
     @GetMapping("/login")
     public String showLoginForm() {
         return "login";
     }
-
 
     @PostMapping("/login")
     public String processLogin(
@@ -29,38 +27,35 @@ public class LoginController {
             HttpSession session,
             Model model) {
 
-
+        // Admin login
         if (SessionData.USERNAME.equals(email) && SessionData.PASSWORD.equals(password)) {
             session.setAttribute("admin", true);
-            return "redirect:/admin/dashboard";
+            return "redirect:/dashboard";
         }
 
-
-        User user = userRepository.findByEmail(email);
-        if (user != null && user.getPassword().equals(password  )) {
-            session.setAttribute("user", user);
-            return "redirect:/employee/userDashboard";
+        // Employee login
+        Employee employee = employeeRepository.findByEmail(email);
+        if (employee != null && employee.getPassword().equals(password)) {
+            session.setAttribute("employee", employee);
+            return "redirect:/userDashboard";
         }
-
 
         model.addAttribute("error", "Invalid email or password");
         return "login";
     }
 
-
-    @GetMapping("/employee/userDashboard")
+    @GetMapping("/userDashboard")
     public String showUserDashboard(HttpSession session, Model model) {
-        User user = (User) session.getAttribute("user");
+        Employee employee = (Employee) session.getAttribute("employee");
 
-        if (user == null) {
+        if (employee == null) {
             return "redirect:/login";
         }
 
-        model.addAttribute("user", user);
+        model.addAttribute("employee", employee);
         return "employee/userDashboard";
     }
 
-    // Admin dashboard
     @GetMapping("/dashboard")
     public String showAdminDashboard(HttpSession session) {
         Boolean isAdmin = (Boolean) session.getAttribute("admin");

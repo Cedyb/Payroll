@@ -16,13 +16,13 @@
 
     <main class="col-md-10 p-4">
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 th:text="'Welcome, ' + ${user.fullName}">Welcome, User</h4>
+        <h4 th:text="'Welcome, ' + ${employee.fullName}">Welcome, User</h4>
       </div>
 
-      <p>This is your daily attendance summary. Select a date to view your clock-in/clock-out record.</p>
+      <p>This is your daily attendance summary. Select a date to view your clock-in/clock-out record, or leave it empty to see all.</p>
 
       <!-- Date Picker -->
-      <form method="get" action="/user/attendance" class="mb-3">
+      <form method="get" th:action="@{/userAttendance}" class="mb-3">
         <div class="input-group" style="max-width: 300px;">
           <input type="date" class="form-control" name="date"
                  th:value="${selectedDate}"
@@ -31,7 +31,7 @@
         </div>
       </form>
 
-      <!-- Attendance Summary Table -->
+      <!-- Single Attendance Summary Table -->
       <div th:if="${attendance != null}" class="table-responsive">
         <table class="table table-bordered table-striped align-middle">
           <thead class="table-light">
@@ -61,14 +61,46 @@
           </tr>
           </tbody>
         </table>
-
-
       </div>
 
-      <div th:if="${attendance == null}" class="alert alert-info">
-        No attendance record found for the selected date.
+      <!-- All Attendance List Table -->
+      <div th:if="${attendanceList != null}" class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+          <thead class="table-light">
+          <tr>
+            <th>Date</th>
+            <th>Clock In</th>
+            <th>Clock Out</th>
+            <th>Morning In</th>
+            <th>Morning Out</th>
+            <th>Afternoon In</th>
+            <th>Afternoon Out</th>
+            <th>Hours Worked</th>
+            <th>Status</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="a : ${attendanceList}">
+            <td th:text="${a.date}">2025-07-20</td>
+            <td th:text="${a.clockIn != null ? a.clockIn : 'N/A'}">08:00</td>
+            <td th:text="${a.clockOut != null ? a.clockOut : 'N/A'}">17:00</td>
+            <td th:text="${a.morningIn != null ? a.morningIn : 'N/A'}">08:00</td>
+            <td th:text="${a.morningOut != null ? a.morningOut : 'N/A'}">11:30</td>
+            <td th:text="${a.afternoonIn != null ? a.afternoonIn : 'N/A'}">13:00</td>
+            <td th:text="${a.afternoonOut != null ? a.afternoonOut : 'N/A'}">16:30</td>
+            <td th:text="${a.regularHours != null ? #numbers.formatDecimal(a.regularHours, 1, 2) : '0.00'}">8.00</td>
+            <td th:text="${a.status}">Present</td>
+          </tr>
+          </tbody>
+        </table>
       </div>
 
+      <!-- No Records Message -->
+      <div th:if="${attendance == null and attendanceList == null}" class="alert alert-info">
+        No attendance record found.
+      </div>
+
+      <!-- Logout Button -->
       <div class="mt-4">
         <a href="/logout" class="btn btn-outline-secondary">Logout</a>
       </div>
