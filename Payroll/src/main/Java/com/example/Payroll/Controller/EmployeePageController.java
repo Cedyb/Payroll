@@ -2,6 +2,7 @@ package com.example.Payroll.Controller;
 
 import com.example.Payroll.Entity.Employee;
 import com.example.Payroll.Forms.EmployeeForm;
+import com.example.Payroll.Service.DepartmentService;
 import com.example.Payroll.Service.EmployeeService;
 import com.example.Payroll.Service.PositionsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,14 +21,20 @@ public class EmployeePageController {
     @Autowired
     private PositionsService positionsService;
 
+    @Autowired
+    private DepartmentService departmentService;
+
     @GetMapping
     public String showPage(Model model) {
         List<Employee> employees = employeeService.getAllEmployees();
         model.addAttribute("employeeList", employees);
         model.addAttribute("employeeForm", new EmployeeForm());
-        model.addAttribute("positionList", positionsService.getAllPositions()); // ✅ Corrected
-        return "admin/employee"; // the Thymeleaf template
+        model.addAttribute("positionList", positionsService.getAllPositions());
+        model.addAttribute("departments", departmentService.getAllDepartments()); // ✅ Add this line
+        return "admin/employee";
     }
+
+
 
 
 

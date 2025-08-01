@@ -42,7 +42,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             Optional<Positions> position = positionsRepository.findById(employeeForm.getPositionId());
             position.ifPresent(pos -> {
                 employee.setPosition(pos);
-                employee.setRole(pos.getTitle()); // ✅ Automatically assign role
+
             });
         }
 
@@ -65,14 +65,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setAddress(employeeForm.getAddress());
         employee.setPhone(employeeForm.getPhone());
         employee.setHireDate(employeeForm.getHireDate());
-
-        if (employeeForm.getPositionId() != null) {
-            Optional<Positions> position = positionsRepository.findById(employeeForm.getPositionId());
-            position.ifPresent(pos -> {
-                employee.setPosition(pos);
-                employee.setRole(pos.getTitle()); // ✅ Update role on position change
-            });
-        }
 
         return employeeRepository.save(employee);
     }

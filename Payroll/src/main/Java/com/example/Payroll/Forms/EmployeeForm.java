@@ -14,6 +14,10 @@ public class EmployeeForm {
     private String phone;
     private LocalDate hireDate;
     private Long positionId;
+    private Long departmentId;
+
+    public Long getDepartmentId() {return departmentId;}
+    public void setDepartmentId(Long departmentId) {this.departmentId = departmentId;}
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
