@@ -13,7 +13,7 @@ public class Attendance {
     @Column(name = "attendance_id")
     private Long id;
 
-    @Column(name = "date")
+    @Column(name = "date", nullable = false)
     private LocalDate date;
 
     @Column(name = "clock_in")
@@ -34,8 +34,14 @@ public class Attendance {
     @Column(name = "afternoon_out")
     private LocalTime afternoonOut;
 
-    @Column(name = "regular_hours")
-    private double regularHours;
+    @Column(name = "regular_hours", columnDefinition = "DOUBLE DEFAULT 0")
+    private Double regularHours = 0.0; // default to avoid null in UI
+
+    @Column(name = "total_hours", columnDefinition = "DOUBLE DEFAULT 0")
+    private Double totalHours = 0.0; // default to avoid null in UI
+
+    @Column(name = "overtime_hours", columnDefinition = "DOUBLE DEFAULT 0")
+    private Double overtimeHours = 0.0; // default to avoid null in UI
 
     @Column(name = "status")
     private String status;
@@ -50,7 +56,6 @@ public class Attendance {
         this.date = date;
         this.employee = employee;
     }
-
 
     public Long getId() { return id; }
 
@@ -75,13 +80,18 @@ public class Attendance {
     public LocalTime getAfternoonOut() { return afternoonOut; }
     public void setAfternoonOut(LocalTime afternoonOut) { this.afternoonOut = afternoonOut; }
 
-    public double getRegularHours() { return regularHours; }
-    public void setRegularHours(double regularHours) { this.regularHours = regularHours; }
+    public Double getRegularHours() { return regularHours != null ? regularHours : 0.0; }
+    public void setRegularHours(Double regularHours) { this.regularHours = regularHours; }
+
+    public Double getTotalHours() { return totalHours != null ? totalHours : 0.0; }
+    public void setTotalHours(Double totalHours) { this.totalHours = totalHours; }
+
+    public Double getOvertimeHours() { return overtimeHours != null ? overtimeHours : 0.0; }
+    public void setOvertimeHours(Double overtimeHours) { this.overtimeHours = overtimeHours; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
     public Employee getEmployee() { return employee; }
     public void setEmployee(Employee employee) { this.employee = employee; }
-
 }

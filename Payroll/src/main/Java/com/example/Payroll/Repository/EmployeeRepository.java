@@ -7,10 +7,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     List<Employee> findByIsActiveTrue();
-    Employee findByEmail(String email); // To support login
+    Employee findByEmail(String email);
+    Optional<Employee> findByEmployeeId(Long employeeId);// To support login
 
     @Query("SELECT e FROM Employee e " +
             "WHERE e.isActive = true AND (" +

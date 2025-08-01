@@ -5,15 +5,103 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "payroll")
 public class Payroll {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long employeeId;
+    @ManyToOne
+    @JoinColumn(name = "employee_id", nullable = false)
+    private Employee employee;
+
+    // Earnings
     private Double basicPay;
+    private Double otPay; // Regular OT
+    private Double leavePay;
+    private Double regularHolidayPay;
+    private Double specialHolidayPay;
+    private Double colaAllowance;
+    private Double allowance;
+    private Double adjustment;
+
+    // Deductions
+    private Double savings;
+    private Double sss;
+    private Double philhealth;
+    private Double pagibig;
+    private Double canteen;
+    private Double cashAdvance;
+    private Double medical;
+    private Double insurance;
+    private Double utilities;
+
+    // Totals
+    private Double subtotal;
     private Double netPay;
 
-    // other fields like overtimePay, deductions, etc.
+    public Payroll() {}
 
-    // getters and setters
+    // ===== Getters and Setters =====
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Employee getEmployee() { return employee; }
+    public void setEmployee(Employee employee) { this.employee = employee; }
+
+    public Double getBasicPay() { return basicPay; }
+    public void setBasicPay(Double basicPay) { this.basicPay = basicPay; }
+
+    public Double getOtPay() { return otPay; }
+    public void setOtPay(Double otPay) { this.otPay = otPay; }
+
+    public Double getLeavePay() { return leavePay; }
+    public void setLeavePay(Double leavePay) { this.leavePay = leavePay; }
+
+    public Double getRegularHolidayPay() { return regularHolidayPay; }
+    public void setRegularHolidayPay(Double regularHolidayPay) { this.regularHolidayPay = regularHolidayPay; }
+
+    public Double getSpecialHolidayPay() { return specialHolidayPay; }
+    public void setSpecialHolidayPay(Double specialHolidayPay) { this.specialHolidayPay = specialHolidayPay; }
+
+    public Double getColaAllowance() { return colaAllowance; }
+    public void setColaAllowance(Double colaAllowance) { this.colaAllowance = colaAllowance; }
+
+    public Double getAllowance() { return allowance; }
+    public void setAllowance(Double allowance) { this.allowance = allowance; }
+
+    public Double getAdjustment() { return adjustment; }
+    public void setAdjustment(Double adjustment) { this.adjustment = adjustment; }
+
+    public Double getSavings() { return savings; }
+    public void setSavings(Double savings) { this.savings = savings; }
+
+    public Double getSss() { return sss; }
+    public void setSss(Double sss) { this.sss = sss; }
+
+    public Double getPhilhealth() { return philhealth; }
+    public void setPhilhealth(Double philhealth) { this.philhealth = philhealth; }
+
+    public Double getPagibig() { return pagibig; }
+    public void setPagibig(Double pagibig) { this.pagibig = pagibig; }
+
+    public Double getCanteen() { return canteen; }
+    public void setCanteen(Double canteen) { this.canteen = canteen; }
+
+    public Double getCashAdvance() { return cashAdvance; }
+    public void setCashAdvance(Double cashAdvance) { this.cashAdvance = cashAdvance; }
+
+    public Double getMedical() { return medical; }
+    public void setMedical(Double medical) { this.medical = medical; }
+
+    public Double getInsurance() { return insurance; }
+    public void setInsurance(Double insurance) { this.insurance = insurance; }
+
+    public Double getUtilities() { return utilities; }
+    public void setUtilities(Double utilities) { this.utilities = utilities; }
+
+    public Double getSubtotal() { return subtotal; }
+    public void setSubtotal(Double subtotal) { this.subtotal = subtotal; }
+
+    public Double getNetPay() { return netPay; }
+    public void setNetPay(Double netPay) { this.netPay = netPay; }
 }
