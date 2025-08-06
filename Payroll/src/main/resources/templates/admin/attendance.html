@@ -16,7 +16,7 @@
     <!-- Main Content (right) -->
     <div class="col-md-10 mt-4">
       <h2>Attendance Records</h2>
-      
+
       <form method="get" th:action="@{/attendance}" class="mb-3">
         <div class="input-group" style="max-width: 300px;">
           <input type="date" class="form-control" name="date"
@@ -25,7 +25,6 @@
           <button class="btn btn-primary" type="submit">Filter</button>
         </div>
       </form>
-
 
       <table class="table table-bordered mt-3">
         <thead>
@@ -36,8 +35,10 @@
           <th>Morning Out</th>
           <th>Afternoon In</th>
           <th>Afternoon Out</th>
+          <th>OT In</th> <!-- New -->
+          <th>OT Out</th> <!-- New -->
           <th>Regular Hours</th>
-          <th>OT Hours</th>
+          <th>OT Hours</th> <!-- Moved before Total Hours -->
           <th>Total Hours</th>
           <th>Status</th>
         </tr>
@@ -50,6 +51,8 @@
           <td th:text="${att.morningOut != null ? att.morningOut : '--'}"></td>
           <td th:text="${att.afternoonIn != null ? att.afternoonIn : '--'}"></td>
           <td th:text="${att.afternoonOut != null ? att.afternoonOut : '--'}"></td>
+          <td th:text="${att.otIn != null ? att.otIn : '--'}"></td> <!-- New -->
+          <td th:text="${att.otOut != null ? att.otOut : '--'}"></td> <!-- New -->
           <td th:text="${att.regularHours != null ? #numbers.formatDecimal(att.regularHours, 1, 2) : '0.00'}"></td>
           <td th:text="${att.overtimeHours != null ? #numbers.formatDecimal(att.overtimeHours, 1, 2) : '0.00'}"></td>
           <td th:text="${att.totalHours != null ? #numbers.formatDecimal(att.totalHours, 1, 2) : '0.00'}"></td>

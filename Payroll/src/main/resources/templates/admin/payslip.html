@@ -20,19 +20,14 @@
 <body>
 <div class="container-fluid">
     <div class="row">
-
-        <!-- Sidebar Nav -->
         <nav th:replace="fragments/nav :: nav"></nav>
-
-        <!-- Main Content -->
         <main class="col-md-10 p-4">
 
             <a th:href="@{/payroll}" class="btn btn-secondary mb-3">← Back to Payroll</a>
-
             <h4>PAYSLIP for <span th:text="${employee.firstName + ' ' + employee.lastName}"></span></h4>
             <hr>
 
-            <!-- Attendance Table (Read-Only) -->
+            <!-- Attendance Table -->
             <div class="table-responsive mb-4">
                 <table class="table table-bordered payslip-table">
                     <thead class="table-secondary">
@@ -42,8 +37,8 @@
                         <th>Morning Out</th>
                         <th>Afternoon In</th>
                         <th>Afternoon Out</th>
-                        <th>Clock In</th>
-                        <th>Clock Out</th>
+                        <th>OT In</th>
+                        <th>OT Out</th>
                         <th>Regular Hours</th>
                         <th>Total Hours</th>
                         <th>OT Hours</th>
@@ -57,8 +52,8 @@
                         <td th:text="${att.morningOut}"></td>
                         <td th:text="${att.afternoonIn}"></td>
                         <td th:text="${att.afternoonOut}"></td>
-                        <td th:text="${att.clockIn}"></td>
-                        <td th:text="${att.clockOut}"></td>
+                        <td th:text="${att.otIn != null ? att.otIn : '-'}"></td>
+                        <td th:text="${att.otOut != null ? att.otOut : '-'}"></td>
                         <td th:text="${att.regularHours}"></td>
                         <td th:text="${att.totalHours}"></td>
                         <td th:text="${att.overtimeHours}"></td>
@@ -74,7 +69,7 @@
             <!-- Edit Mode Button -->
             <button id="toggleEditBtn" class="btn btn-primary mb-3">Enable Edit Mode</button>
 
-            <!-- Payslip Summary Table (Editable) -->
+            <!-- Payslip Summary Table -->
             <form th:action="@{/admin/payslip/{id}/save(id=${employee.employeeId})}" method="post">
                 <div class="table-responsive">
                     <table class="table table-bordered payslip-table">
@@ -89,79 +84,73 @@
                         <tbody>
                         <tr>
                             <td>Basic Pay</td>
-                            <td><input type="number" name="basicPay" class="form-control summary-input" th:value="${payroll.basicPay}" disabled></td>
+                            <td><input type="number" name="basicPay" class="form-control" th:value="${payroll.basicPay}" readonly></td>
                             <td>Savings</td>
-                            <td><input type="number" name="savings" class="form-control summary-input" th:value="${payroll.savings}" disabled></td>
+                            <td><input type="number" name="savings" class="form-control editable-input" th:value="${payroll.savings}" disabled></td>
                         </tr>
                         <tr>
                             <td>Regular OT</td>
-                            <td><input type="number" name="otPay" class="form-control summary-input" th:value="${payroll.otPay}" disabled></td>
+                            <td><input type="number" name="otPay" class="form-control editable-input" th:value="${payroll.otPay}" disabled></td>
                             <td>SSS</td>
-                            <td><input type="number" name="sss" class="form-control summary-input" th:value="${payroll.sss}" disabled></td>
+                            <td><input type="number" name="sss" class="form-control editable-input" th:value="${payroll.sss}" disabled></td>
                         </tr>
                         <tr>
                             <td>Leave</td>
-                            <td><input type="number" name="leavePay" class="form-control summary-input" th:value="${payroll.leavePay}" disabled></td>
+                            <td><input type="number" name="leavePay" class="form-control editable-input" th:value="${payroll.leavePay}" disabled></td>
                             <td>PhilHealth</td>
-                            <td><input type="number" name="philhealth" class="form-control summary-input" th:value="${payroll.philhealth}" disabled></td>
+                            <td><input type="number" name="philhealth" class="form-control editable-input" th:value="${payroll.philhealth}" disabled></td>
                         </tr>
                         <tr>
                             <td>Regular Holiday</td>
-                            <td><input type="number" name="regularHolidayPay" class="form-control summary-input" th:value="${payroll.regularHolidayPay}" disabled></td>
+                            <td><input type="number" name="regularHolidayPay" class="form-control editable-input" th:value="${payroll.regularHolidayPay}" disabled></td>
                             <td>Pag-IBIG</td>
-                            <td><input type="number" name="pagibig" class="form-control summary-input" th:value="${payroll.pagibig}" disabled></td>
+                            <td><input type="number" name="pagibig" class="form-control editable-input" th:value="${payroll.pagibig}" disabled></td>
                         </tr>
                         <tr>
                             <td>Special Holiday</td>
-                            <td><input type="number" name="specialHolidayPay" class="form-control summary-input" th:value="${payroll.specialHolidayPay}" disabled></td>
+                            <td><input type="number" name="specialHolidayPay" class="form-control editable-input" th:value="${payroll.specialHolidayPay}" disabled></td>
                             <td>Canteen</td>
-                            <td><input type="number" name="canteen" class="form-control summary-input" th:value="${payroll.canteen}" disabled></td>
+                            <td><input type="number" name="canteen" class="form-control editable-input" th:value="${payroll.canteen}" disabled></td>
                         </tr>
                         <tr>
                             <td>COLA</td>
-                            <td><input type="number" name="colaAllowance" class="form-control summary-input" th:value="${payroll.colaAllowance}" disabled></td>
-                            <td>Cash Advance / Loan</td>
-                            <td><input type="number" name="cashAdvance" class="form-control summary-input" th:value="${payroll.cashAdvance}" disabled></td>
+                            <td><input type="number" name="colaAllowance" class="form-control editable-input" th:value="${payroll.colaAllowance}" disabled></td>
+                            <td>Cash Advance</td>
+                            <td><input type="number" name="cashAdvance" class="form-control editable-input" th:value="${payroll.cashAdvance}" disabled></td>
                         </tr>
                         <tr>
                             <td>Allowance</td>
-                            <td><input type="number" name="allowance" class="form-control summary-input" th:value="${payroll.allowance}" disabled></td>
+                            <td><input type="number" name="allowance" class="form-control editable-input" th:value="${payroll.allowance}" disabled></td>
                             <td>Medical</td>
-                            <td><input type="number" name="medical" class="form-control summary-input" th:value="${payroll.medical}" disabled></td>
+                            <td><input type="number" name="medical" class="form-control editable-input" th:value="${payroll.medical}" disabled></td>
                         </tr>
                         <tr>
                             <td>Adjustment</td>
-                            <td><input type="number" name="adjustment" class="form-control summary-input" th:value="${payroll.adjustment}" disabled></td>
+                            <td><input type="number" name="adjustment" class="form-control editable-input" th:value="${payroll.adjustment}" disabled></td>
                             <td>Insurance</td>
-                            <td><input type="number" name="insurance" class="form-control summary-input" th:value="${payroll.insurance}" disabled></td>
+                            <td><input type="number" name="insurance" class="form-control editable-input" th:value="${payroll.insurance}" disabled></td>
                         </tr>
                         <tr>
                             <td></td>
                             <td></td>
                             <td>Utilities</td>
-                            <td><input type="number" name="utilities" class="form-control summary-input" th:value="${payroll.utilities}" disabled></td>
+                            <td><input type="number" name="utilities" class="form-control editable-input" th:value="${payroll.utilities}" disabled></td>
                         </tr>
                         <tr class="fw-bold">
                             <td>Total Earnings</td>
-                            <td><input type="number" name="subtotal" class="form-control summary-input" th:value="${payroll.subtotal}" disabled></td>
+                            <td><input type="number" name="subtotal" class="form-control" readonly></td>
                             <td>Total Deductions</td>
-                            <td>
-                                <input type="number" class="form-control"
-                                       th:value="${payroll.savings + payroll.sss + payroll.philhealth + payroll.pagibig + payroll.canteen + payroll.cashAdvance + payroll.medical + payroll.insurance + payroll.utilities}"
-                                       disabled>
-                            </td>
+                            <td><input type="number" name="totalDeductions" class="form-control" readonly></td>
                         </tr>
                         <tr class="fw-bold table-success">
                             <td colspan="2">Net Pay</td>
-                            <td colspan="2"><input type="number" name="netPay" class="form-control summary-input" th:value="${payroll.netPay}" disabled></td>
+                            <td colspan="2"><input type="number" name="netPay" class="form-control" readonly></td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
-
                 <button type="submit" class="btn btn-success">Save Changes</button>
             </form>
-
         </main>
     </div>
 </div>
@@ -169,9 +158,8 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const toggleBtn = document.getElementById("toggleEditBtn");
-        const summaryInputs = document.querySelectorAll(".summary-input");
+        const editableInputs = document.querySelectorAll(".editable-input");
 
-        // Calculation Fields
         const earningsFields = ["basicPay", "otPay", "leavePay", "regularHolidayPay", "specialHolidayPay", "colaAllowance", "allowance", "adjustment"];
         const deductionsFields = ["savings", "sss", "philhealth", "pagibig", "canteen", "cashAdvance", "medical", "insurance", "utilities"];
 
@@ -193,33 +181,25 @@
                 if (field) deductionsTotal += parseFloat(field.value) || 0;
             });
 
-            // Update fields
             totalEarningsInput.value = earningsTotal.toFixed(2);
-            if (totalDeductionsInput) {
-                totalDeductionsInput.value = deductionsTotal.toFixed(2);
-            }
+            totalDeductionsInput.value = deductionsTotal.toFixed(2);
             netPayInput.value = (earningsTotal - deductionsTotal).toFixed(2);
         }
 
-        // Auto compute on change
-        summaryInputs.forEach(input => {
+        editableInputs.forEach(input => {
             input.addEventListener("input", computeTotals);
         });
 
-        // Toggle edit mode
         toggleBtn.addEventListener("click", function () {
-            const isDisabled = summaryInputs[0].disabled;
-            summaryInputs.forEach(input => input.disabled = !isDisabled);
+            const isDisabled = editableInputs[0].disabled;
+            editableInputs.forEach(input => input.disabled = !isDisabled);
             toggleBtn.textContent = isDisabled ? "Disable Edit Mode" : "Enable Edit Mode";
             toggleBtn.classList.toggle("btn-success", isDisabled);
             toggleBtn.classList.toggle("btn-primary", !isDisabled);
         });
 
-        // Initial computation
         computeTotals();
     });
 </script>
-
-
 </body>
 </html>

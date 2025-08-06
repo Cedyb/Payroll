@@ -40,31 +40,26 @@ public class PayslipPageController {
                 .sorted((a, b) -> b.getDate().compareTo(a.getDate()))
                 .toList();
 
-        // ✅ Get Payroll or create default with 0 values
+        // ✅ Calculate Basic Pay = hourlyRate × totalRegularHours
+        double hourlyRate = (employee.getPosition() != null && employee.getPosition().getHourlyRate() != null)
+                ? employee.getPosition().getHourlyRate()
+                : 0.0;
+
+        double totalRegularHours = attendanceList.stream()
+                .mapToDouble(att -> att.getRegularHours() != null ? att.getRegularHours() : 0.0)
+                .sum();
+
+        double calculatedBasicPay = hourlyRate * totalRegularHours;
+
+        // ✅ Get Payroll or create default
         Payroll payroll = payrollRepository.findByEmployee_EmployeeId(employeeId)
                 .orElseGet(() -> {
                     Payroll p = new Payroll();
-                    p.setBasicPay(0.0);
-                    p.setOtPay(0.0);
-                    p.setLeavePay(0.0);
-                    p.setRegularHolidayPay(0.0);
-                    p.setSpecialHolidayPay(0.0);
-                    p.setColaAllowance(0.0);
-                    p.setAllowance(0.0);
-                    p.setAdjustment(0.0);
-                    p.setSavings(0.0);
-                    p.setSss(0.0);
-                    p.setPhilhealth(0.0);
-                    p.setPagibig(0.0);
-                    p.setCanteen(0.0);
-                    p.setCashAdvance(0.0);
-                    p.setMedical(0.0);
-                    p.setInsurance(0.0);
-                    p.setUtilities(0.0);
-                    p.setSubtotal(0.0);
-                    p.setNetPay(0.0);
+                    p.setEmployee(employee);
                     return p;
                 });
+
+        payroll.setBasicPay(calculatedBasicPay);
 
         // ✅ Pass to Thymeleaf
         model.addAttribute("employee", employee);
@@ -86,8 +81,6 @@ public class PayslipPageController {
                     return p;
                 });
 
-        // Update all fields
-        payroll.setBasicPay(updatedPayroll.getBasicPay());
         payroll.setOtPay(updatedPayroll.getOtPay());
         payroll.setLeavePay(updatedPayroll.getLeavePay());
         payroll.setRegularHolidayPay(updatedPayroll.getRegularHolidayPay());

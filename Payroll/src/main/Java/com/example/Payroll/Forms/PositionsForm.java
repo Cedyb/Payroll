@@ -4,7 +4,7 @@ public class PositionsForm {
     private Long positionId;
     private String title;
     private String department;
-    private Integer hourlyRate;
+    private Double hourlyRate;
 
     public Long getPositionId() { return positionId; }
     public void setPositionId(Long positionId) { this.positionId = positionId; }
@@ -25,11 +25,11 @@ public class PositionsForm {
         this.department = department;
     }
 
-    public Integer getHourlyRate() {
+    public Double getHourlyRate() {
         return hourlyRate;
     }
 
-    public void setHourlyRate(Integer hourlyRate) {
+    public void setHourlyRate(Double hourlyRate) {
         this.hourlyRate = hourlyRate;
     }
 }

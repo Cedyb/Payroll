@@ -34,14 +34,21 @@ public class Attendance {
     @Column(name = "afternoon_out")
     private LocalTime afternoonOut;
 
+    // New fields for Overtime In/Out
+    @Column(name = "ot_in")
+    private LocalTime otIn;
+
+    @Column(name = "ot_out")
+    private LocalTime otOut;
+
     @Column(name = "regular_hours", columnDefinition = "DOUBLE DEFAULT 0")
-    private Double regularHours = 0.0; // default to avoid null in UI
+    private Double regularHours = 0.0;
 
     @Column(name = "total_hours", columnDefinition = "DOUBLE DEFAULT 0")
-    private Double totalHours = 0.0; // default to avoid null in UI
+    private Double totalHours = 0.0;
 
     @Column(name = "overtime_hours", columnDefinition = "DOUBLE DEFAULT 0")
-    private Double overtimeHours = 0.0; // default to avoid null in UI
+    private Double overtimeHours = 0.0;
 
     @Column(name = "status")
     private String status;
@@ -79,6 +86,12 @@ public class Attendance {
 
     public LocalTime getAfternoonOut() { return afternoonOut; }
     public void setAfternoonOut(LocalTime afternoonOut) { this.afternoonOut = afternoonOut; }
+
+    public LocalTime getOtIn() { return otIn; }
+    public void setOtIn(LocalTime otIn) { this.otIn = otIn; }
+
+    public LocalTime getOtOut() { return otOut; }
+    public void setOtOut(LocalTime otOut) { this.otOut = otOut; }
 
     public Double getRegularHours() { return regularHours != null ? regularHours : 0.0; }
     public void setRegularHours(Double regularHours) { this.regularHours = regularHours; }

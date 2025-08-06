@@ -14,6 +14,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     Employee findByEmail(String email);
     Optional<Employee> findByEmployeeId(Long employeeId);// To support login
 
+
     @Query("SELECT e FROM Employee e " +
             "WHERE e.isActive = true AND (" +
             "LOWER(e.firstName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +

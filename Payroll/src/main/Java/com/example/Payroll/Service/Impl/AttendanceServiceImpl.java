@@ -29,29 +29,44 @@ public class AttendanceServiceImpl implements AttendanceService {
         if (logs == null || logs.isEmpty()) return;
 
         LocalTime MORNING_END = LocalTime.of(12, 0);
-        LocalTime OT_START = LocalTime.of(17, 0); // 5:00 PM
+        LocalTime OT_START = LocalTime.of(16, 15); // 5:00 PM
 
         LocalTime morningIn = null, morningOut = null;
         LocalTime afternoonIn = null, afternoonOut = null;
         LocalTime firstIn = null, lastOut = null;
 
+        LocalTime otIn = null, otOut = null; // NEW: OT In/Out tracking
+
         AttendanceLog prevIn = null;
 
         for (AttendanceLog log : logs) {
+            LocalTime logTime = log.getTimestamp().toLocalTime();
+
             if ("IN".equalsIgnoreCase(log.getType())) {
-                if (firstIn == null || log.getTimestamp().toLocalTime().isBefore(firstIn)) {
-                    firstIn = log.getTimestamp().toLocalTime(); // earliest IN
+                if (firstIn == null || logTime.isBefore(firstIn)) {
+                    firstIn = logTime; // earliest IN
                 }
+
+                // Track OT In
+                if (logTime.isAfter(OT_START) && otIn == null) {
+                    otIn = logTime;
+                }
+
                 prevIn = log;
             }
             else if ("OUT".equalsIgnoreCase(log.getType())) {
-                if (lastOut == null || log.getTimestamp().toLocalTime().isAfter(lastOut)) {
-                    lastOut = log.getTimestamp().toLocalTime(); // latest OUT
+                if (lastOut == null || logTime.isAfter(lastOut)) {
+                    lastOut = logTime; // latest OUT
+                }
+
+                // Track OT Out
+                if (logTime.isAfter(OT_START)) {
+                    otOut = logTime;
                 }
 
                 if (prevIn != null) {
                     LocalTime inTime = prevIn.getTimestamp().toLocalTime();
-                    LocalTime outTime = log.getTimestamp().toLocalTime();
+                    LocalTime outTime = logTime;
 
                     if (inTime.isBefore(MORNING_END)) {
                         if (morningIn == null) morningIn = inTime;
@@ -74,21 +89,11 @@ public class AttendanceServiceImpl implements AttendanceService {
             regularHours += Duration.between(afternoonIn, afternoonOut).toMinutes() / 60.0;
         }
 
-        // OT Hours (5:00 PM until midnight)
+        // OT Hours
         double overtimeHours = 0;
-        if (lastOut != null) {
-            if (lastOut.isAfter(OT_START)) {
-                // Normal same-day OT
-                overtimeHours = Duration.between(OT_START, lastOut).toMinutes() / 60.0;
-            }
-            else if (lastOut.equals(LocalTime.MIDNIGHT) || lastOut.isBefore(LocalTime.of(3, 0))) {
-                // Worked until midnight or past midnight → treat as next day
-                overtimeHours = Duration.between(OT_START, LocalTime.of(23, 59)).toMinutes() / 60.0;
-                overtimeHours += (lastOut.equals(LocalTime.MIDNIGHT) ? 0 :
-                        Duration.between(LocalTime.MIDNIGHT, lastOut).toMinutes() / 60.0);
-            }
+        if (otIn != null && otOut != null && otOut.isAfter(otIn)) {
+            overtimeHours = Duration.between(otIn, otOut).toMinutes() / 60.0;
         }
-
 
         // Total Hours
         double totalHours = regularHours + overtimeHours;
@@ -109,16 +114,21 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         attendance.setClockIn(firstIn);
         attendance.setClockOut(lastOut);
-        attendance.setRegularHours(regularHours);
-        attendance.setOvertimeHours(overtimeHours);
-        attendance.setTotalHours(totalHours);
-        attendance.setStatus(status);
         attendance.setMorningIn(morningIn);
         attendance.setMorningOut(morningOut);
         attendance.setAfternoonIn(afternoonIn);
         attendance.setAfternoonOut(afternoonOut);
 
+        attendance.setOtIn(otIn);   // NEW: Save OT In
+        attendance.setOtOut(otOut); // NEW: Save OT Out
+
+        attendance.setRegularHours(regularHours);
+        attendance.setOvertimeHours(overtimeHours);
+        attendance.setTotalHours(totalHours);
+        attendance.setStatus(status);
+
         attendanceRepo.save(attendance);
     }
+
 
 }

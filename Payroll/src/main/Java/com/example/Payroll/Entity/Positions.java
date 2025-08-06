@@ -26,7 +26,7 @@ public class Positions {
     private String title;
     private String department;
     @Column(name = "hourly_rate")
-    private Integer hourlyRate;
+    private Double hourlyRate;
     @Column(name = "is_active")
     private boolean isActive;
 
@@ -54,11 +54,11 @@ public class Positions {
         this.department = department;
     }
 
-    public Integer getHourlyRate() {
+    public Double getHourlyRate() {
         return hourlyRate;
     }
 
-    public void setHourlyRate(Integer hourlyRate) {
+    public void setHourlyRate(Double hourlyRate) {
         this.hourlyRate = hourlyRate;
     }
 

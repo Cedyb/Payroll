@@ -43,25 +43,29 @@
             <th>Morning Out</th>
             <th>Afternoon In</th>
             <th>Afternoon Out</th>
+            <th>OT In</th> <!-- New -->
+            <th>OT Out</th> <!-- New -->
             <th>Regular Hours</th>
-            <th>OT Hours</th>
+            <th>OT Hours</th> <!-- Moved before Total Hours -->
             <th>Total Hours</th>
             <th>Status</th>
           </tr>
           </thead>
           <tbody>
           <tr>
-            <td th:text="${attendance.date}">2025-07-20</td>
-            <td th:text="${attendance.clockIn != null ? attendance.clockIn : 'N/A'}">08:00</td>
-            <td th:text="${attendance.clockOut != null ? attendance.clockOut : 'N/A'}">17:00</td>
-            <td th:text="${attendance.morningIn != null ? attendance.morningIn : 'N/A'}">08:00</td>
-            <td th:text="${attendance.morningOut != null ? attendance.morningOut : 'N/A'}">11:30</td>
-            <td th:text="${attendance.afternoonIn != null ? attendance.afternoonIn : 'N/A'}">13:00</td>
-            <td th:text="${attendance.afternoonOut != null ? attendance.afternoonOut : 'N/A'}">16:30</td>
-            <td th:text="${attendance.regularHours != null ? #numbers.formatDecimal(attendance.regularHours, 1, 2) : '0.00'}">0.00</td>
-            <td th:text="${attendance.overtimeHours != null ? #numbers.formatDecimal(attendance.overtimeHours, 1, 2) : '0.00'}">0.00</td>
-            <td th:text="${attendance.totalHours != null ? #numbers.formatDecimal(attendance.totalHours, 1, 2) : '0.00'}">0.00</td>
-            <td th:text="${attendance.status}">Present</td>
+            <td th:text="${attendance.date}"></td>
+            <td th:text="${attendance.clockIn != null ? attendance.clockIn : 'N/A'}"></td>
+            <td th:text="${attendance.clockOut != null ? attendance.clockOut : 'N/A'}"></td>
+            <td th:text="${attendance.morningIn != null ? attendance.morningIn : 'N/A'}"></td>
+            <td th:text="${attendance.morningOut != null ? attendance.morningOut : 'N/A'}"></td>
+            <td th:text="${attendance.afternoonIn != null ? attendance.afternoonIn : 'N/A'}"></td>
+            <td th:text="${attendance.afternoonOut != null ? attendance.afternoonOut : 'N/A'}"></td>
+            <td th:text="${attendance.otIn != null ? attendance.otIn : '--'}"></td> <!-- New -->
+            <td th:text="${attendance.otOut != null ? attendance.otOut : '--'}"></td> <!-- New -->
+            <td th:text="${attendance.regularHours != null ? #numbers.formatDecimal(attendance.regularHours, 1, 2) : '0.00'}"></td>
+            <td th:text="${attendance.overtimeHours != null ? #numbers.formatDecimal(attendance.overtimeHours, 1, 2) : '0.00'}"></td>
+            <td th:text="${attendance.totalHours != null ? #numbers.formatDecimal(attendance.totalHours, 1, 2) : '0.00'}"></td>
+            <td th:text="${attendance.status}"></td>
           </tr>
           </tbody>
         </table>
@@ -79,8 +83,10 @@
             <th>Morning Out</th>
             <th>Afternoon In</th>
             <th>Afternoon Out</th>
+            <th>OT In</th> <!-- New -->
+            <th>OT Out</th> <!-- New -->
             <th>Regular Hours</th>
-            <th>OT Hours</th>
+            <th>OT Hours</th> <!-- Moved before Total Hours -->
             <th>Total Hours</th>
             <th>Status</th>
           </tr>
@@ -94,6 +100,8 @@
             <td th:text="${a.morningOut != null ? a.morningOut : 'N/A'}"></td>
             <td th:text="${a.afternoonIn != null ? a.afternoonIn : 'N/A'}"></td>
             <td th:text="${a.afternoonOut != null ? a.afternoonOut : 'N/A'}"></td>
+            <td th:text="${a.otIn != null ? a.otIn : '--'}"></td> <!-- New -->
+            <td th:text="${a.otOut != null ? a.otOut : '--'}"></td> <!-- New -->
             <td th:text="${a.regularHours != null ? #numbers.formatDecimal(a.regularHours, 1, 2) : '0.00'}"></td>
             <td th:text="${a.overtimeHours != null ? #numbers.formatDecimal(a.overtimeHours, 1, 2) : '0.00'}"></td>
             <td th:text="${a.totalHours != null ? #numbers.formatDecimal(a.totalHours, 1, 2) : '0.00'}"></td>
@@ -102,6 +110,7 @@
           </tbody>
         </table>
       </div>
+
 
       <!-- No Records Message -->
       <div th:if="${attendance == null and attendanceList == null}" class="alert alert-info">
