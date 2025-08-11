@@ -3,11 +3,16 @@ package com.example.Payroll.Forms;
 public class PositionsForm {
     private Long positionId;
     private String title;
-    private String department;
+    private Long departmentId;  // store FK instead of name
     private Double hourlyRate;
 
-    public Long getPositionId() { return positionId; }
-    public void setPositionId(Long positionId) { this.positionId = positionId; }
+    public Long getPositionId() {
+        return positionId;
+    }
+
+    public void setPositionId(Long positionId) {
+        this.positionId = positionId;
+    }
 
     public String getTitle() {
         return title;
@@ -17,12 +22,12 @@ public class PositionsForm {
         this.title = title;
     }
 
-    public String getDepartment() {
-        return department;
+    public Long getDepartmentId() {
+        return departmentId;
     }
 
-    public void setDepartment(String department) {
-        this.department = department;
+    public void setDepartmentId(Long departmentId) {
+        this.departmentId = departmentId;
     }
 
     public Double getHourlyRate() {
