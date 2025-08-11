@@ -31,9 +31,8 @@ public class Employee {
     @Column(nullable = false, length = 100)
     private String password;
 
-    @ManyToOne
-    @JoinColumn(name = "position_id", referencedColumnName = "position_id", foreignKey = @ForeignKey(name = "fk_employee_position"))
-    private Positions position;
+    @Column(nullable = false, length = 20)
+    private String role;
 
     @Column(name = "first_name", nullable = false, length = 50)
     private String firstName;
@@ -52,6 +51,10 @@ public class Employee {
 
     @Column(name = "hire_date", nullable = false)
     private LocalDate hireDate;
+
+    @ManyToOne
+    @JoinColumn(name = "position_id", referencedColumnName = "position_id", foreignKey = @ForeignKey(name = "fk_employee_position"))
+    private Positions position;
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
