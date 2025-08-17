@@ -55,7 +55,7 @@
             </td>
             <td><span class="tag" th:text="'#' + ${emp.employeeId}">#000001</span></td>
             <td th:text="${emp.position.title}">Position</td>
-            <td th:text="${emp.position.department}">Department</td> <!-- NEW -->
+            <td th:text="${emp.position.department.name}">Department</td>
             <td th:text="${emp.email}">email@example.com</td>
             <td class="position-relative">
               <span class="ellipsis" onclick="toggleDropdown(this)">⋮</span>
