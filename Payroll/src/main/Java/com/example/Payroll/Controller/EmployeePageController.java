@@ -6,6 +6,8 @@ import com.example.Payroll.Service.DepartmentService;
 import com.example.Payroll.Service.EmployeeService;
 import com.example.Payroll.Service.PositionsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -25,12 +27,17 @@ public class EmployeePageController {
     private DepartmentService departmentService;
 
     @GetMapping
-    public String showPage(Model model) {
-        List<Employee> employees = employeeService.getAllEmployees();
-        model.addAttribute("employeeList", employees);
+    public String showPage(@RequestParam(defaultValue = "0") int page, Model model) {
+        int pageSize = 10; // ✅ show 10 per page
+        Page<Employee> employeePage = employeeService.getAllEmployees(PageRequest.of(page, pageSize));
+
+        model.addAttribute("employeePage", employeePage);
+        model.addAttribute("employeeList", employeePage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", employeePage.getTotalPages());
         model.addAttribute("employeeForm", new EmployeeForm());
         model.addAttribute("positionList", positionsService.getAllPositions());
-        model.addAttribute("departments", departmentService.getAllDepartments()); // ✅ Add this line
+        model.addAttribute("departments", departmentService.getAllDepartments());
         return "admin/employee";
     }
 

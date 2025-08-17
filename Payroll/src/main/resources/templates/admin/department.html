@@ -114,6 +114,31 @@
   </div>
 </div>
 
+<!-- Pagination -->
+<div class="d-flex justify-content-center my-4">
+  <nav aria-label="Department pagination">
+    <ul class="pagination">
+      <!-- Previous -->
+      <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+        <a class="page-link" th:href="@{/departments(page=${currentPage - 1}, size=10)}">Previous</a>
+      </li>
+
+      <!-- Page Numbers -->
+      <li class="page-item"
+          th:each="i : ${#numbers.sequence(0, totalPages-1)}"
+          th:classappend="${i == currentPage} ? 'active'">
+        <a class="page-link" th:text="${i+1}" th:href="@{/departments(page=${i}, size=10)}"></a>
+      </li>
+
+      <!-- Next -->
+      <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+        <a class="page-link" th:href="@{/departments(page=${currentPage + 1}, size=10)}">Next</a>
+      </li>
+    </ul>
+  </nav>
+</div>
+
+
 <script>
   $(document).ready(function () {
       $('#openAddDeptModal').on('click', function () {
