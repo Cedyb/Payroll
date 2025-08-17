@@ -7,6 +7,8 @@ import com.example.Payroll.Repository.EmployeeRepository;
 import com.example.Payroll.Repository.PositionsRepository;
 import com.example.Payroll.Service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -91,5 +93,10 @@ public class EmployeeServiceImpl implements EmployeeService {
     public List<Employee> searchEmployeesByKeyword(String keyword) {
         return employeeRepository.searchByNameOrId(keyword);
     }
+    @Override
+    public Page<Employee> getAllEmployees(Pageable pageable) {
+        return employeeRepository.findByIsActiveTrue(pageable);
+    }
+
 
 }
