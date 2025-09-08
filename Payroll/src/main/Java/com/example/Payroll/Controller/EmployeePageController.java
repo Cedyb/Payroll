@@ -28,7 +28,7 @@ public class EmployeePageController {
 
     @GetMapping
     public String showPage(@RequestParam(defaultValue = "0") int page, Model model) {
-        int pageSize = 10; // ✅ show 10 per page
+        int pageSize = 10;
         Page<Employee> employeePage = employeeService.getAllEmployees(PageRequest.of(page, pageSize));
 
         model.addAttribute("employeePage", employeePage);
@@ -40,10 +40,6 @@ public class EmployeePageController {
         model.addAttribute("departments", departmentService.getAllDepartments());
         return "admin/employee";
     }
-
-
-
-
 
     @PostMapping("/create")
     public String create(@ModelAttribute EmployeeForm employeeForm) {
