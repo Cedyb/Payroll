@@ -4,12 +4,12 @@ const hash=window.location.hash
 
 if (hash == '#updatecomplete')
 {
-    //alert('complete')
+    alert('complete')
 }
 
-   // $('#openModalBtn').on('click', function () {
-      //  $('#myModal').modal('show');
-   // });
+   /$('#openModalBtn').on('click', function () {
+        $('#myModal').modal('show');
+   });
 
 
     $('.js-positions-update').on('click', function () {
