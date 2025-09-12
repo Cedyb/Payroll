@@ -85,6 +85,8 @@
                     <div class="form-group mb-2">
                         <label>Department</label>
                         <select th:field="*{departmentId}" class="form-control" required>
+
+                            <option value="">Select a Department</option>
                             <option th:each="dept : ${departments}"
                                     th:value="${dept.departmentId}"
                                     th:text="${dept.name}">
@@ -173,13 +175,12 @@
                     <div class="form-group mb-2">
                         <label>Position</label>
                         <select class="form-select" name="positionId" required>
+                            <option value="">Select Position</option>
                             <option th:each="position : ${positionList}"
                                     th:value="${position.positionId}"
                                     th:text="${position.title}">
                             </option>
-
                         </select>
-
                     </div>
 
                     <div class="form-group mb-2">
