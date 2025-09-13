@@ -6,69 +6,101 @@ $(function () {
         myModal.show();
     });
 
-    // Show Update Modal
-     $('.js-employee-update').on('click', function () {
-           const row = $(this).closest('tr');
+    // Delegated handler so it still works after pagination / DOM changes
+    $(document).on('click', '.js-employee-update', function () {
+        const $btn = $(this);
+        const row = $btn.closest('tr');
 
-           const employeeId = row.find('.emp-id').text().trim();
-           const username = row.find('.emp-username').text().trim();
-           const password = row.find('.emp-password').text().trim();
-           const firstName = row.find('.emp-firstname').text().trim();
-           const lastName = row.find('.emp-lastname').text().trim();
-           const email = row.find('.emp-email').text().trim();
-           const address = row.find('.emp-address').text().trim();
-           const phone = row.find('.emp-phone').text().trim();
-           const hireDate = row.find('.emp-hiredate').text().trim();
-           const departmentId = row.find('.emp-departmentid').text().trim();
-           const positionId = row.find('.emp-positionid').text().trim();
+        const employeeId = row.find('.emp-id').text().trim();
+        const username = row.find('.emp-username').length ? row.find('.emp-username').text().trim() : '';
+        const password = row.find('.emp-password').length ? row.find('.emp-password').text().trim() : '';
+        const firstName = row.find('.emp-firstname').text().trim();
+        const lastName = row.find('.emp-lastname').text().trim();
+        const email = row.find('.emp-email').text().trim();
+        const address = row.find('.emp-address').text().trim();
+        const phone = row.find('.emp-phone').text().trim();
+        const hireDate = row.find('.emp-hiredate').text().trim();
 
-           // Set all values except position
-           $('#employeeIdUpdate').val(employeeId);
-           $('#usernameUpdate').val(username);
-           $('#passwordUpdate').val(password);
-           $('#firstNameUpdate').val(firstName);
-           $('#lastNameUpdate').val(lastName);
-           $('#emailUpdate').val(email);
-           $('#addressUpdate').val(address);
-           $('#phoneUpdate').val(phone);
-           $('#hireDateUpdate').val(hireDate);
-           $('#departmentUpdateDropdown').val(departmentId);
+        // Primary source: hidden <td> values; fallback: data attributes
+        let departmentId = row.find('.emp-departmentid').text().trim();
+        let positionId = row.find('.emp-positionid').text().trim();
 
-           // Load and populate Position dropdown dynamically
-           getPosition(departmentId, positionId);
+        if (!departmentId) departmentId = row.data('department-id') || $btn.data('department-id') || '';
+        if (!positionId) positionId = row.data('position-id') || $btn.data('position-id') || '';
 
-           const modal = new bootstrap.Modal(document.getElementById('myUpdateModal'));
-           modal.show();
-       });
+        // Set form values
+        $('#employeeIdUpdate').val(employeeId);
+        $('#usernameUpdate').val(username);
+        $('#passwordUpdate').val(password);
+        $('#firstNameUpdate').val(firstName);
+        $('#lastNameUpdate').val(lastName);
+        $('#emailUpdate').val(email);
+        $('#addressUpdate').val(address);
+        $('#phoneUpdate').val(phone);
+        $('#hireDateUpdate').val(hireDate);
 
-       // Dynamically populate Position dropdown based on selected Department
-       function getPosition(departmentId, selectedPositionId = null) {
-           $.ajax({
-               url: '/positions/retrieve', // JSON response with positions
-               method: 'GET',
-               success: function (data) {
-                   const dropdown = $('#positionUpdateDropdown');
-                   dropdown.empty().append('<option value="">Select Position</option>');
+        // Set department first (so user sees it)
+        if (departmentId) {
+            $('#departmentUpdateDropdown').val(String(departmentId));
+        } else {
+            $('#departmentUpdateDropdown').val('');
+        }
 
-                   data.forEach(function (position) {
-                       if (position.department && position.department.id == departmentId) {
-                           const isSelected = (position.positionId == selectedPositionId) ? 'selected' : '';
-                           dropdown.append(`<option value="${position.positionId}" ${isSelected}>${position.title}</option>`);
-                       }
-                   });
-               },
-               error: function (xhr, status, error) {
-                   console.error("Error retrieving positions:", error);
-               }
-           });
-       }
+        // Populate position dropdown via AJAX and select the correct one
+        getPosition(departmentId, positionId);
 
-       // Delete Employee
-       $('.js-employee-delete').on('click', function () {
-           const id = $(this).data('id');
-           if (confirm('Are you sure you want to delete this employee?')) {
-               window.location.href = '/employees/delete/' + id;
-           }
-       });
+        const modal = new bootstrap.Modal(document.getElementById('myUpdateModal'));
+        modal.show();
+    });
 
-   });
+    // Loads positions and selects the provided positionId if present
+    function getPosition(departmentId, selectedPositionId = null) {
+        const dropdown = $('#positionUpdateDropdown');
+        dropdown.empty().append('<option value="">Select Position</option>');
+        if (!departmentId) return;
+
+        $.ajax({
+            url: '/positions/retrieve',
+            method: 'GET',
+            data: { departmentId: departmentId }, // send dept id in case backend supports filtering
+            dataType: 'json',
+            success: function (data) {
+                console.log('positions retrieved:', data);
+                // data may be a list of position objects. Try to be defensive about structure.
+                data.forEach(function (position) {
+                    // robustly find department id on the position object
+                    const posDeptId = (position.department && (position.department.departmentId || position.department.id)) || position.departmentId || '';
+                    // if server already filtered by department this check still works
+                    if (String(posDeptId) === String(departmentId) || !posDeptId) {
+                        dropdown.append($('<option>', {
+                            value: position.positionId,
+                            text: position.title || position.name || ('Position ' + position.positionId)
+                        }));
+                    }
+                });
+
+                if (selectedPositionId) {
+                    dropdown.val(String(selectedPositionId));
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error retrieving positions:', error, xhr.responseText);
+            }
+        });
+    }
+
+    // When Department changes in modal → reload positions
+    $(document).on('change', '#departmentUpdateDropdown', function () {
+        const deptId = $(this).val();
+        getPosition(deptId);
+    });
+
+    // Delegated Delete
+    $(document).on('click', '.js-employee-delete', function () {
+        const id = $(this).data('id');
+        if (confirm('Are you sure you want to delete this employee?')) {
+            window.location.href = '/employees/delete/' + id;
+        }
+    });
+
+});

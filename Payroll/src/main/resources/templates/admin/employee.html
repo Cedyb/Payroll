@@ -41,8 +41,11 @@
                             <td class="emp-firstname" th:text="${emp.firstName}"></td>
                             <td class="emp-lastname" th:text="${emp.lastName}"></td>
                             <td class="emp-email" th:text="${emp.email}"></td>
-                            <td class="emp-departmentid" th:text="${emp.position?.department?.name}" hidden></td>
+
+                            <!-- Hidden IDs for JS -->
+                            <td class="emp-departmentid" th:text="${emp.position?.department?.departmentId}" hidden></td>
                             <td class="emp-positionid" th:text="${emp.position?.positionId}" hidden></td>
+
                             <td th:text="${emp.position?.title ?: 'N/A'}"></td>
                             <td th:text="${emp.position?.department?.name ?: 'N/A'}"></td>
                             <td class="emp-address" th:text="${emp.address}"></td>
@@ -84,8 +87,7 @@
 
                     <div class="form-group mb-2">
                         <label>Department</label>
-                        <select th:field="*{departmentId}" class="form-control" required>
-
+                        <select id="departmentAddDropdown" th:field="*{departmentId}" class="form-control" required>
                             <option value="">Select a Department</option>
                             <option th:each="dept : ${departments}"
                                     th:value="${dept.departmentId}"
@@ -96,9 +98,8 @@
 
                     <div class="form-group mb-2">
                         <label>Position</label>
-                        <select th:field="*{positionId}" class="form-control" required>
+                        <select id="positionAddDropdown" th:field="*{positionId}" class="form-control" required>
                             <option value="">Select a Position</option>
-                            <option th:each="pos : ${positionList}" th:value="${pos.positionId}" th:text="${pos.title}"></option>
                         </select>
                     </div>
 
@@ -139,6 +140,7 @@
 </div>
 
 <!-- Update Modal -->
+<!-- Update Modal -->
 <div class="modal fade" id="myUpdateModal" tabindex="-1" aria-labelledby="employeeUpdateLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -148,22 +150,23 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <form th:action="@{/employees/update}" method="post" id="employeeUpdateModalForm">
+            <form th:action="@{/employees/update}" th:object="${employeeForm}" method="post" id="employeeUpdateModalForm">
                 <div class="modal-body">
-                    <input type="hidden" id="employeeIdUpdate" name="id">
+                    <!-- hidden ID -->
+                    <input type="hidden" th:field="*{id}" id="employeeIdUpdate">
 
                     <div class="form-group mb-2">
                         <label>Username</label>
-                        <input type="text" id="usernameUpdate" name="username" class="form-control" required>
+                        <input type="text" th:field="*{username}" id="usernameUpdate" class="form-control" required>
                     </div>
                     <div class="form-group mb-2">
                         <label>Password</label>
-                        <input type="password" id="passwordUpdate" name="password" class="form-control" required>
+                        <input type="password" th:field="*{password}" id="passwordUpdate" class="form-control" required>
                     </div>
 
                     <div class="form-group mb-2">
                         <label>Department</label>
-                        <select id="departmentUpdateDropdown" name="departmentId" class="form-control" required>
+                        <select th:field="*{departmentId}" id="departmentUpdateDropdown" class="form-control" required>
                             <option value="">Select Department</option>
                             <option th:each="dept : ${departments}"
                                     th:value="${dept.departmentId}"
@@ -174,38 +177,38 @@
 
                     <div class="form-group mb-2">
                         <label>Position</label>
-                        <select class="form-select" name="positionId" required>
+                        <select th:field="*{positionId}" id="positionUpdateDropdown" class="form-select" required>
                             <option value="">Select Position</option>
-                            <option th:each="position : ${positionList}"
-                                    th:value="${position.positionId}"
-                                    th:text="${position.title}">
+                            <option th:each="pos : ${positionList}"
+                                    th:value="${pos.positionId}"
+                                    th:text="${pos.title}">
                             </option>
                         </select>
                     </div>
 
                     <div class="form-group mb-2">
                         <label>First Name</label>
-                        <input type="text" id="firstNameUpdate" name="firstName" class="form-control" required>
+                        <input type="text" th:field="*{firstName}" id="firstNameUpdate" class="form-control" required>
                     </div>
                     <div class="form-group mb-2">
                         <label>Last Name</label>
-                        <input type="text" id="lastNameUpdate" name="lastName" class="form-control" required>
+                        <input type="text" th:field="*{lastName}" id="lastNameUpdate" class="form-control" required>
                     </div>
                     <div class="form-group mb-2">
                         <label>Email</label>
-                        <input type="email" id="emailUpdate" name="email" class="form-control">
+                        <input type="email" th:field="*{email}" id="emailUpdate" class="form-control">
                     </div>
                     <div class="form-group mb-2">
                         <label>Address</label>
-                        <textarea id="addressUpdate" name="address" class="form-control"></textarea>
+                        <textarea th:field="*{address}" id="addressUpdate" class="form-control"></textarea>
                     </div>
                     <div class="form-group mb-2">
                         <label>Phone</label>
-                        <input type="text" id="phoneUpdate" name="phone" class="form-control">
+                        <input type="text" th:field="*{phone}" id="phoneUpdate" class="form-control">
                     </div>
                     <div class="form-group mb-2">
                         <label>Hire Date</label>
-                        <input type="date" id="hireDateUpdate" name="hireDate" class="form-control" required>
+                        <input type="date" th:field="*{hireDate}" id="hireDateUpdate" class="form-control" required>
                     </div>
                 </div>
 
@@ -218,6 +221,8 @@
         </div>
     </div>
 </div>
+
+
 <!-- Pagination -->
 <div class="d-flex justify-content-center mt-3">
     <nav aria-label="Page navigation">

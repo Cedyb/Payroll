@@ -12,8 +12,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @Controller
 @RequestMapping("/employees")
 public class EmployeePageController {
@@ -22,7 +20,6 @@ public class EmployeePageController {
     private EmployeeService employeeService;
     @Autowired
     private PositionsService positionsService;
-
     @Autowired
     private DepartmentService departmentService;
 
@@ -35,9 +32,14 @@ public class EmployeePageController {
         model.addAttribute("employeeList", employeePage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", employeePage.getTotalPages());
+
+        // form-backing bean
         model.addAttribute("employeeForm", new EmployeeForm());
+
+        // dropdown data
         model.addAttribute("positionList", positionsService.getAllPositions());
         model.addAttribute("departments", departmentService.getAllDepartments());
+
         return "admin/employee";
     }
 
@@ -48,14 +50,14 @@ public class EmployeePageController {
     }
 
     @PostMapping("/update")
-    public String update(@ModelAttribute EmployeeForm employeeForm, @RequestParam("id") Long id) {
-        employeeService.updateEmployee(id, employeeForm);
+    public String update(@ModelAttribute EmployeeForm employeeForm) {
+        // EmployeeForm includes the ID
+        employeeService.updateEmployee(employeeForm.getId(), employeeForm);
         return "redirect:/employees";
     }
 
-
     @GetMapping("/delete/{id}")
-    public String delete(@PathVariable(value = "id", required = true) Long id) {
+    public String delete(@PathVariable Long id) {
         employeeService.deleteEmployee(id);
         return "redirect:/employees";
     }

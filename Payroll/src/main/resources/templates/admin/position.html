@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/css/app.css" />
     <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script th:src="@{/js/positions.js}"></script>
+    <script src="/js/positions.js"></script>
 </head>
 <body>
 <div class="container-fluid">
@@ -18,12 +18,14 @@
                 <div>
                     <h4>Welcome, Mr. John</h4>
                     <h2>Positions</h2>
-                    <!-- ✅ Add Position Button with Bootstrap modal attributes -->
+
+                    <!-- Add Position Button (uses native bootstrap data attributes to open) -->
                     <button id="openModalBtn" type="button" class="btn btn-primary"
                             data-bs-toggle="modal" data-bs-target="#myModal">
                         Add Position
                     </button>
                     <br><br>
+
                     <table class="table table-striped-columns" th:if="${not #lists.isEmpty(positionList)}">
                         <thead>
                         <tr>
@@ -41,14 +43,18 @@
                             <td th:text="${position.department.name}"></td>
                             <td th:text="${position.hourlyRate}"></td>
                             <td>
-                                <!-- ✅ Update Button with modal attributes -->
-                                <button type="button" class="btn btn-warning js-positions-update"
-                                        th:data-id="${position.positionId}"
-                                        data-bs-toggle="modal" data-bs-target="#myUpdateModal">
+                                <!-- IMPORTANT: use th:attr to output data-* attributes reliably -->
+                                <button type="button"
+                                        class="btn btn-warning js-positions-update"
+                                        th:attr="data-id=${position.positionId},
+                                                 data-deptid=${position.department.departmentId},
+                                                 data-title=${position.title},
+                                                 data-hourly-rate=${position.hourlyRate}">
                                     UPDATE
                                 </button>
+
                                 <button type="button" class="btn btn-danger js-positions-delete"
-                                        th:data-id="${position.positionId}">
+                                        th:attr="data-id=${position.positionId}">
                                     DELETE
                                 </button>
                             </td>
@@ -61,15 +67,13 @@
     </div>
 </div>
 
-<!-- ✅ Add Position Modal -->
+<!-- Add Position Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="positionModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Create Position</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form th:action="@{/positions/create}" th:object="${positionsForm}" id="positionModalForm" method="post">
@@ -102,15 +106,13 @@
     </div>
 </div>
 
-<!-- ✅ Update Position Modal -->
+<!-- Update Position Modal -->
 <div class="modal fade" id="myUpdateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Update Position</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form th:action="@{/positions/update}" th:object="${positionsForm}" id="positionUpdateModalForm" method="post">
@@ -144,5 +146,7 @@
         </div>
     </div>
 </div>
+
+
 </body>
 </html>
