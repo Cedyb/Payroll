@@ -99,7 +99,11 @@
                     <div class="form-group mb-2">
                         <label>Position</label>
                         <select id="positionAddDropdown" th:field="*{positionId}" class="form-control" required>
-                            <option value="">Select a Position</option>
+                            <option value="">Select Position</option>
+                            <option th:each="pos : ${positionList}"
+                                    th:value="${pos.positionId}"
+                                    th:text="${pos.title}">
+                            </option>
                         </select>
                     </div>
 
@@ -140,7 +144,6 @@
 </div>
 
 <!-- Update Modal -->
-<!-- Update Modal -->
 <div class="modal fade" id="myUpdateModal" tabindex="-1" aria-labelledby="employeeUpdateLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -166,7 +169,7 @@
 
                     <div class="form-group mb-2">
                         <label>Department</label>
-                        <select th:field="*{departmentId}" id="departmentUpdateDropdown" class="form-control" required>
+                        <select th:field="*{departmentId}" id="departmentUpdateDropdown" class="form-select" required>
                             <option value="">Select Department</option>
                             <option th:each="dept : ${departments}"
                                     th:value="${dept.departmentId}"

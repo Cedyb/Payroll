@@ -1,65 +1,48 @@
 package com.example.Payroll.Entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "attendance_logs")
+@Getter
+@Setter
+@NoArgsConstructor
 public class AttendanceLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "employee_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;
 
-    @Column(name = "timestamp", nullable = false)
-    private LocalDateTime timestamp;
+    @Column(name = "employee_name", nullable = false, length = 100)
+    private String employeeName;
 
-    @Column(name = "type", nullable = false)
-    private String type; // "IN" or "OUT"
+    @Column(name = "log_date", nullable = false)
+    private LocalDate logDate;
 
-    // Constructors
-    public AttendanceLog() {}
+    @Column(name = "log_time", nullable = false)
+    private LocalTime logTime;
 
-    public AttendanceLog(Employee employee, LocalDateTime timestamp, String type) {
-        this.employee = employee;
-        this.timestamp = timestamp;
-        this.type = type;
-    }
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 3)
+    private Status status; // IN / OUT
 
-    // Getters and Setters
-    public Long getId() {
-        return id;
-    }
+    @Column(name = "total_hours")
+    private double totalHours;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @Column(name = "total_ot")
+    private double totalOT;
 
-    public Employee getEmployee() {
-        return employee;
-    }
-
-    public void setEmployee(Employee employee) {
-        this.employee = employee;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
+    public enum Status {
+        IN, OUT
     }
 }

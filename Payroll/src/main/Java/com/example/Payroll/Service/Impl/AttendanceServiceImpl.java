@@ -25,47 +25,47 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     public void computeAndSaveDailyAttendance(Employee employee, LocalDate date) {
-        List<AttendanceLog> logs = attendanceLogRepo.findByEmployeeAndDate(employee, date);
+        // ✅ Fetch logs using Employee entity instead of ID
+        List<AttendanceLog> logs = attendanceLogRepo.findByEmployeeAndLogDate(employee, date);
+
         if (logs == null || logs.isEmpty()) return;
 
         LocalTime MORNING_END = LocalTime.of(12, 0);
-        LocalTime OT_START = LocalTime.of(16, 15); // 5:00 PM
+        LocalTime OT_START = LocalTime.of(16, 15);
 
         LocalTime morningIn = null, morningOut = null;
         LocalTime afternoonIn = null, afternoonOut = null;
         LocalTime firstIn = null, lastOut = null;
 
-        LocalTime otIn = null, otOut = null; // NEW: OT In/Out tracking
+        LocalTime otIn = null, otOut = null;
 
         AttendanceLog prevIn = null;
 
         for (AttendanceLog log : logs) {
-            LocalTime logTime = log.getTimestamp().toLocalTime();
+            LocalTime logTime = log.getLogTime();
 
-            if ("IN".equalsIgnoreCase(log.getType())) {
+            if (log.getStatus() == AttendanceLog.Status.IN) {
                 if (firstIn == null || logTime.isBefore(firstIn)) {
                     firstIn = logTime; // earliest IN
                 }
 
-                // Track OT In
                 if (logTime.isAfter(OT_START) && otIn == null) {
                     otIn = logTime;
                 }
 
                 prevIn = log;
             }
-            else if ("OUT".equalsIgnoreCase(log.getType())) {
+            else if (log.getStatus() == AttendanceLog.Status.OUT) {
                 if (lastOut == null || logTime.isAfter(lastOut)) {
                     lastOut = logTime; // latest OUT
                 }
 
-                // Track OT Out
                 if (logTime.isAfter(OT_START)) {
                     otOut = logTime;
                 }
 
                 if (prevIn != null) {
-                    LocalTime inTime = prevIn.getTimestamp().toLocalTime();
+                    LocalTime inTime = prevIn.getLogTime();
                     LocalTime outTime = logTime;
 
                     if (inTime.isBefore(MORNING_END)) {
@@ -95,7 +95,6 @@ public class AttendanceServiceImpl implements AttendanceService {
             overtimeHours = Duration.between(otIn, otOut).toMinutes() / 60.0;
         }
 
-        // Total Hours
         double totalHours = regularHours + overtimeHours;
 
         // Status
@@ -108,7 +107,7 @@ public class AttendanceServiceImpl implements AttendanceService {
             status = "absent";
         }
 
-        // Save
+        // Save attendance summary
         Attendance attendance = attendanceRepo.findByEmployeeAndDate(employee, date)
                 .orElse(new Attendance(date, employee));
 
@@ -119,8 +118,8 @@ public class AttendanceServiceImpl implements AttendanceService {
         attendance.setAfternoonIn(afternoonIn);
         attendance.setAfternoonOut(afternoonOut);
 
-        attendance.setOtIn(otIn);   // NEW: Save OT In
-        attendance.setOtOut(otOut); // NEW: Save OT Out
+        attendance.setOtIn(otIn);
+        attendance.setOtOut(otOut);
 
         attendance.setRegularHours(regularHours);
         attendance.setOvertimeHours(overtimeHours);
@@ -129,6 +128,4 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         attendanceRepo.save(attendance);
     }
-
-
 }

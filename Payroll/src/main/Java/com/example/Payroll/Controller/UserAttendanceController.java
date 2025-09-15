@@ -38,10 +38,9 @@ public class UserAttendanceController {
 
     @PostMapping("/attendance")
     public String recordAttendance(
-            @RequestParam("type") String type,
+            @RequestParam("type") String type, // "IN" or "OUT"
             @RequestParam("dateTime") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateTime,
             @RequestParam("employeeId") Long employeeId,
-
             RedirectAttributes redirectAttributes
     ) {
         Optional<Employee> employeeOpt = employeeRepo.findById(employeeId);
@@ -52,31 +51,43 @@ public class UserAttendanceController {
 
         Employee employee = employeeOpt.get();
 
-        AttendanceLog lastLog = attendanceLogRepo.findTopByEmployeeOrderByTimestampDesc(employee);
-        if (lastLog != null && lastLog.getType().equalsIgnoreCase(type)
-                && lastLog.getTimestamp().toLocalDate().equals(dateTime.toLocalDate())) {
+        AttendanceLog lastLog = attendanceLogRepo.findTopByEmployeeOrderByLogDateDesc(employee);
+
+
+
+        if (lastLog != null
+                && lastLog.getStatus().name().equalsIgnoreCase(type)
+                && lastLog.getLogDate().equals(dateTime.toLocalDate())) {
             redirectAttributes.addFlashAttribute("error", "You already clocked " + type + " today.");
             return "redirect:/userDashboard";
         }
 
-
+        // ✅ Create new attendance log
+        // ✅ Create new attendance log
         AttendanceLog log = new AttendanceLog();
-        log.setEmployee(employee);
-        log.setTimestamp(dateTime);
-        log.setType(type.toUpperCase());
+        log.setEmployee(employee); // store relation, not just ID
+        log.setEmployeeName(employee.getFullName());
+        log.setLogDate(dateTime.toLocalDate());
+        log.setLogTime(dateTime.toLocalTime());
+        log.setStatus(AttendanceLog.Status.valueOf(type.toUpperCase()));
+
+
         attendanceLogRepo.save(log);
 
+        // ✅ Update attendance summary
         LocalDate date = dateTime.toLocalDate();
         LocalTime time = dateTime.toLocalTime();
+
         Attendance attendance = attendanceRepo.findByEmployeeAndDate(employee, date)
                 .orElse(new Attendance(date, employee));
+
         if (type.equalsIgnoreCase("in")) {
             attendance.setClockIn(time);
         } else if (type.equalsIgnoreCase("out")) {
             attendance.setClockOut(time);
         }
-        attendanceRepo.save(attendance);
 
+        attendanceRepo.save(attendance);
         attendanceService.computeAndSaveDailyAttendance(employee, date);
 
         redirectAttributes.addFlashAttribute("message", "Clock " + type + " recorded.");
@@ -103,5 +114,4 @@ public class UserAttendanceController {
 
         return "employee/userAttendance";
     }
-
 }

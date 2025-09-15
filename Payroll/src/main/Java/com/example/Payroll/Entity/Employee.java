@@ -25,6 +25,8 @@ public class Employee {
     @Column(name = "employee_id")
     private Long employeeId;
 
+
+
     @Column(nullable = false, unique = true, length = 50)
     private String username;
 
