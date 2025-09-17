@@ -40,25 +40,25 @@
           <th>Morning Out</th>
           <th>Afternoon In</th>
           <th>Afternoon Out</th>
+          <th>Regular Hours</th>
+          <th>OT Hours</th>
           <th>Total Hours</th>
-          <th>Total OT</th>
-          <th>Log Date</th>
+          <th>Log Data</th>
         </tr>
         </thead>
         <tbody>
-        <tr th:each="s : ${summaries}">
-          <td th:text="${s.employeeId}"></td>
-          <td th:text="${s.employeeName}"></td>
-          <td th:text="${s.morningIn}"></td>
-          <td th:text="${s.morningOut}"></td>
-          <td th:text="${s.afternoonIn}"></td>
-          <td th:text="${s.afternoonOut}"></td>
-          <td th:text="${s.totalHours}"></td>
-          <td th:text="${s.totalOT}"></td>
-          <td th:text="${s.logDate}"></td>
-        </tr>
-        <tr th:if="${summaries == null or #lists.isEmpty(summaries)}">
-          <td colspan="9" class="text-center">No attendance records found.</td>
+        <tr th:each="summary : ${summaries}">
+          <td th:text="${summary.employeeId}"></td>
+          <td th:text="${summary.employeeName}"></td>
+          <td th:text="${summary.morningIn}"></td>
+          <td th:text="${summary.morningOut}"></td>
+          <td th:text="${summary.afternoonIn}"></td>
+          <td th:text="${summary.afternoonOut}"></td>
+          <td th:text="${summary.regularHours}"></td>
+          <td th:text="${summary.overtimeHours}"></td>
+          <td th:text="${summary.totalHours}"></td>
+          <td th:text="${summary.logDate}"></td>
+
         </tr>
         </tbody>
       </table>

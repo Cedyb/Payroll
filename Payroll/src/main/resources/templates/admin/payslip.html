@@ -28,22 +28,21 @@
                         <th>Afternoon In</th>
                         <th>Afternoon Out</th>
                         <th>Regular Hours</th>
-                        <th>Total Hours</th>
                         <th>OT Hours</th>
+                        <th>Total Hours</th>
                         <th>Status</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr th:each="att : ${attendanceList}">
-                        <td th:text="${att.date}"></td>
+                        <td th:text="${att.logDate}"></td>
                         <td th:text="${att.morningIn}"></td>
                         <td th:text="${att.morningOut}"></td>
                         <td th:text="${att.afternoonIn}"></td>
                         <td th:text="${att.afternoonOut}"></td>
                         <td th:text="${att.regularHours}"></td>
-                        <td th:text="${att.totalHours}"></td>
                         <td th:text="${att.overtimeHours}"></td>
-                        <td th:text="${att.status}"></td>
+                        <td th:text="${att.totalHours}"></td>
                     </tr>
                     <tr th:if="${attendanceList.size() == 0}">
                         <td colspan="11" class="text-center">No attendance records found.</td>

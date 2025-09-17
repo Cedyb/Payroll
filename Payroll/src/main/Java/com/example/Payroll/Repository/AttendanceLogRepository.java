@@ -16,4 +16,7 @@ public interface AttendanceLogRepository extends JpaRepository<AttendanceLog, Lo
 
     // ✅ Get all logs for an employee on a specific date
     List<AttendanceLog> findByEmployeeAndLogDate(Employee employee, LocalDate logDate);
+
+    List<AttendanceLog> findByEmployeeOrderByLogDateAsc(Employee employee);
+
 }

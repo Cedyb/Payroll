@@ -25,9 +25,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     public void computeAndSaveDailyAttendance(Employee employee, LocalDate date) {
-        // ✅ Fetch logs using Employee entity instead of ID
         List<AttendanceLog> logs = attendanceLogRepo.findByEmployeeAndLogDate(employee, date);
-
         if (logs == null || logs.isEmpty()) return;
 
         LocalTime MORNING_END = LocalTime.of(12, 0);
@@ -36,7 +34,6 @@ public class AttendanceServiceImpl implements AttendanceService {
         LocalTime morningIn = null, morningOut = null;
         LocalTime afternoonIn = null, afternoonOut = null;
         LocalTime firstIn = null, lastOut = null;
-
         LocalTime otIn = null, otOut = null;
 
         AttendanceLog prevIn = null;
@@ -46,20 +43,16 @@ public class AttendanceServiceImpl implements AttendanceService {
 
             if (log.getStatus() == AttendanceLog.Status.IN) {
                 if (firstIn == null || logTime.isBefore(firstIn)) {
-                    firstIn = logTime; // earliest IN
+                    firstIn = logTime;
                 }
-
                 if (logTime.isAfter(OT_START) && otIn == null) {
                     otIn = logTime;
                 }
-
                 prevIn = log;
-            }
-            else if (log.getStatus() == AttendanceLog.Status.OUT) {
+            } else if (log.getStatus() == AttendanceLog.Status.OUT) {
                 if (lastOut == null || logTime.isAfter(lastOut)) {
-                    lastOut = logTime; // latest OUT
+                    lastOut = logTime;
                 }
-
                 if (logTime.isAfter(OT_START)) {
                     otOut = logTime;
                 }
@@ -75,12 +68,18 @@ public class AttendanceServiceImpl implements AttendanceService {
                         if (afternoonIn == null) afternoonIn = inTime;
                         if (afternoonOut == null) afternoonOut = outTime;
                     }
+
                     prevIn = null;
                 }
             }
         }
 
-        // Regular Hours
+        // ✅ Apply company grace period: morning out capped at 12:30 PM
+        if (morningOut == null || morningOut.isAfter(LocalTime.of(12, 30))) {
+            morningOut = LocalTime.of(12, 30);
+        }
+
+        // Compute regular hours
         double regularHours = 0;
         if (morningIn != null && morningOut != null) {
             regularHours += Duration.between(morningIn, morningOut).toMinutes() / 60.0;
@@ -89,7 +88,7 @@ public class AttendanceServiceImpl implements AttendanceService {
             regularHours += Duration.between(afternoonIn, afternoonOut).toMinutes() / 60.0;
         }
 
-        // OT Hours
+        // Compute OT hours
         double overtimeHours = 0;
         if (otIn != null && otOut != null && otOut.isAfter(otIn)) {
             overtimeHours = Duration.between(otIn, otOut).toMinutes() / 60.0;
@@ -97,7 +96,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         double totalHours = regularHours + overtimeHours;
 
-        // Status
+        // Attendance status
         String status;
         if (regularHours >= 8) {
             status = "present";
@@ -107,7 +106,7 @@ public class AttendanceServiceImpl implements AttendanceService {
             status = "absent";
         }
 
-        // Save attendance summary
+        // Save attendance
         Attendance attendance = attendanceRepo.findByEmployeeAndDate(employee, date)
                 .orElse(new Attendance(date, employee));
 
