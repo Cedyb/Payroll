@@ -38,21 +38,31 @@ public class PayslipPageController {
         Employee employee = employeeRepository.findByEmployeeId(employeeId)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
 
-        // Fetch all logs for this employee ordered by date
         List<AttendanceLog> logs = attendanceLogRepository
                 .findByEmployeeOrderByLogDateAsc(employee);
 
-        // Group logs by date
+        // Determine date range (first to last log)
+        LocalDate startDate = logs.stream()
+                .map(AttendanceLog::getLogDate)
+                .min(LocalDate::compareTo)
+                .orElse(LocalDate.now());
+
+        LocalDate endDate = logs.stream()
+                .map(AttendanceLog::getLogDate)
+                .max(LocalDate::compareTo)
+                .orElse(LocalDate.now());
+
+        // Generate full date range
+        List<LocalDate> fullDateRange = new ArrayList<>();
+        LocalDate current = startDate;
+        while (!current.isAfter(endDate)) {
+            fullDateRange.add(current);
+            current = current.plusDays(1);
+        }
+
         List<AttendanceSummaryDTO> dtoList = new ArrayList<>();
 
-        // Get distinct dates
-        List<LocalDate> dates = logs.stream()
-                .map(AttendanceLog::getLogDate)
-                .distinct()
-                .sorted()
-                .collect(Collectors.toList());
-
-        for (LocalDate date : dates) {
+        for (LocalDate date : fullDateRange) {
             List<AttendanceLog> dailyLogs = logs.stream()
                     .filter(l -> l.getLogDate().equals(date))
                     .sorted(Comparator.comparing(AttendanceLog::getLogTime))
@@ -64,19 +74,20 @@ public class PayslipPageController {
                     date
             );
 
-            LocalTime morningCutoff = LocalTime.of(12, 30); // morning cutoff
+            LocalTime morningCutoff = LocalTime.of(12, 30);
+            LocalTime scheduledStart = LocalTime.of(7, 0); // example: 07:00 AM
 
-            // Assign morning/afternoon IN/OUT
+            // Fill morning/afternoon times
             for (AttendanceLog log : dailyLogs) {
                 LocalTime time = log.getLogTime();
 
-                if (!time.isAfter(morningCutoff)) { // morning session
+                if (!time.isAfter(morningCutoff)) {
                     if (log.getStatus() == AttendanceLog.Status.IN && dto.getMorningIn() == null) {
                         dto.setMorningIn(time.toString());
                     } else if (log.getStatus() == AttendanceLog.Status.OUT && dto.getMorningOut() == null) {
                         dto.setMorningOut(time.toString());
                     }
-                } else { // afternoon session
+                } else {
                     if (log.getStatus() == AttendanceLog.Status.IN && dto.getAfternoonIn() == null) {
                         dto.setAfternoonIn(time.toString());
                     } else if (log.getStatus() == AttendanceLog.Status.OUT && dto.getAfternoonOut() == null) {
@@ -85,8 +96,27 @@ public class PayslipPageController {
                 }
             }
 
-            // Compute total hours and OT
-            dto.computeTotalHoursAndOT();
+            // Compute hours
+            if (dailyLogs.isEmpty()) {
+                dto.setMorningIn("-");
+                dto.setMorningOut("-");
+                dto.setAfternoonIn("-");
+                dto.setAfternoonOut("-");
+                dto.setRegularHours("0.00");
+                dto.setOvertimeHours("0.00");
+                dto.setTotalHours("0.00");
+                dto.setStatus("Absent"); // ✅ no logs → Absent
+            } else {
+                dto.computeTotalHoursAndOT();
+                // Late if morning in exists and after scheduled start
+                if (dto.getMorningIn() != null && !dto.getMorningIn().equals("-") &&
+                        LocalTime.parse(dto.getMorningIn()).isAfter(scheduledStart)) {
+                    dto.setStatus("Late");
+                } else {
+                    dto.setStatus("Present");
+                }
+            }
+
             dtoList.add(dto);
         }
 
@@ -115,4 +145,5 @@ public class PayslipPageController {
 
         return "admin/payslip";
     }
+
 }

@@ -52,8 +52,8 @@ public class UnifiedImportService {
             LocalDate payPeriodStart = extractPayPeriodStart(sheet);
 
             Map<String, Integer> dayMap = Map.of(
-                    "SUN", 0, "MON", 1, "TUE", 2, "WED", 3,
-                    "THU", 4, "FRI", 5, "SAT", 6
+                    "WED", 0, "THU", 1, "FRI", 2, "SAT", 3,
+                    "SUN", 4, "MON", 5, "TUE", 6
             );
 
             LocalDate lastLogDate = null;

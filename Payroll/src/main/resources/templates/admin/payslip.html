@@ -35,7 +35,7 @@
                     </thead>
                     <tbody>
                     <tr th:each="att : ${attendanceList}">
-                        <td th:text="${att.logDate}"></td>
+                        <td th:text="${att.logDateWithDay}"></td>
                         <td th:text="${att.morningIn}"></td>
                         <td th:text="${att.morningOut}"></td>
                         <td th:text="${att.afternoonIn}"></td>
@@ -43,6 +43,8 @@
                         <td th:text="${att.regularHours}"></td>
                         <td th:text="${att.overtimeHours}"></td>
                         <td th:text="${att.totalHours}"></td>
+                        <td th:text="${att.status}"></td>
+
                     </tr>
                     <tr th:if="${attendanceList.size() == 0}">
                         <td colspan="11" class="text-center">No attendance records found.</td>
