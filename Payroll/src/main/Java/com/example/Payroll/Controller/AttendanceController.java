@@ -1,18 +1,18 @@
 package com.example.Payroll.Controller;
 
 import com.example.Payroll.Entity.AttendanceLog;
+import com.example.Payroll.Entity.Employee;
 import com.example.Payroll.Repository.AttendanceLogRepository;
-import com.example.Payroll.Repository.AttendanceRepository;
 import com.example.Payroll.Repository.EmployeeRepository;
 import com.example.Payroll.Service.UnifiedImportService;
 import com.example.Payroll.dto.AttendanceSummaryDTO;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
@@ -22,55 +22,57 @@ import java.util.stream.Collectors;
 @RequestMapping("/attendance")
 public class AttendanceController {
 
-    private final AttendanceRepository attendanceRepo;
     private final AttendanceLogRepository attendanceLogRepo;
     private final EmployeeRepository employeeRepo;
     private final UnifiedImportService importService;
 
-    public AttendanceController(AttendanceRepository attendanceRepo,
-                                AttendanceLogRepository attendanceLogRepo,
+    public AttendanceController(AttendanceLogRepository attendanceLogRepo,
                                 EmployeeRepository employeeRepo,
                                 UnifiedImportService importService) {
-        this.attendanceRepo = attendanceRepo;
         this.attendanceLogRepo = attendanceLogRepo;
         this.employeeRepo = employeeRepo;
         this.importService = importService;
     }
 
-    // ✅ Attendance list with optional filter by date
+    // Attendance list with optional week filter
     @GetMapping
     public String viewAttendance(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            Model model) {
+            @RequestParam(value = "week", required = false, defaultValue = "0") int weekOffset,
+            @RequestParam(value = "page", required = false, defaultValue = "1") int page,
+            Model model,
+            @ModelAttribute("message") String message
+    ) {
+        LocalDate today = LocalDate.now();
+        LocalDate currentWed = today.with(DayOfWeek.WEDNESDAY).plusWeeks(weekOffset);
+        LocalDate weekStart = currentWed;
+        LocalDate weekEnd = weekStart.plusDays(6);
 
-        List<AttendanceLog> logs = (date != null)
-                ? attendanceLogRepo.findAll().stream()
-                .filter(l -> date.equals(l.getLogDate()))
-                .collect(Collectors.toList())
-                : attendanceLogRepo.findAll();
+        List<AttendanceLog> logsThisWeek = attendanceLogRepo.findAll().stream()
+                .filter(l -> !l.getLogDate().isBefore(weekStart) && !l.getLogDate().isAfter(weekEnd))
+                .collect(Collectors.toList());
 
-        List<AttendanceSummaryDTO> summaries = buildSummaries(logs);
+        List<AttendanceSummaryDTO> summaries = buildSummaries(logsThisWeek, weekStart, weekEnd);
 
-        model.addAttribute("summaries", summaries);
-        model.addAttribute("selectedDate", date);
+        // ✅ Pagination logic
+        int pageSize = 10;
+        int totalPages = (int) Math.ceil((double) summaries.size() / pageSize);
+        int fromIndex = (page - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, summaries.size());
+        List<AttendanceSummaryDTO> pageSummaries = summaries.subList(fromIndex, toIndex);
+
+        model.addAttribute("summaries", pageSummaries);
+        model.addAttribute("weekOffset", weekOffset);
+        model.addAttribute("weekStart", weekStart);
+        model.addAttribute("weekEnd", weekEnd);
+        model.addAttribute("message", message);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
 
         return "admin/attendance";
     }
 
-    // ✅ Show upload page
-    @GetMapping("/upload")
-    public String showUploadPage(Model model) {
-        List<AttendanceSummaryDTO> summaries = buildSummaries(attendanceLogRepo.findAll());
-        model.addAttribute("summaries", summaries);
 
-        // Keep flash message safe
-        Object message = model.asMap().get("message");
-        model.addAttribute("message", message != null ? message : "");
-
-        return "admin/attendance";
-    }
-
-    // ✅ Upload & process Excel file
+    // Upload & process Excel file
     @PostMapping("/upload")
     public String uploadFile(@RequestParam("file") MultipartFile file,
                              RedirectAttributes redirectAttributes) {
@@ -80,14 +82,16 @@ public class AttendanceController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("message", "❌ Failed to import file: " + e.getMessage());
         }
-        return "redirect:/attendance/upload";
+        return "redirect:/attendance"; // redirect back to merged attendance page
     }
 
-    // ✅ Build summaries per employee per day (strict cutoff rules)
-    private List<AttendanceSummaryDTO> buildSummaries(List<AttendanceLog> logs) {
+    // Build summaries only for logs with actual data
+    private List<AttendanceSummaryDTO> buildSummaries(List<AttendanceLog> logs,
+                                                      LocalDate weekStart,
+                                                      LocalDate weekEnd) {
         Map<String, AttendanceSummaryDTO> map = new LinkedHashMap<>();
 
-        // Sort logs by date + time so IN/OUT are in order
+        // Sort logs by date + time
         logs = logs.stream()
                 .sorted(Comparator.comparing(AttendanceLog::getLogDate)
                         .thenComparing(AttendanceLog::getLogTime))
@@ -104,17 +108,13 @@ public class AttendanceController {
 
             LocalTime logTime = log.getLogTime();
 
-            // ✅ Morning cutoff: 00:00 - 12:30 (inclusive)
-            // ✅ Afternoon cutoff: 12:31 - 23:59
             if (!logTime.isAfter(LocalTime.of(12, 30))) {
-                // Morning log
                 if (log.getStatus() == AttendanceLog.Status.IN && dto.getMorningIn() == null) {
                     dto.setMorningIn(logTime.toString());
                 } else if (log.getStatus() == AttendanceLog.Status.OUT && dto.getMorningOut() == null) {
                     dto.setMorningOut(logTime.toString());
                 }
             } else {
-                // Afternoon log
                 if (log.getStatus() == AttendanceLog.Status.IN && dto.getAfternoonIn() == null) {
                     dto.setAfternoonIn(logTime.toString());
                 } else if (log.getStatus() == AttendanceLog.Status.OUT && dto.getAfternoonOut() == null) {
@@ -122,14 +122,15 @@ public class AttendanceController {
                 }
             }
 
-            // Compute daily totals strictly from DB logs
             dto.computeTotalHoursAndOT();
         }
 
+        // Only keep rows where there is at least one time entry
         return map.values().stream()
+                .filter(dto -> dto.getMorningIn() != null || dto.getMorningOut() != null ||
+                        dto.getAfternoonIn() != null || dto.getAfternoonOut() != null)
                 .sorted(Comparator.comparing(AttendanceSummaryDTO::getEmployeeId)
                         .thenComparing(AttendanceSummaryDTO::getLogDate))
                 .collect(Collectors.toList());
     }
-
 }

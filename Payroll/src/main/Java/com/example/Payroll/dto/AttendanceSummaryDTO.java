@@ -105,4 +105,13 @@ public class AttendanceSummaryDTO {
         String day = logDate.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.ENGLISH).toUpperCase();
         return logDate.toString() + " " + day;
     }
+
+    // ✅ Add this inside your AttendanceSummaryDTO class
+    public boolean hasAttendance() {
+        return (morningIn != null && !morningIn.equals("-")) ||
+                (morningOut != null && !morningOut.equals("-")) ||
+                (afternoonIn != null && !afternoonIn.equals("-")) ||
+                (afternoonOut != null && !afternoonOut.equals("-"));
+    }
+
 }

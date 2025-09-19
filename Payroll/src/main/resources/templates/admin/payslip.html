@@ -14,6 +14,9 @@
         <main class="col-md-10 p-4">
 
             <a th:href="@{/payroll}" class="btn btn-secondary mb-3">← Back to Payroll</a>
+            <a th:href="@{/admin/payslip/{id}(id=${employee.employeeId}, week=${weekOffset - 1})}" class="btn btn-secondary">Previous Week</a>
+            <a th:href="@{/admin/payslip/{id}(id=${employee.employeeId}, week=${weekOffset + 1})}" class="btn btn-secondary">Next Week</a>
+
             <h4>PAYSLIP for <span th:text="${employee.firstName + ' ' + employee.lastName}"></span></h4>
             <hr>
 
