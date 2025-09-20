@@ -1,12 +1,11 @@
-$(function () {
+$(document).ready(function () {
 
-    // Show Add Modal
     $('#openModalBtn').on('click', function () {
         const myModal = new bootstrap.Modal(document.getElementById('myModal'));
         myModal.show();
     });
 
-    // Delegated handler so it still works after pagination / DOM changes
+
     $(document).on('click', '.js-employee-update', function () {
         const $btn = $(this);
         const row = $btn.closest('tr');
@@ -21,14 +20,10 @@ $(function () {
         const phone = row.find('.emp-phone').text().trim();
         const hireDate = row.find('.emp-hiredate').text().trim();
 
-        // Primary source: hidden <td> values; fallback: data attributes
-        let departmentId = row.find('.emp-departmentid').text().trim();
-        let positionId = row.find('.emp-positionid').text().trim();
+        let departmentId = row.find('.emp-departmentid').data('id')?.toString() || '';
+        let positionId = row.find('.emp-positionid').data('id')?.toString() || '';
 
-        if (!departmentId) departmentId = row.data('department-id') || $btn.data('department-id') || '';
-        if (!positionId) positionId = row.data('position-id') || $btn.data('position-id') || '';
 
-        // Set form values
         $('#employeeIdUpdate').val(employeeId);
         $('#usernameUpdate').val(username);
         $('#passwordUpdate').val(password);
@@ -39,49 +34,37 @@ $(function () {
         $('#phoneUpdate').val(phone);
         $('#hireDateUpdate').val(hireDate);
 
-        // Set department first (so user sees it)
-        if (departmentId) {
-            $('#departmentUpdateDropdown').val(String(departmentId));
-        } else {
-            $('#departmentUpdateDropdown').val('');
-        }
+        $('#departmentUpdateDropdown').val(departmentId || '');
 
-        // Populate position dropdown via AJAX and select the correct one
-        getPosition(departmentId, positionId);
+
+        getPositions(departmentId, '#positionUpdateDropdown', positionId);
 
         const modal = new bootstrap.Modal(document.getElementById('myUpdateModal'));
         modal.show();
     });
 
-    // Loads positions and selects the provided positionId if present
-    function getPosition(departmentId, selectedPositionId = null) {
-        const dropdown = $('#positionUpdateDropdown');
+
+    function getPositions(departmentId, dropdownSelector, selectedPositionId = null) {
+        const dropdown = $(dropdownSelector);
         dropdown.empty().append('<option value="">Select Position</option>');
         if (!departmentId) return;
 
         $.ajax({
             url: '/positions/retrieve',
             method: 'GET',
-            data: { departmentId: departmentId }, // send dept id in case backend supports filtering
+            data: { departmentId: departmentId },
             dataType: 'json',
             success: function (data) {
-                console.log('positions retrieved:', data);
-                // data may be a list of position objects. Try to be defensive about structure.
                 data.forEach(function (position) {
-                    // robustly find department id on the position object
                     const posDeptId = (position.department && (position.department.departmentId || position.department.id)) || position.departmentId || '';
-                    // if server already filtered by department this check still works
-                    if (String(posDeptId) === String(departmentId) || !posDeptId) {
+                    if (String(posDeptId) === String(departmentId)) {
                         dropdown.append($('<option>', {
                             value: position.positionId,
                             text: position.title || position.name || ('Position ' + position.positionId)
                         }));
                     }
                 });
-
-                if (selectedPositionId) {
-                    dropdown.val(String(selectedPositionId));
-                }
+                if (selectedPositionId) dropdown.val(String(selectedPositionId));
             },
             error: function (xhr, status, error) {
                 console.error('Error retrieving positions:', error, xhr.responseText);
@@ -89,17 +72,52 @@ $(function () {
         });
     }
 
-    // When Department changes in modal → reload positions
+
     $(document).on('change', '#departmentUpdateDropdown', function () {
         const deptId = $(this).val();
-        getPosition(deptId);
+        getPositions(deptId, '#positionUpdateDropdown');
     });
 
-    // Delegated Delete
+
+    $(document).on('change', '#departmentAddDropdown', function () {
+        const deptId = $(this).val();
+        getPositions(deptId, '#positionAddDropdown');
+    });
+
+
     $(document).on('click', '.js-employee-delete', function () {
         const id = $(this).data('id');
         if (confirm('Are you sure you want to delete this employee?')) {
             window.location.href = '/employees/delete/' + id;
+        }
+    });
+
+
+    $('#searchBtn').click(function () {
+        const name = $('#searchName').val().toLowerCase().trim();
+        const deptId = $('#searchDepartment').val();
+        const posId = $('#searchPosition').val();
+
+        $('table tbody tr').each(function () {
+            const row = $(this);
+            const rowName = (row.find('.emp-firstname').text() + " " + row.find('.emp-lastname').text()).toLowerCase().trim();
+            const rowDept = row.find('.emp-departmentid').data('id')?.toString() || '';
+            const rowPos = row.find('.emp-positionid').data('id')?.toString() || '';
+
+            if ((rowName.includes(name) || name === '') &&
+                (rowDept === deptId || deptId === '') &&
+                (rowPos === posId || posId === '')) {
+                row.show();
+            } else {
+                row.hide();
+            }
+        });
+    });
+
+
+    $('#searchName, #searchDepartment, #searchPosition').on('input change', function () {
+        if ($('#searchName').val() === '' && $('#searchDepartment').val() === '' && $('#searchPosition').val() === '') {
+            $('table tbody tr').show();
         }
     });
 

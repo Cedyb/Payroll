@@ -1,0 +1,42 @@
+
+body {
+    overflow-x: hidden;
+}
+
+
+nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 240px;
+    background-color: #fff;
+    border-right: 1px solid #dee2e6;
+    z-index: 1000;
+}
+
+
+main {
+    margin-left: 240px;
+    width: calc(100% - 240px);
+    padding: 20px;
+}
+
+
+.table-container {
+    margin-top: 20px;
+    background-color: #f8f9fa;
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+
+.pagination-wrapper {
+    margin-top: 15px;
+    text-align: left;
+}
+
+.pagination-wrapper ul {
+    margin-bottom: 0;
+}

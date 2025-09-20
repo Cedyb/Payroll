@@ -1,16 +1,59 @@
-<nav th:fragment="nav" class="col-md-2 sidebar" xmlns:th="">
-    <div class="text-center my-3">
-        <img src="/assets/1688.png" alt="Logo" class="img-fluid" style="max-height: 80px;">
+<nav th:fragment="nav" class="sidebar d-flex flex-column p-3">
+    <div class="text-center logo-container my-3">
+        <img src="/assets/1688.png" alt="Logo" class="logo">
+        <h5 class="mt-2 fw-bold text-primary">Payroll System</h5>
     </div>
-    <a href="/dashboard">Dashboard</a>
-    <a href="/employees">Employees</a>
-    <a href="/positions">Position</a>
-    <a href="/departments">Department</a>
-    <a href="/attendance">Attendance</a>
-    <a href="/payroll">Payroll</a>
-    <a href="/reports">Reports</a>
-    <a href="/settings">Settings</a>
-    <a href="/usermanagement">User Management</a>
-    <a href="/logout">Logout</a>
 
+    <ul class="nav flex-column mt-4">
+        <li class="nav-item">
+            <a href="/dashboard" class="nav-link">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/employees" class="nav-link">
+                <i class="bi bi-people"></i> Employees
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/positions" class="nav-link">
+                <i class="bi bi-briefcase"></i> Position
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/departments" class="nav-link">
+                <i class="bi bi-building"></i> Department
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/attendance" class="nav-link">
+                <i class="bi bi-calendar-check"></i> Attendance
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/payroll" class="nav-link">
+                <i class="bi bi-cash-stack"></i> Payroll
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/reports" class="nav-link">
+                <i class="bi bi-bar-chart"></i> Reports
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/settings" class="nav-link">
+                <i class="bi bi-gear"></i> Settings
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/usermanagement" class="nav-link">
+                <i class="bi bi-person-gear"></i> User Management
+            </a>
+        </li>
+        <li class="nav-item mt-auto">
+            <a href="/logout" class="nav-link text-danger">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </li>
+    </ul>
 </nav>

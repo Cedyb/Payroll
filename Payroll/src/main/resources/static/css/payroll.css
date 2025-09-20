@@ -48,3 +48,21 @@
 .dropdown-menu-custom .dropdown-item:hover {
     background-color: #f8f9fa;
 }
+.table-container {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #f8f9fa ;
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+
+.table-container table {
+    margin-bottom: 0;
+}
+
+
+
+
+
