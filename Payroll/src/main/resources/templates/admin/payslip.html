@@ -11,25 +11,61 @@
 <div class="container-fluid">
     <div class="row">
 
-
+        <!-- Sidebar -->
         <nav th:replace="fragments/nav :: nav"></nav>
 
-
+        <!-- Main -->
         <main class="col-md-10 offset-md-2 content p-4">
 
+            <!-- Navigation + Filters -->
+            <div class="mb-3 d-flex flex-wrap gap-2 align-items-center">
+                <a th:href="@{/payroll}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Payroll
+                </a>
+                <a th:href="@{/admin/payslip/{id}(id=${employee.employeeId}, week=${weekOffset - 1})}" class="btn btn-outline-secondary">
+                    <i class="bi bi-chevron-left"></i> Previous Week
+                </a>
+                <a th:href="@{/admin/payslip/{id}(id=${employee.employeeId}, week=${weekOffset + 1})}" class="btn btn-outline-secondary">
+                    Next Week <i class="bi bi-chevron-right"></i>
+                </a>
 
-            <div class="mb-3">
-                <a th:href="@{/payroll}" class="btn btn-secondary">← Back to Payroll</a>
-                <a th:href="@{/admin/payslip/{id}(id=${employee.employeeId}, week=${weekOffset - 1})}" class="btn btn-secondary">Previous Week</a>
-                <a th:href="@{/admin/payslip/{id}(id=${employee.employeeId}, week=${weekOffset + 1})}" class="btn btn-secondary">Next Week</a>
+                <!-- Filters -->
+                <form th:action="@{/admin/payslip/{id}(id=${employee.employeeId})}" method="get" class="d-flex gap-2 ms-auto">
+                    <!-- Year -->
+                    <select name="year" class="form-select" style="width:auto;" onchange="this.form.submit()">
+                        <option th:each="y : ${years}" th:value="${y}" th:text="${y}"
+                                th:selected="${y == selectedYear}"></option>
+                    </select>
+
+                    <!-- Month -->
+                    <select name="month" class="form-select" style="width:auto;" onchange="this.form.submit()">
+                        <option value="">All Months</option>
+                        <option th:each="m : ${months}" th:value="${m.value}" th:text="${m.name}"
+                                th:selected="${m.value == selectedMonth}"></option>
+                    </select>
+
+                    <!-- Week -->
+                    <select class="form-select" id="week" name="week"
+                            onchange="this.form.submit()">
+                        <option th:each="week : ${weeks}"
+                                th:value="${week.offset}"
+                                th:text="${week.label}"
+                                th:selected="${selectedWeek == week.offset}">
+                        </option>
+                    </select>
+                </form>
             </div>
 
-            <h4>PAYSLIP for <span th:text="${employee.firstName + ' ' + employee.lastName}"></span></h4>
+            <!-- Employee Info -->
+            <h4 class="fw-bold mb-3">Payslip for
+                <span th:text="${employee.firstName + ' ' + employee.lastName}"></span>
+            </h4>
             <hr>
 
+            <!-- Attendance Table -->
             <div class="table-responsive mb-4">
-                <table class="table table-bordered payslip-table">
-                    <thead class="table-secondary">
+                <table class="table table-bordered table-striped align-middle">
+                    <thead class="table-secondary text-center">
                     <tr>
                         <th>Date</th>
                         <th>Morning In</th>
@@ -49,9 +85,9 @@
                         <td th:text="${att.morningOut}"></td>
                         <td th:text="${att.afternoonIn}"></td>
                         <td th:text="${att.afternoonOut}"></td>
-                        <td th:text="${att.regularHours}"></td>
-                        <td th:text="${att.overtimeHours}"></td>
-                        <td th:text="${att.totalHours}"></td>
+                        <td class="text-end" th:text="${att.regularHours}"></td>
+                        <td class="text-end" th:text="${att.overtimeHours}"></td>
+                        <td class="text-end" th:text="${att.totalHours}"></td>
                         <td th:text="${att.status}"></td>
                     </tr>
                     <tr th:if="${attendanceList.size() == 0}">
@@ -61,14 +97,16 @@
                 </table>
             </div>
 
+            <!-- Edit Mode Button -->
+            <button id="toggleEditBtn" class="btn btn-primary mb-3">
+                <i class="bi bi-pencil-square"></i> Enable Edit Mode
+            </button>
 
-            <button id="toggleEditBtn" class="btn btn-primary mb-3">Enable Edit Mode</button>
-
-
+            <!-- Payroll Table -->
             <form th:action="@{/admin/payslip/{id}/save(id=${employee.employeeId})}" method="post">
                 <div class="table-responsive">
-                    <table class="table table-bordered payslip-table">
-                        <thead class="table-secondary">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-secondary text-center">
                         <tr>
                             <th>Earnings</th>
                             <th>Amount</th>
@@ -77,6 +115,7 @@
                         </tr>
                         </thead>
                         <tbody>
+                        <!-- Earnings / Deductions rows (same as yours, but with better spacing) -->
                         <tr>
                             <td>Basic Pay</td>
                             <td><input type="number" name="basicPay" class="form-control" th:value="${payroll.basicPay}" readonly></td>
@@ -131,6 +170,7 @@
                             <td>Utilities</td>
                             <td><input type="number" name="utilities" class="form-control editable-input" th:value="${payroll.utilities}" disabled></td>
                         </tr>
+                        <!-- Totals -->
                         <tr class="fw-bold">
                             <td>Total Earnings</td>
                             <td><input type="number" name="subtotal" class="form-control" readonly></td>
@@ -144,7 +184,10 @@
                         </tbody>
                     </table>
                 </div>
-                <button type="submit" class="btn btn-success">Save Changes</button>
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-save"></i> Save Changes
+                </button>
+                <input type="hidden" name="payPeriodId" th:value="${currentPayPeriod.id}" />
             </form>
         </main>
     </div>
@@ -175,6 +218,7 @@
                 const field = document.querySelector(`input[name='${name}']`);
                 if (field) deductionsTotal += parseFloat(field.value) || 0;
             });
+
 
             totalEarningsInput.value = earningsTotal.toFixed(2);
             totalDeductionsInput.value = deductionsTotal.toFixed(2);

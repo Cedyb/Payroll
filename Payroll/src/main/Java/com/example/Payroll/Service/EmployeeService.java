@@ -10,10 +10,12 @@ import java.util.List;
 @Service
 public interface EmployeeService {
     List<Employee> getAllEmployees();
-    Page<Employee> getAllEmployees(Pageable pageable);  // ✅ new
+    Page<Employee> getAllEmployees(Pageable pageable);
 
     Employee createEmployee(EmployeeForm form);
     Employee updateEmployee(Long id, EmployeeForm employeeForm);
     void deleteEmployee(Long id);
+
     List<Employee> searchEmployeesByKeyword(String keyword);
+    Page<Employee> searchEmployeesByKeyword(String keyword, Pageable pageable); // ✅ new
 }

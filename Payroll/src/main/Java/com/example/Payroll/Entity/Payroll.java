@@ -1,10 +1,11 @@
 package com.example.Payroll.Entity;
 
 import jakarta.persistence.*;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "payroll")
-public class Payroll {
+public class Payroll implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,9 +15,13 @@ public class Payroll {
     @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;
 
+    @ManyToOne
+    @JoinColumn(name = "pay_period_id", nullable = false)
+    private PayPeriod payPeriod;
+
     // Earnings
     private Double basicPay;
-    private Double otPay; // Regular OT
+    private Double otPay;
     private Double leavePay;
     private Double regularHolidayPay;
     private Double specialHolidayPay;
@@ -47,6 +52,9 @@ public class Payroll {
 
     public Employee getEmployee() { return employee; }
     public void setEmployee(Employee employee) { this.employee = employee; }
+
+    public PayPeriod getPayPeriod() { return payPeriod; }
+    public void setPayPeriod(PayPeriod payPeriod) { this.payPeriod = payPeriod; }
 
     public Double getBasicPay() { return basicPay; }
     public void setBasicPay(Double basicPay) { this.basicPay = basicPay; }

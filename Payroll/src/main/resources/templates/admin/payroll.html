@@ -14,24 +14,25 @@
 <div class="container-fluid">
   <div class="row">
 
-
+    <!-- Navigation -->
     <nav th:replace="fragments/nav :: nav"></nav>
 
-
+    <!-- Main Content -->
     <main class="col-md-10 offset-md-2 content p-4">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">PAYROLL</h4>
       </div>
 
-      <form th:action="@{/payroll/search}" method="get">
+      <!-- Search Form -->
+      <form th:action="@{/payroll/search}" method="get" class="mb-3">
         <div class="input-group w-50">
           <input type="text" name="keyword" class="form-control"
-                 placeholder="Search by name or ID..." th:value="${param.keyword}" />
+                 placeholder="Search by name or ID..." th:value="${keyword}" />
           <button type="submit" class="btn btn-primary">Search</button>
         </div>
       </form>
 
-
+      <!-- Table -->
       <div class="table-container mt-4">
         <div class="table-responsive">
           <table class="table align-middle table-hover">
@@ -43,11 +44,11 @@
               <th>Department</th>
               <th>Email</th>
               <th>Status</th>
+              <th>Actions</th> <!-- Payslip button column -->
             </tr>
             </thead>
             <tbody>
             <tr th:each="emp : ${employees}">
-
               <td class="d-flex align-items-center gap-3">
                 <div class="initials"
                      th:text="${#strings.substring(emp.firstName, 0, 1)} + ${#strings.substring(emp.lastName, 0, 1)}">JD</div>
@@ -57,38 +58,52 @@
                 </div>
               </td>
 
-
               <td>
                 <span class="tag" th:text="'#' + ${emp.employeeId}">#000001</span>
               </td>
 
-
               <td th:text="${emp.position.title}">Position</td>
-
 
               <td th:text="${emp.position.department.name}">Department</td>
 
-
               <td th:text="${emp.email}">email@example.com</td>
 
+              <td>
+                <span class="badge bg-secondary">N/A</span>
+              </td>
 
-              <td class="position-relative">
-                <span class="ellipsis" onclick="toggleDropdown(this)">⋮</span>
-                <div class="dropdown-menu-custom">
-                  <ul class="list-unstyled mb-0">
-                    <li>
-                      <a th:href="@{/admin/payslip/{id}(id=${emp.employeeId})}" class="dropdown-item">
-                        Payslip
-                      </a>
-                    </li>
-                  </ul>
-                </div>
+              <td>
+                <a th:href="@{/admin/payslip/{id}(id=${emp.employeeId})}"
+                   class="btn btn-primary btn-sm">
+                  Payslip
+                </a>
               </td>
             </tr>
             </tbody>
           </table>
         </div>
       </div>
+
+      <!-- Pagination -->
+      <nav aria-label="Page navigation example" class="mt-3">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+            <a class="page-link"
+               th:href="@{/payroll(page=${currentPage - 1}, keyword=${keyword})}">Previous</a>
+          </li>
+
+          <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+              th:classappend="${i == currentPage} ? 'active'">
+            <a class="page-link" th:href="@{/payroll(page=${i}, keyword=${keyword})}"
+               th:text="${i + 1}">1</a>
+          </li>
+
+          <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+            <a class="page-link"
+               th:href="@{/payroll(page=${currentPage + 1}, keyword=${keyword})}">Next</a>
+          </li>
+        </ul>
+      </nav>
 
     </main>
   </div>

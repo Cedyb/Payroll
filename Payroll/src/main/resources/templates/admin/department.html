@@ -28,9 +28,14 @@
         </div>
       </div>
 
+      <!-- 🔍 Search bar -->
+      <div class="mb-3 w-50">
+        <input type="text" id="deptSearchInput" class="form-control"
+               placeholder="Search departments by name...">
+      </div>
 
       <div class="table-responsive table-container" th:if="${not #lists.isEmpty(departmentList)}">
-        <table class="table table-striped table-bordered align-middle">
+        <table id="deptTable" class="table table-striped table-bordered align-middle">
           <thead>
           <tr>
             <th>ID</th>
@@ -42,7 +47,7 @@
           <tbody>
           <tr th:each="dept : ${departmentList}">
             <td th:text="${dept.departmentId}"></td>
-            <td th:text="${dept.name}"></td>
+            <td class="dept-name" th:text="${dept.name}"></td>
             <td th:text="${dept.description}"></td>
             <td>
               <button type="button" class="btn btn-warning js-dept-update"
@@ -65,7 +70,7 @@
   </div>
 </div>
 
-
+<!-- Add Department Modal -->
 <div class="modal fade" id="deptAddModal" tabindex="-1" role="dialog" aria-labelledby="deptAddModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <form th:action="@{/departments/create}" th:object="${departmentsForm}" method="post" class="modal-content">
@@ -91,7 +96,7 @@
   </div>
 </div>
 
-
+<!-- Update Department Modal -->
 <div class="modal fade" id="deptUpdateModal" tabindex="-1" role="dialog" aria-labelledby="deptUpdateModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <form th:action="@{/departments/update}" th:object="${departmentsForm}" method="post" class="modal-content">
@@ -118,7 +123,7 @@
   </div>
 </div>
 
-
+<!-- Pagination -->
 <div class="d-flex justify-content-center my-4">
   <nav aria-label="Department pagination">
     <ul class="pagination">
@@ -137,24 +142,5 @@
   </nav>
 </div>
 
-<script>
-  $(document).ready(function () {
-    $('#openAddDeptModal').on('click', function () {
-      $('#deptAddModal').modal('show');
-    });
-
-    $('.js-dept-update').on('click', function () {
-      const id = $(this).data('id');
-      const name = $(this).data('name');
-      const desc = $(this).data('description');
-
-      $('#deptIdUpdate').val(id);
-      $('#deptNameUpdate').val(name);
-      $('#deptDescUpdate').val(desc);
-
-      $('#deptUpdateModal').modal('show');
-    });
-  });
-</script>
 </body>
 </html>

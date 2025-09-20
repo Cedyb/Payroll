@@ -23,11 +23,19 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Autowired
     private PositionsRepository positionsRepository;
 
+    // --- List all active employees ---
     @Override
     public List<Employee> getAllEmployees() {
         return employeeRepository.findByIsActiveTrue();
     }
 
+    // --- Paged active employees ---
+    @Override
+    public Page<Employee> getAllEmployees(Pageable pageable) {
+        return employeeRepository.findByIsActiveTrue(pageable);
+    }
+
+    // --- Create employee ---
     @Override
     public Employee createEmployee(EmployeeForm employeeForm) {
         Employee employee = new Employee();
@@ -44,13 +52,14 @@ public class EmployeeServiceImpl implements EmployeeService {
             Optional<Positions> position = positionsRepository.findById(employeeForm.getPositionId());
             position.ifPresent(pos -> {
                 employee.setPosition(pos);
-                employee.setRole(pos.getTitle()); // ✅ Automatically assign role
+                employee.setRole(pos.getTitle()); // Automatically assign role
             });
         }
 
         return employeeRepository.save(employee);
     }
 
+    // --- Update employee ---
     @Override
     public Employee updateEmployee(Long id, EmployeeForm employeeForm) {
         Optional<Employee> optionalEmployee = employeeRepository.findById(id);
@@ -79,6 +88,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         return employeeRepository.save(employee);
     }
 
+    // --- Soft delete employee ---
     @Override
     public void deleteEmployee(Long id) {
         Optional<Employee> optionalEmployee = employeeRepository.findById(id);
@@ -89,14 +99,15 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
     }
 
+    // --- Search employees by keyword (List version) ---
     @Override
     public List<Employee> searchEmployeesByKeyword(String keyword) {
         return employeeRepository.searchByNameOrId(keyword);
     }
+
+    // --- Search employees by keyword (Pageable version) ---
     @Override
-    public Page<Employee> getAllEmployees(Pageable pageable) {
-        return employeeRepository.findByIsActiveTrue(pageable);
+    public Page<Employee> searchEmployeesByKeyword(String keyword, Pageable pageable) {
+        return employeeRepository.searchByNameOrId(keyword, pageable);
     }
-
-
 }

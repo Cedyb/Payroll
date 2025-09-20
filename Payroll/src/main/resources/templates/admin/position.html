@@ -12,9 +12,11 @@
     <script src="/js/positions.js"></script>
 
     <style>
-
         main {
             margin-left: 240px;
+        }
+        .search-row {
+            margin-bottom: 20px;
         }
     </style>
 </head>
@@ -38,14 +40,26 @@
             </div>
 
 
+            <div class="row search-row">
+                <div class="col-md-3">
+                    <input type="text" id="searchTitle" class="form-control" placeholder="Search by title">
+                </div>
+                <div class="col-md-3">
+                    <select id="searchDepartment" class="form-control">
+                        <option value="">All Departments</option>
+                        <option th:each="dept : ${departments}" th:value="${dept.departmentId}" th:text="${dept.name}"></option>
+                    </select>
+                </div>
+
+            </div>
+
             <div class="card shadow-sm">
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover align-middle"
-                               th:if="${not #lists.isEmpty(positionList)}">
+                        <table class="table table-striped table-hover align-middle" th:if="${not #lists.isEmpty(positionList)}">
                             <thead class="table-light">
                             <tr>
-                                <th>ID</th>
+                                <th>Position ID</th>
                                 <th>Title</th>
                                 <th>Department</th>
                                 <th>Hourly Rate</th>
@@ -56,7 +70,7 @@
                             <tr th:each="position : ${positionList}">
                                 <td th:text="${position.positionId}"></td>
                                 <td th:text="${position.title}"></td>
-                                <td th:text="${position.department.name}"></td>
+                                <td th:text="${position.department.name}" th:data-id="${position.department.departmentId}"></td>
                                 <td th:text="${position.hourlyRate}"></td>
                                 <td>
                                     <button type="button"
@@ -159,5 +173,7 @@
         </div>
     </div>
 </div>
+
+
 </body>
 </html>

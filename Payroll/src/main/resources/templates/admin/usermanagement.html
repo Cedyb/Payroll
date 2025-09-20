@@ -12,17 +12,139 @@
 <div class="container-fluid">
   <div class="row">
 
+    <!-- Sidebar -->
     <nav class="col-md-2 p-0" th:replace="fragments/nav :: nav"></nav>
 
-
+    <!-- Main Content -->
     <main class="col-md-10 ms-sm-auto px-4 py-4">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h4>User Management</h4>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#userModal">
+          <i class="bi bi-person-plus"></i> Add User
+        </button>
       </div>
 
-      <p>Manage users here.</p>
+      <!-- Search and Filter -->
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <input type="text" class="form-control" placeholder="Search users..." id="searchInput">
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" id="roleFilter">
+            <option value="">All Roles</option>
+            <option value="Mason">Mason</option>
+            <option value="Foreman">Foreman</option>
+            <option value="Admin">Admin</option>
+            <option value="HR">HR</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- User Table -->
+      <div class="table-responsive">
+        <table class="table table-striped table-hover" id="userTable">
+          <thead>
+          <tr>
+            <th>#</th>
+            <th>Username</th>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Department</th>
+            <th>Actions</th>
+          </tr>
+          </thead>
+          <tbody>
+          <!-- Example rows (replace dynamically from your backend) -->
+          <tr>
+            <td>1</td>
+            <td>jdoe</td>
+            <td>John Doe</td>
+            <td>jdoe@example.com</td>
+            <td>Mason</td>
+            <td>Construction</td>
+            <td>
+              <button class="btn btn-sm btn-warning me-1">Edit</button>
+              <button class="btn btn-sm btn-danger">Delete</button>
+            </td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>asmith</td>
+            <td>Alice Smith</td>
+            <td>asmith@example.com</td>
+            <td>Foreman</td>
+            <td>Construction</td>
+            <td>
+              <button class="btn btn-sm btn-warning me-1">Edit</button>
+              <button class="btn btn-sm btn-danger">Delete</button>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Add/Edit User Modal -->
+      <div class="modal fade" id="userModal" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Add / Edit User</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <form id="userForm">
+                <input type="text" class="form-control mb-2" placeholder="Username" name="username" required>
+                <input type="text" class="form-control mb-2" placeholder="Full Name" name="fullname" required>
+                <input type="email" class="form-control mb-2" placeholder="Email" name="email" required>
+                <select class="form-select mb-2" name="role" required>
+                  <option value="">Select Role</option>
+                  <option value="Mason">Mason</option>
+                  <option value="Foreman">Foreman</option>
+                  <option value="Admin">Admin</option>
+                  <option value="HR">HR</option>
+                </select>
+                <input type="text" class="form-control mb-2" placeholder="Department" name="department" required>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button class="btn btn-primary" id="saveUserBtn">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
+
+<!-- Optional JavaScript for basic search/filter functionality -->
+<script>
+  const searchInput = document.getElementById('searchInput');
+  const roleFilter = document.getElementById('roleFilter');
+  const userTable = document.getElementById('userTable').getElementsByTagName('tbody')[0];
+
+  function filterTable() {
+    const search = searchInput.value.toLowerCase();
+    const role = roleFilter.value;
+
+    for (let row of userTable.rows) {
+      const username = row.cells[1].textContent.toLowerCase();
+      const fullname = row.cells[2].textContent.toLowerCase();
+      const email = row.cells[3].textContent.toLowerCase();
+      const userRole = row.cells[4].textContent;
+
+      const matchesSearch = username.includes(search) || fullname.includes(search) || email.includes(search);
+      const matchesRole = !role || userRole === role;
+
+      row.style.display = matchesSearch && matchesRole ? '' : 'none';
+    }
+  }
+
+  searchInput.addEventListener('input', filterTable);
+  roleFilter.addEventListener('change', filterTable);
+</script>
+
 </body>
 </html>
