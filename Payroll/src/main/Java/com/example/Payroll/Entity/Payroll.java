@@ -1,23 +1,32 @@
 package com.example.Payroll.Entity;
 
 import jakarta.persistence.*;
-import java.io.Serializable;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "payroll")
-public class Payroll implements Serializable {
+public class Payroll {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "payroll_id")
     private Long id;
 
+    // 🔗 Employee relationship
     @ManyToOne
     @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;
 
+    // 🔗 PayPeriod relationship
     @ManyToOne
     @JoinColumn(name = "pay_period_id", nullable = false)
     private PayPeriod payPeriod;
+
+    @Column(name = "week_start")
+    private LocalDate weekStart;
+
+    @Column(name = "week_end")
+    private LocalDate weekEnd;
 
     // Earnings
     private Double basicPay;
@@ -55,6 +64,12 @@ public class Payroll implements Serializable {
 
     public PayPeriod getPayPeriod() { return payPeriod; }
     public void setPayPeriod(PayPeriod payPeriod) { this.payPeriod = payPeriod; }
+
+    public LocalDate getWeekStart() { return weekStart; }
+    public void setWeekStart(LocalDate weekStart) { this.weekStart = weekStart; }
+
+    public LocalDate getWeekEnd() { return weekEnd; }
+    public void setWeekEnd(LocalDate weekEnd) { this.weekEnd = weekEnd; }
 
     public Double getBasicPay() { return basicPay; }
     public void setBasicPay(Double basicPay) { this.basicPay = basicPay; }

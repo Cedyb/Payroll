@@ -1,10 +1,9 @@
-
 body {
     overflow-x: hidden;
     margin: 0;
     padding: 0;
+    background-color: #f8f9fa;
 }
-
 
 nav.sidebar {
     position: fixed;
@@ -17,10 +16,55 @@ nav.sidebar {
     z-index: 1000;
 }
 
-
 main {
     margin-left: 240px;
     padding: 20px;
     min-height: 100vh;
-    background-color: #f8f9fa;
+}
+
+
+.table-container {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    overflow-x: auto;
+    padding: 20px;
+}
+
+
+.table-container table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-container th {
+    background-color: #007bff;
+    color: #fff;
+    text-align: center;
+    padding: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table-container td {
+    text-align: center;
+    padding: 12px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.table-container tr:hover {
+    background-color: #f1f5f9;
+    transition: 0.2s;
+}
+
+
+.pagination-wrapper {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    z-index: 100;
 }

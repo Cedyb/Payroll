@@ -32,76 +32,69 @@
   <div class="mb-3">
     <a th:href="@{/attendance(week=${weekOffset-1})}" class="btn btn-outline-primary">&lt; Previous Week</a>
     <span class="mx-3 fw-bold"
-          th:text="'Week: '
-      + ${#temporals.format(weekStart, 'yyyy - MMM - dd')}
-      + '  -  '
-      + ${#temporals.format(weekEnd, 'yyyy - MMM - dd')}">
-      </span>
+          th:text="'Week: ' + ${#temporals.format(weekStart, 'yyyy - MMM - dd')} + ' - ' + ${#temporals.format(weekEnd, 'yyyy - MMM - dd')}">
+  </span>
     <a th:href="@{/attendance(week=${weekOffset+1})}" class="btn btn-outline-primary">Next Week &gt;</a>
   </div>
 
-  <div class="d-flex flex-column" style="min-height: 500px;">
+  <div class="table-container">
+    <table>
+      <thead>
+      <tr>
+        <th>Employee ID</th>
+        <th>Employee Name</th>
+        <th>Morning In</th>
+        <th>Morning Out</th>
+        <th>Afternoon In</th>
+        <th>Afternoon Out</th>
+        <th>Regular Hours</th>
+        <th>OT Hours</th>
+        <th>Total Hours</th>
+        <th>Log Date</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="summary : ${summaries}">
+        <td th:text="${summary.employeeId}"></td>
+        <td th:text="${summary.employeeName}"></td>
+        <td th:text="${summary.morningIn != null ? summary.morningIn : '-'}"></td>
+        <td th:text="${summary.morningOut != null ? summary.morningOut : '-'}"></td>
+        <td th:text="${summary.afternoonIn != null ? summary.afternoonIn : '-'}"></td>
+        <td th:text="${summary.afternoonOut != null ? summary.afternoonOut : '-'}"></td>
+        <td th:text="${summary.regularHours != null ? summary.regularHours : 0}"></td>
+        <td th:text="${summary.overtimeHours != null ? summary.overtimeHours : 0}"></td>
+        <td th:text="${summary.totalHours != null ? summary.totalHours : 0}"></td>
+        <td th:text="${summary.logDate}"></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
 
-    <div class="flex-grow-1 overflow-auto">
-      <table class="table table-bordered table-striped">
-        <thead>
-        <tr>
-          <th>Employee ID</th>
-          <th>Employee Name</th>
-          <th>Morning In</th>
-          <th>Morning Out</th>
-          <th>Afternoon In</th>
-          <th>Afternoon Out</th>
-          <th>Regular Hours</th>
-          <th>OT Hours</th>
-          <th>Total Hours</th>
-          <th>Log Date</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="summary : ${summaries}">
-          <td th:text="${summary.employeeId}"></td>
-          <td th:text="${summary.employeeName}"></td>
-          <td th:text="${summary.morningIn != null ? summary.morningIn : '-'}"></td>
-          <td th:text="${summary.morningOut != null ? summary.morningOut : '-'}"></td>
-          <td th:text="${summary.afternoonIn != null ? summary.afternoonIn : '-'}"></td>
-          <td th:text="${summary.afternoonOut != null ? summary.afternoonOut : '-'}"></td>
-          <td th:text="${summary.regularHours != null ? summary.regularHours : 0}"></td>
-          <td th:text="${summary.overtimeHours != null ? summary.overtimeHours : 0}"></td>
-          <td th:text="${summary.totalHours != null ? summary.totalHours : 0}"></td>
-          <td th:text="${summary.logDate}"></td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
+  <div class="pagination-wrapper">
+    <nav>
+      <ul class="pagination d-flex justify-content-center">
+        <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+          <span class="page-link" th:if="${currentPage == 1}">Previous</span>
+          <a class="page-link" th:if="${currentPage > 1}"
+             th:href="@{/attendance(week=${weekOffset}, page=${currentPage-1})}">Previous</a>
+        </li>
 
+        <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}"
+            th:classappend="${i == currentPage} ? 'active'">
+          <span class="page-link" th:if="${i == currentPage}" th:text="${i}"></span>
+          <a class="page-link" th:if="${i != currentPage}"
+             th:href="@{/attendance(week=${weekOffset}, page=${i})}" th:text="${i}"></a>
+        </li>
 
-    <div class="mt-auto">
-      <nav>
-        <ul class="pagination d-flex justify-content-center">
+        <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+          <span class="page-link" th:if="${currentPage == totalPages}">Next</span>
+          <a class="page-link" th:if="${currentPage < totalPages}"
+             th:href="@{/attendance(week=${weekOffset}, page=${currentPage+1})}">Next</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
 
-          <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
-            <span class="page-link" th:if="${currentPage == 1}">Previous</span>
-            <a class="page-link" th:if="${currentPage > 1}"
-               th:href="@{/attendance(week=${weekOffset}, page=${currentPage-1})}">Previous</a>
-          </li>
-
-          <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}"
-              th:classappend="${i == currentPage} ? 'active'">
-            <span class="page-link" th:if="${i == currentPage}" th:text="${i}"></span>
-            <a class="page-link" th:if="${i != currentPage}"
-               th:href="@{/attendance(week=${weekOffset}, page=${i})}" th:text="${i}"></a>
-          </li>
-
-          <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
-            <span class="page-link" th:if="${currentPage == totalPages}">Next</span>
-            <a class="page-link" th:if="${currentPage < totalPages}"
-               th:href="@{/attendance(week=${weekOffset}, page=${currentPage+1})}">Next</a>
-          </li>
-
-        </ul>
-      </nav>
-    </div>
 
   </div>
 </main>

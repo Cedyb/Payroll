@@ -9,7 +9,9 @@ import com.example.Payroll.Repository.EmployeeRepository;
 import com.example.Payroll.Repository.PayPeriodRepository;
 import com.example.Payroll.Repository.PayrollRepository;
 import com.example.Payroll.dto.AttendanceSummaryDTO;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -43,7 +45,9 @@ public class PayslipPageController {
             @RequestParam(value = "year", required = false) Integer year,
             @RequestParam(value = "month", required = false) Integer month,
             @RequestParam(value = "week", required = false) Integer week,
-            Model model) {
+            @RequestParam(value = "payPeriodId", required = false) Long payPeriodId,
+            Model model,
+            HttpSession session) {
 
         Employee employee = employeeRepository.findByEmployeeId(employeeId)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
@@ -68,20 +72,32 @@ public class PayslipPageController {
         LocalDate weekStart = (weekOffset == 0) ? baseDate : baseDate.plusWeeks(weekOffset - 1);
         LocalDate weekEnd = (weekOffset == 0) ? endOfMonth : weekStart.plusDays(6);
 
+        // Save week range to session
+        session.setAttribute("weekStart", weekStart);
+        session.setAttribute("weekEnd", weekEnd);
+
         // Build attendance summary
         List<AttendanceSummaryDTO> dtoList = buildAttendanceSummary(employee, logs, weekStart, weekEnd);
 
-        // Payroll calculation
-        Payroll payroll = calculatePayroll(employee, dtoList);
-
         // Get current pay period (handle empty table)
-        PayPeriod currentPayPeriod = payPeriodRepository.findTopByOrderByStartDateDesc()
-                .orElseGet(() -> {
-                    PayPeriod defaultPeriod = new PayPeriod();
-                    defaultPeriod.setStartDate(LocalDate.now().withDayOfMonth(1));
-                    defaultPeriod.setEndDate(LocalDate.now().withDayOfMonth(15));
-                    return payPeriodRepository.save(defaultPeriod);
-                });
+        PayPeriod currentPayPeriod;
+        if (payPeriodId != null) {
+            currentPayPeriod = payPeriodRepository.findById(payPeriodId)
+                    .orElseThrow(() -> new RuntimeException("PayPeriod not found"));
+        } else {
+            currentPayPeriod = payPeriodRepository.findByStartDateAndEndDate(weekStart, weekEnd)
+                    .orElseGet(() -> {
+                        PayPeriod p = new PayPeriod();
+                        p.setStartDate(weekStart);
+                        p.setEndDate(weekEnd);
+                        return payPeriodRepository.save(p);
+                    });
+        }
+
+        // ✅ Fetch existing payroll for this employee + current pay period
+        Payroll payroll = payrollRepository
+                .findByEmployee_EmployeeIdAndPayPeriod(employeeId, currentPayPeriod)
+                .orElseGet(() -> calculatePayroll(employee, dtoList));
 
         // Dropdowns
         model.addAttribute("years", generateYears(today.getYear()));
@@ -102,6 +118,9 @@ public class PayslipPageController {
 
         return "admin/payslip";
     }
+
+
+
 
     // ---------- HELPER METHODS ----------
 
@@ -185,14 +204,10 @@ public class PayslipPageController {
 
         double calculatedBasicPay = hourlyRate * totalRegularHours;
 
-        Payroll payroll = payrollRepository.findByEmployee_EmployeeId(employee.getEmployeeId())
-                .orElseGet(() -> {
-                    Payroll p = new Payroll();
-                    p.setEmployee(employee);
-                    return p;
-                });
-
+        Payroll payroll = new Payroll();
+        payroll.setEmployee(employee);
         payroll.setBasicPay(calculatedBasicPay);
+
         return payroll;
     }
 
@@ -215,7 +230,7 @@ public class PayslipPageController {
         int offset = 1;
         LocalDate cursor = baseDate;
         while (!cursor.isAfter(endOfMonth)) {
-            LocalDate wEnd = cursor.plusDays(6); // allow spillover
+            LocalDate wEnd = cursor.plusDays(6);
             weeks.add(Map.of("offset", offset,
                     "label", "Week " + offset + " (" + cursor + " - " + wEnd + ")"));
             cursor = cursor.plusWeeks(1);
@@ -227,7 +242,7 @@ public class PayslipPageController {
     @PostMapping("/payslip/{employeeId}/save")
     public String savePayroll(
             @PathVariable Long employeeId,
-            @RequestParam Long payPeriodId,
+            HttpSession session,
             @RequestParam(required = false) Double basicPay,
             @RequestParam(required = false) Double otPay,
             @RequestParam(required = false) Double leavePay,
@@ -246,70 +261,88 @@ public class PayslipPageController {
             @RequestParam(required = false) Double insurance,
             @RequestParam(required = false) Double utilities
     ) {
+        // ✅ Get weekStart & weekEnd from session
+        LocalDate weekStart = (LocalDate) session.getAttribute("weekStart");
+        LocalDate weekEnd = (LocalDate) session.getAttribute("weekEnd");
+        if (weekStart == null || weekEnd == null) {
+            throw new RuntimeException("Week range not found in session");
+        }
 
-        // ✅ Get PayPeriod first
-        PayPeriod payPeriod = payPeriodRepository.findById(payPeriodId)
-                .orElseThrow(() -> new RuntimeException("PayPeriod not found"));
+        // ✅ Get or create PayPeriod for that week
+        PayPeriod payPeriod = payPeriodRepository.findByStartDateAndEndDate(weekStart, weekEnd)
+                .orElseGet(() -> {
+                    PayPeriod newPeriod = new PayPeriod();
+                    newPeriod.setStartDate(weekStart);
+                    newPeriod.setEndDate(weekEnd);
+                    return payPeriodRepository.save(newPeriod);
+                });
 
-        // ✅ Fetch payroll for this employee AND pay period
-        Payroll payroll = payrollRepository.findByEmployee_EmployeeIdAndPayPeriod(employeeId, payPeriod)
+        // ✅ Fetch existing payroll for that employee + payPeriod
+        Payroll payroll = payrollRepository
+                .findByEmployee_EmployeeIdAndPayPeriod(employeeId, payPeriod)
                 .orElseGet(() -> {
                     Employee emp = employeeRepository.findByEmployeeId(employeeId)
                             .orElseThrow(() -> new RuntimeException("Employee not found"));
                     Payroll p = new Payroll();
                     p.setEmployee(emp);
                     p.setPayPeriod(payPeriod);
+                    p.setWeekStart(weekStart);
+                    p.setWeekEnd(weekEnd);
                     return p;
                 });
 
-        // ✅ Set earnings
-        payroll.setBasicPay(basicPay);
-        payroll.setOtPay(otPay);
-        payroll.setLeavePay(leavePay);
-        payroll.setRegularHolidayPay(regularHolidayPay);
-        payroll.setSpecialHolidayPay(specialHolidayPay);
-        payroll.setColaAllowance(colaAllowance);
-        payroll.setAllowance(allowance);
-        payroll.setAdjustment(adjustment);
+        // ✅ Set earnings ONLY if not null (preserve existing values)
+        if (basicPay != null) payroll.setBasicPay(basicPay);
+        if (otPay != null) payroll.setOtPay(otPay);
+        if (leavePay != null) payroll.setLeavePay(leavePay);
+        if (regularHolidayPay != null) payroll.setRegularHolidayPay(regularHolidayPay);
+        if (specialHolidayPay != null) payroll.setSpecialHolidayPay(specialHolidayPay);
+        if (colaAllowance != null) payroll.setColaAllowance(colaAllowance);
+        if (allowance != null) payroll.setAllowance(allowance);
+        if (adjustment != null) payroll.setAdjustment(adjustment);
 
-        // ✅ Set deductions
-        payroll.setSavings(savings);
-        payroll.setSss(sss);
-        payroll.setPhilhealth(philhealth);
-        payroll.setPagibig(pagibig);
-        payroll.setCanteen(canteen);
-        payroll.setCashAdvance(cashAdvance);
-        payroll.setMedical(medical);
-        payroll.setInsurance(insurance);
-        payroll.setUtilities(utilities);
+        // ✅ Set deductions ONLY if not null
+        if (savings != null) payroll.setSavings(savings);
+        if (sss != null) payroll.setSss(sss);
+        if (philhealth != null) payroll.setPhilhealth(philhealth);
+        if (pagibig != null) payroll.setPagibig(pagibig);
+        if (canteen != null) payroll.setCanteen(canteen);
+        if (cashAdvance != null) payroll.setCashAdvance(cashAdvance);
+        if (medical != null) payroll.setMedical(medical);
+        if (insurance != null) payroll.setInsurance(insurance);
+        if (utilities != null) payroll.setUtilities(utilities);
 
-        // ✅ Calculate totals
+        // ✅ Recalculate totals (always based on current values)
         double totalEarnings =
-                (basicPay != null ? basicPay : 0) +
-                        (otPay != null ? otPay : 0) +
-                        (leavePay != null ? leavePay : 0) +
-                        (regularHolidayPay != null ? regularHolidayPay : 0) +
-                        (specialHolidayPay != null ? specialHolidayPay : 0) +
-                        (colaAllowance != null ? colaAllowance : 0) +
-                        (allowance != null ? allowance : 0) +
-                        (adjustment != null ? adjustment : 0);
+                (payroll.getBasicPay() != null ? payroll.getBasicPay() : 0) +
+                        (payroll.getOtPay() != null ? payroll.getOtPay() : 0) +
+                        (payroll.getLeavePay() != null ? payroll.getLeavePay() : 0) +
+                        (payroll.getRegularHolidayPay() != null ? payroll.getRegularHolidayPay() : 0) +
+                        (payroll.getSpecialHolidayPay() != null ? payroll.getSpecialHolidayPay() : 0) +
+                        (payroll.getColaAllowance() != null ? payroll.getColaAllowance() : 0) +
+                        (payroll.getAllowance() != null ? payroll.getAllowance() : 0) +
+                        (payroll.getAdjustment() != null ? payroll.getAdjustment() : 0);
 
         double totalDeductions =
-                (savings != null ? savings : 0) +
-                        (sss != null ? sss : 0) +
-                        (philhealth != null ? philhealth : 0) +
-                        (pagibig != null ? pagibig : 0) +
-                        (canteen != null ? canteen : 0) +
-                        (cashAdvance != null ? cashAdvance : 0) +
-                        (medical != null ? medical : 0) +
-                        (insurance != null ? insurance : 0) +
-                        (utilities != null ? utilities : 0);
+                (payroll.getSavings() != null ? payroll.getSavings() : 0) +
+                        (payroll.getSss() != null ? payroll.getSss() : 0) +
+                        (payroll.getPhilhealth() != null ? payroll.getPhilhealth() : 0) +
+                        (payroll.getPagibig() != null ? payroll.getPagibig() : 0) +
+                        (payroll.getCanteen() != null ? payroll.getCanteen() : 0) +
+                        (payroll.getCashAdvance() != null ? payroll.getCashAdvance() : 0) +
+                        (payroll.getMedical() != null ? payroll.getMedical() : 0) +
+                        (payroll.getInsurance() != null ? payroll.getInsurance() : 0) +
+                        (payroll.getUtilities() != null ? payroll.getUtilities() : 0);
 
         payroll.setSubtotal(totalEarnings);
         payroll.setNetPay(totalEarnings - totalDeductions);
 
+        // ✅ Save payroll
         payrollRepository.save(payroll);
 
-        return "redirect:/admin/payslip/" + employeeId + "?week=" + payPeriodId;
+        // Redirect back to same page showing current pay period
+        return "redirect:/admin/payslip/" + employeeId + "?payPeriodId=" + payPeriod.getId();
     }
+
+
 }

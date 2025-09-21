@@ -19,6 +19,8 @@ public class PayPeriod implements Serializable {
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
+
+
     public PayPeriod() {}
 
     public Long getId() { return id; }
