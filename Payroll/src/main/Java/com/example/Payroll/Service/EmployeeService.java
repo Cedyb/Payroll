@@ -17,5 +17,5 @@ public interface EmployeeService {
     void deleteEmployee(Long id);
 
     List<Employee> searchEmployeesByKeyword(String keyword);
-    Page<Employee> searchEmployeesByKeyword(String keyword, Pageable pageable); // ✅ new
+    Page<Employee> searchEmployeesByKeyword(String keyword, Pageable pageable);
 }

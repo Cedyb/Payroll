@@ -1,31 +1,32 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<meta charset="UTF-8">
-
 <head>
+    <meta charset="UTF-8">
     <title>168 Construction - Login</title>
     <link rel="stylesheet" href="/css/login.css">
 </head>
 <body>
 <div class="login-container">
 
+    <!-- Login Form -->
     <div class="form-section">
         <form th:action="@{/login}" method="post">
             <h2>Login to Your Account</h2>
 
             <label>Email:</label>
-            <input type="text" name="email" required>
+            <input type="text" name="email" placeholder="Enter your email" required>
 
             <label>Password:</label>
-            <input type="password" name="password" required>
+            <input type="password" name="password" placeholder="Enter your password" required>
 
             <button type="submit">Login</button>
 
-            <p th:if="${error}" th:text="${error}"></p>
+            <!-- Display error dynamically -->
+            <p th:if="${error}" th:text="${error}" style="color: red; margin-top: 10px; text-align: center;"></p>
         </form>
     </div>
 
-
+    <!-- Image Section -->
     <div class="image-section">
         <img src="/assets/1688.png" alt="168 Construction">
     </div>

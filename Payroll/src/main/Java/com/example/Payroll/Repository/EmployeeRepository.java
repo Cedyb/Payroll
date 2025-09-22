@@ -18,7 +18,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     Optional<Employee> findByEmployeeId(Long employeeId);
 
-    // --- List version of search ---
+
     @Query("SELECT e FROM Employee e " +
             "WHERE e.isActive = true AND (" +
             "LOWER(e.firstName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +

@@ -1,12 +1,9 @@
 
     $(document).ready(function () {
-
-
     $('#openModalBtn').on('click', function () {
         const myModal = new bootstrap.Modal(document.getElementById('myModal'));
         myModal.show();
     });
-
 
     function getPositions(departmentId, dropdownSelector, selectedPositionId = null) {
     const dropdown = $(dropdownSelector);
@@ -34,46 +31,37 @@
 }
 
     $('#departmentAddDropdown').on('change', function () {
-    const deptId = $(this).val();
-    getPositions(deptId, '#positionAddDropdown');
+    getPositions($(this).val(), '#positionAddDropdown');
 });
 
     $('#departmentUpdateDropdown').on('change', function () {
-    const deptId = $(this).val();
-    getPositions(deptId, '#positionUpdateDropdown');
+    getPositions($(this).val(), '#positionUpdateDropdown');
 });
-
 
     $(document).on('click', '.js-employee-update', function () {
     const row = $(this).closest('tr');
-    const employeeId = row.find('.emp-id').text().trim();
-    const username = row.find('.emp-username').text().trim();
-    const password = '';
-    const firstName = row.find('.emp-firstname').text().trim();
-    const lastName = row.find('.emp-lastname').text().trim();
-    const email = row.find('.emp-email').text().trim();
-    const address = row.find('.emp-address').text().trim();
-    const phone = row.find('.emp-phone').text().trim();
-    const hireDate = row.find('.emp-hiredate').text().trim();
+
+    $('#employeeIdUpdate').val(row.find('.emp-id').text().trim());
+    $('#usernameUpdate').val(row.find('.emp-username').text().trim());
+    $('#passwordUpdate').val('');
+    $('#firstNameUpdate').val(row.find('.emp-firstname').text().trim());
+    $('#lastNameUpdate').val(row.find('.emp-lastname').text().trim());
+    $('#emailUpdate').val(row.find('.emp-email').text().trim());
+    $('#addressUpdate').val(row.find('.emp-address').text().trim());
+    $('#phoneUpdate').val(row.find('.emp-phone').text().trim());
+    $('#hireDateUpdate').val(row.find('.emp-hiredate').text().trim());
+
     const departmentId = row.find('.emp-departmentid').data('id')?.toString() || '';
     const positionId = row.find('.emp-positionid').data('id')?.toString() || '';
+    const systemRole = row.find('.emp-system-role').text().trim();
 
-    $('#employeeIdUpdate').val(employeeId);
-    $('#usernameUpdate').val(username);
-    $('#passwordUpdate').val(password);
-    $('#firstNameUpdate').val(firstName);
-    $('#lastNameUpdate').val(lastName);
-    $('#emailUpdate').val(email);
-    $('#addressUpdate').val(address);
-    $('#phoneUpdate').val(phone);
-    $('#hireDateUpdate').val(hireDate);
     $('#departmentUpdateDropdown').val(departmentId);
     getPositions(departmentId, '#positionUpdateDropdown', positionId);
+    $('#systemRoleUpdate').val(systemRole);
 
     const modal = new bootstrap.Modal(document.getElementById('myUpdateModal'));
     modal.show();
 });
-
 
     $(document).on('click', '.js-employee-delete', function () {
     const id = $(this).data('id');
@@ -81,7 +69,6 @@
     window.location.href = '/employees/delete/' + id;
 }
 });
-
 
     $('#searchDepartment').on('change', function () {
     const deptId = $(this).val();
@@ -96,10 +83,7 @@
     dataType: 'json',
     success: function (data) {
     data.forEach(function (position) {
-    posDropdown.append($('<option>', {
-    value: position.positionId,
-    text: position.title
-}));
+    posDropdown.append($('<option>', { value: position.positionId, text: position.title }));
 });
 }
 });
@@ -131,5 +115,4 @@
     $('table tbody tr').show();
 }
 });
-
 });

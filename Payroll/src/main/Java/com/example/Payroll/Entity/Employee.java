@@ -25,16 +25,19 @@ public class Employee {
     @Column(name = "employee_id")
     private Long employeeId;
 
-
-
     @Column(nullable = false, unique = true, length = 50)
     private String username;
 
     @Column(nullable = false, length = 100)
     private String password;
 
+    // existing role field
     @Column(nullable = false, length = 20)
     private String role;
+
+    // new system_role field
+    @Column(name = "system_role", length = 20, nullable = false)
+    private String system_role = "EMPLOYEE";
 
     @Column(name = "first_name", nullable = false, length = 50)
     private String firstName;
@@ -73,10 +76,10 @@ public class Employee {
     public String getFullName() {
         return firstName + " " + lastName;
     }
+
     @Transient
     private Payroll.PayrollStatus payrollStatus;
 
     public Payroll.PayrollStatus getPayrollStatus() { return payrollStatus; }
     public void setPayrollStatus(Payroll.PayrollStatus payrollStatus) { this.payrollStatus = payrollStatus; }
-
 }

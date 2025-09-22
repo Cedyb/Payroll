@@ -49,12 +49,14 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setHireDate(employeeForm.getHireDate());
 
         if (employeeForm.getPositionId() != null) {
-            Optional<Positions> position = positionsRepository.findById(employeeForm.getPositionId());
-            position.ifPresent(pos -> {
+            positionsRepository.findById(employeeForm.getPositionId()).ifPresent(pos -> {
                 employee.setPosition(pos);
-                employee.setRole(pos.getTitle()); // Automatically assign role
+                employee.setRole(pos.getTitle()); // existing role
             });
         }
+
+        // --- set system_role explicitly ---
+        employee.setSystem_role(employeeForm.getSystem_role());
 
         return employeeRepository.save(employee);
     }
@@ -62,14 +64,16 @@ public class EmployeeServiceImpl implements EmployeeService {
     // --- Update employee ---
     @Override
     public Employee updateEmployee(Long id, EmployeeForm employeeForm) {
-        Optional<Employee> optionalEmployee = employeeRepository.findById(id);
-        if (optionalEmployee.isEmpty()) {
-            throw new RuntimeException("Employee not found with ID: " + id);
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Employee not found with ID: " + id));
+
+        employee.setUsername(employeeForm.getUsername());
+
+        // Only update password if provided
+        if (employeeForm.getPassword() != null && !employeeForm.getPassword().isEmpty()) {
+            employee.setPassword(employeeForm.getPassword());
         }
 
-        Employee employee = optionalEmployee.get();
-        employee.setUsername(employeeForm.getUsername());
-        employee.setPassword(employeeForm.getPassword());
         employee.setFirstName(employeeForm.getFirstName());
         employee.setLastName(employeeForm.getLastName());
         employee.setEmail(employeeForm.getEmail());
@@ -78,12 +82,14 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setHireDate(employeeForm.getHireDate());
 
         if (employeeForm.getPositionId() != null) {
-            Optional<Positions> position = positionsRepository.findById(employeeForm.getPositionId());
-            position.ifPresent(pos -> {
+            positionsRepository.findById(employeeForm.getPositionId()).ifPresent(pos -> {
                 employee.setPosition(pos);
                 employee.setRole(pos.getTitle());
             });
         }
+
+        // --- update system_role from form ---
+        employee.setSystem_role(employeeForm.getSystem_role());
 
         return employeeRepository.save(employee);
     }

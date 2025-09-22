@@ -2,7 +2,6 @@ package com.example.Payroll.Controller;
 
 import com.example.Payroll.Entity.Employee;
 import com.example.Payroll.Repository.EmployeeRepository;
-import com.example.Payroll.Static.SessionData;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -27,17 +26,29 @@ public class LoginController {
             HttpSession session,
             Model model) {
 
-        // Admin login
-        if (SessionData.USERNAME.equals(email) && SessionData.PASSWORD.equals(password)) {
-            session.setAttribute("admin", true);
-            return "redirect:/dashboard";
-        }
-
-        // Employee login
         Employee employee = employeeRepository.findByEmail(email);
+
         if (employee != null && employee.getPassword().equals(password)) {
+            // Store employee in session
             session.setAttribute("employee", employee);
-            return "redirect:/userDashboard";
+
+            // Redirect based on system_role
+            String role = employee.getSystem_role();
+
+            if (role != null) {
+                switch (role.toUpperCase()) {
+                    case "SITE ADMIN":
+                        session.setAttribute("role", "SITE ADMIN");
+                        return "redirect:/dashboard"; // admin dashboard
+                    case "CLERK":
+                        session.setAttribute("role", "CLERK");
+                        return "redirect:/clerkDashboard"; // clerk dashboard
+                    case "EMPLOYEE":
+                    default:
+                        session.setAttribute("role", "EMPLOYEE");
+                        return "redirect:/userDashboard"; // employee dashboard
+                }
+            }
         }
 
         model.addAttribute("error", "Invalid email or password");
@@ -47,23 +58,30 @@ public class LoginController {
     @GetMapping("/userDashboard")
     public String showUserDashboard(HttpSession session, Model model) {
         Employee employee = (Employee) session.getAttribute("employee");
-
         if (employee == null) {
             return "redirect:/login";
         }
-
         model.addAttribute("employee", employee);
         return "employee/userDashboard";
     }
 
-    @GetMapping("/dashboard")
-    public String showAdminDashboard(HttpSession session) {
-        Boolean isAdmin = (Boolean) session.getAttribute("admin");
-
-        if (isAdmin == null || !isAdmin) {
+    @GetMapping("/clerkDashboard")
+    public String showClerkDashboard(HttpSession session, Model model) {
+        Employee employee = (Employee) session.getAttribute("employee");
+        if (employee == null || !"CLERK".equalsIgnoreCase(employee.getSystem_role())) {
             return "redirect:/login";
         }
+        model.addAttribute("employee", employee);
+        return "clerk/clerkDashboard";
+    }
 
+    @GetMapping("/dashboard")
+    public String showAdminDashboard(HttpSession session, Model model) {
+        Employee employee = (Employee) session.getAttribute("employee");
+        if (employee == null || !"SITE ADMIN".equalsIgnoreCase(employee.getSystem_role())) {
+            return "redirect:/login";
+        }
+        model.addAttribute("employee", employee);
         return "admin/dashboard";
     }
 

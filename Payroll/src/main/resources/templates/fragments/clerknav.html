@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Clerk Navigation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+</head>
+<body>
+
+<nav th:fragment="Clerknav" class="sidebar d-flex flex-column p-3">
+    <div class="text-center logo-container my-3">
+        <img src="/assets/1688.png" alt="Logo" class="logo">
+        <h5 class="mt-2 fw-bold text-primary">Payroll System</h5>
+    </div>
+
+    <ul class="nav flex-column mt-4">
+        <li class="nav-item">
+            <a href="/clerk/dashboard" class="nav-link">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/clerk/employee" class="nav-link">
+                <i class="bi bi-people"></i> Employees
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/clerk/attendance" class="nav-link">
+                <i class="bi bi-calendar-check"></i> Attendance
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/clerk/payroll" class="nav-link">
+                <i class="bi bi-cash-stack"></i> Payroll
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/clerk/reports" class="nav-link">
+                <i class="bi bi-file-text"></i> Reports
+            </a>
+        </li>
+        <!-- Optional: view-only tabs -->
+        <li class="nav-item">
+            <a href="/clerk/department" class="nav-link">
+                <i class="bi bi-building"></i> Department
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/clerk/position" class="nav-link">
+                <i class="bi bi-award"></i> Position
+            </a>
+        </li>
+
+        <li class="nav-item mt-auto">
+            <a href="/logout" class="nav-link text-danger">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </li>
+    </ul>
+</nav>
+
+</body>
+</html>
