@@ -73,4 +73,10 @@ public class Employee {
     public String getFullName() {
         return firstName + " " + lastName;
     }
+    @Transient
+    private Payroll.PayrollStatus payrollStatus;
+
+    public Payroll.PayrollStatus getPayrollStatus() { return payrollStatus; }
+    public void setPayrollStatus(Payroll.PayrollStatus payrollStatus) { this.payrollStatus = payrollStatus; }
+
 }

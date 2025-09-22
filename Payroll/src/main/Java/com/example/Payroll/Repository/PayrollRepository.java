@@ -1,5 +1,6 @@
 package com.example.Payroll.Repository;
 
+import com.example.Payroll.Entity.Employee;
 import com.example.Payroll.Entity.PayPeriod;
 import com.example.Payroll.Entity.Payroll;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,4 +14,6 @@ public interface PayrollRepository extends JpaRepository<Payroll, Long> {
 
     // Find payroll by employee + pay period (wala nang weekStart/weekEnd)
     Optional<Payroll> findByEmployee_EmployeeIdAndPayPeriod(Long employeeId, PayPeriod payPeriod);
+    Optional<Payroll> findTopByEmployeeOrderByPayPeriod_EndDateDesc(Employee employee);
+
 }

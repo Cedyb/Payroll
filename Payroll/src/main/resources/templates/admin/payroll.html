@@ -44,7 +44,7 @@
               <th>Department</th>
               <th>Email</th>
               <th>Status</th>
-              <th>Actions</th> <!-- Payslip button column -->
+              <th>Actions</th>
             </tr>
             </thead>
             <tbody>
@@ -68,8 +68,13 @@
 
               <td th:text="${emp.email}">email@example.com</td>
 
+              <!-- Status Badge -->
               <td>
-                <span class="badge bg-secondary">N/A</span>
+  <span class="badge"
+        th:text="${emp.payrollStatus != null ? emp.payrollStatus.name() : 'PENDING'}"
+        th:classappend="${emp.payrollStatus == T(com.example.Payroll.Entity.Payroll.PayrollStatus).APPROVED} ? ' bg-success' : ' bg-secondary'">
+    Status
+  </span>
               </td>
 
               <td>

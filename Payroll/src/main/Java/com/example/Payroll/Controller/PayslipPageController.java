@@ -337,6 +337,8 @@ public class PayslipPageController {
         payroll.setSubtotal(totalEarnings);
         payroll.setNetPay(totalEarnings - totalDeductions);
 
+        payroll.setStatus(Payroll.PayrollStatus.APPROVED);
+
         // ✅ Save payroll
         payrollRepository.save(payroll);
 
