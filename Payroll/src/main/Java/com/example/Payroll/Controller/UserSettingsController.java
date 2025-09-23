@@ -7,9 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/userSettings")
@@ -21,7 +19,7 @@ public class UserSettingsController {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
-    @RequestMapping("")
+    @GetMapping("")
     public String showUserSettings(HttpSession session, Model model) {
         Employee employee = (Employee) session.getAttribute("employee");
         if (employee == null) return "redirect:/login";
@@ -37,33 +35,36 @@ public class UserSettingsController {
                                  @RequestParam String confirmPassword,
                                  Model model) {
 
-        Employee employee = (Employee) session.getAttribute("employee");
+        Employee sessionEmployee = (Employee) session.getAttribute("employee");
+        if (sessionEmployee == null) return "redirect:/login";
+
+        // Reload from DB to get hashed password
+        Employee employee = employeeRepo.findByEmail(sessionEmployee.getEmail());
         if (employee == null) return "redirect:/login";
 
-        // Check current password
         if (!passwordEncoder.matches(currentPassword, employee.getPassword())) {
             model.addAttribute("message", "Current password is incorrect.");
             model.addAttribute("error", true);
+            model.addAttribute("employee", sessionEmployee);
             return "employee/userSettings";
         }
 
-        // Check new password confirmation
         if (!newPassword.equals(confirmPassword)) {
             model.addAttribute("message", "New password and confirm password do not match.");
             model.addAttribute("error", true);
+            model.addAttribute("employee", sessionEmployee);
             return "employee/userSettings";
         }
 
-        // Update password
         employee.setPassword(passwordEncoder.encode(newPassword));
-        Employee updatedEmployee = employeeRepo.save(employee);
+        employeeRepo.save(employee);
 
-        // 🔹 Update session with new employee object
-        session.setAttribute("employee", updatedEmployee);
+        // Update session
+        session.setAttribute("employee", employee);
 
         model.addAttribute("message", "Password updated successfully!");
         model.addAttribute("error", false);
+        model.addAttribute("employee", employee);
         return "employee/userSettings";
     }
-
 }

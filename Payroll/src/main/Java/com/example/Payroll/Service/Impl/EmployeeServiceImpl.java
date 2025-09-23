@@ -9,6 +9,7 @@ import com.example.Payroll.Service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,6 +23,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Autowired
     private PositionsRepository positionsRepository;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder; // 🔒 inject encoder
 
     // --- List all active employees ---
     @Override
@@ -40,7 +44,10 @@ public class EmployeeServiceImpl implements EmployeeService {
     public Employee createEmployee(EmployeeForm employeeForm) {
         Employee employee = new Employee();
         employee.setUsername(employeeForm.getUsername());
-        employee.setPassword(employeeForm.getPassword());
+
+        // 🔒 Always encode password on create
+        employee.setPassword(passwordEncoder.encode(employeeForm.getPassword()));
+
         employee.setFirstName(employeeForm.getFirstName());
         employee.setLastName(employeeForm.getLastName());
         employee.setEmail(employeeForm.getEmail());
@@ -51,7 +58,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (employeeForm.getPositionId() != null) {
             positionsRepository.findById(employeeForm.getPositionId()).ifPresent(pos -> {
                 employee.setPosition(pos);
-                employee.setRole(pos.getTitle()); // existing role
+                employee.setRole(pos.getTitle()); // keep legacy role
             });
         }
 
@@ -69,9 +76,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         employee.setUsername(employeeForm.getUsername());
 
-        // Only update password if provided
+        // 🔒 Only update & encode password if provided
         if (employeeForm.getPassword() != null && !employeeForm.getPassword().isEmpty()) {
-            employee.setPassword(employeeForm.getPassword());
+            employee.setPassword(passwordEncoder.encode(employeeForm.getPassword()));
         }
 
         employee.setFirstName(employeeForm.getFirstName());
