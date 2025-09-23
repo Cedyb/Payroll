@@ -18,4 +18,6 @@ public interface EmployeeService {
 
     List<Employee> searchEmployeesByKeyword(String keyword);
     Page<Employee> searchEmployeesByKeyword(String keyword, Pageable pageable);
+    void resetPassword(Long id, String newPassword);
+
 }

@@ -25,59 +25,78 @@ public class EmployeeServiceImpl implements EmployeeService {
     private PositionsRepository positionsRepository;
 
     @Autowired
-    private BCryptPasswordEncoder passwordEncoder; // 🔒 inject encoder
+    private BCryptPasswordEncoder passwordEncoder;
 
-    // --- List all active employees ---
+    // ✅ List all active employees
     @Override
     public List<Employee> getAllEmployees() {
         return employeeRepository.findByIsActiveTrue();
     }
 
-    // --- Paged active employees ---
+
+    // ✅ Paged active employees
     @Override
     public Page<Employee> getAllEmployees(Pageable pageable) {
         return employeeRepository.findByIsActiveTrue(pageable);
     }
 
-    // --- Create employee ---
+    // ✅ Create employee
     @Override
     public Employee createEmployee(EmployeeForm employeeForm) {
         Employee employee = new Employee();
-        employee.setUsername(employeeForm.getUsername());
-
-        // 🔒 Always encode password on create
-        employee.setPassword(passwordEncoder.encode(employeeForm.getPassword()));
-
-        employee.setFirstName(employeeForm.getFirstName());
-        employee.setLastName(employeeForm.getLastName());
-        employee.setEmail(employeeForm.getEmail());
-        employee.setAddress(employeeForm.getAddress());
-        employee.setPhone(employeeForm.getPhone());
-        employee.setHireDate(employeeForm.getHireDate());
-
-        if (employeeForm.getPositionId() != null) {
-            positionsRepository.findById(employeeForm.getPositionId()).ifPresent(pos -> {
-                employee.setPosition(pos);
-                employee.setRole(pos.getTitle()); // keep legacy role
-            });
-        }
-
-        // --- set system_role explicitly ---
-        employee.setSystem_role(employeeForm.getSystem_role());
-
+        mapFormToEmployee(employeeForm, employee, true);
         return employeeRepository.save(employee);
     }
 
-    // --- Update employee ---
+    // ✅ Update employee
     @Override
     public Employee updateEmployee(Long id, EmployeeForm employeeForm) {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Employee not found with ID: " + id));
 
+        mapFormToEmployee(employeeForm, employee, false);
+        return employeeRepository.save(employee);
+    }
+
+    // ✅ Soft delete employee
+    @Override
+    public void deleteEmployee(Long id) {
+        employeeRepository.findById(id).ifPresent(employee -> {
+            employee.setActive(false);
+            employeeRepository.save(employee);
+        });
+    }
+
+    // ✅ Search employees by keyword (List)
+    @Override
+    public List<Employee> searchEmployeesByKeyword(String keyword) {
+        return employeeRepository.searchByNameOrId(keyword);
+    }
+
+    // ✅ Search employees by keyword (Paged)
+    @Override
+    public Page<Employee> searchEmployeesByKeyword(String keyword, Pageable pageable) {
+        return employeeRepository.searchByNameOrId(keyword, pageable);
+    }
+
+    @Override
+    public void resetPassword(Long id, String newPassword) {
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Employee not found with ID: " + id));
+
+        // 🔒 encode the new password before saving
+        employee.setPassword(passwordEncoder.encode(newPassword));
+
+        employeeRepository.save(employee);
+    }
+
+
+    // 🔹 Helper method to avoid duplicate mapping logic
+    private void mapFormToEmployee(EmployeeForm employeeForm, Employee employee, boolean isNew) {
         employee.setUsername(employeeForm.getUsername());
 
-        // 🔒 Only update & encode password if provided
-        if (employeeForm.getPassword() != null && !employeeForm.getPassword().isEmpty()) {
+        // Password: encode on create, or update if new value provided
+        if (isNew || (employeeForm.getPassword() != null && !employeeForm.getPassword().isEmpty())) {
             employee.setPassword(passwordEncoder.encode(employeeForm.getPassword()));
         }
 
@@ -91,36 +110,16 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (employeeForm.getPositionId() != null) {
             positionsRepository.findById(employeeForm.getPositionId()).ifPresent(pos -> {
                 employee.setPosition(pos);
-                employee.setRole(pos.getTitle());
+                employee.setRole(pos.getTitle()); // legacy role
             });
         }
 
-        // --- update system_role from form ---
+        // Explicitly set system_role
         employee.setSystem_role(employeeForm.getSystem_role());
 
-        return employeeRepository.save(employee);
-    }
-
-    // --- Soft delete employee ---
-    @Override
-    public void deleteEmployee(Long id) {
-        Optional<Employee> optionalEmployee = employeeRepository.findById(id);
-        if (optionalEmployee.isPresent()) {
-            Employee employee = optionalEmployee.get();
-            employee.setActive(false);
-            employeeRepository.save(employee);
+        // If new employee, mark active
+        if (isNew) {
+            employee.setActive(true);
         }
-    }
-
-    // --- Search employees by keyword (List version) ---
-    @Override
-    public List<Employee> searchEmployeesByKeyword(String keyword) {
-        return employeeRepository.searchByNameOrId(keyword);
-    }
-
-    // --- Search employees by keyword (Pageable version) ---
-    @Override
-    public Page<Employee> searchEmployeesByKeyword(String keyword, Pageable pageable) {
-        return employeeRepository.searchByNameOrId(keyword, pageable);
     }
 }

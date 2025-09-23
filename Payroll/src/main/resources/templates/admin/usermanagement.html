@@ -50,34 +50,30 @@
             <th>Full Name</th>
             <th>Email</th>
             <th>Role</th>
-            <th>Department</th>
+            <th>Position</th>
             <th>Actions</th>
           </tr>
           </thead>
           <tbody>
-          <!-- Example rows (replace dynamically from your backend) -->
-          <tr>
-            <td>1</td>
-            <td>jdoe</td>
-            <td>John Doe</td>
-            <td>jdoe@example.com</td>
-            <td>Mason</td>
-            <td>Construction</td>
+          <!-- Loop real employees -->
+          <tr th:each="emp, iterStat : ${employees}">
+            <td th:text="${iterStat.count}"></td>
+            <td th:text="${emp.username}"></td>
+            <td th:text="${emp.fullName}"></td>
+            <td th:text="${emp.email}">j</td>
+            <td th:text="${emp.role}"></td>
+            <td th:text="${emp.position != null ? emp.position.title : 'N/A'}"></td>
             <td>
               <button class="btn btn-sm btn-warning me-1">Edit</button>
               <button class="btn btn-sm btn-danger">Delete</button>
-            </td>
-          </tr>
-          <tr>
-            <td>2</td>
-            <td>asmith</td>
-            <td>Alice Smith</td>
-            <td>asmith@example.com</td>
-            <td>Foreman</td>
-            <td>Construction</td>
-            <td>
-              <button class="btn btn-sm btn-warning me-1">Edit</button>
-              <button class="btn btn-sm btn-danger">Delete</button>
+
+              <!-- Reset Password Form -->
+              <form th:action="@{'/usermanagement/' + ${emp.employeeId} + '/reset-password'}"
+                    method="post" style="display:inline">
+                <button type="submit" class="btn btn-sm btn-secondary">
+                  Reset Password
+                </button>
+              </form>
             </td>
           </tr>
           </tbody>
@@ -115,6 +111,16 @@
         </div>
       </div>
 
+      <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="resetToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+          <div class="d-flex">
+            <div class="toast-body">
+              ✅ Password has been reset to <strong>password</strong>.
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 </div>
@@ -144,6 +150,18 @@
 
   searchInput.addEventListener('input', filterTable);
   roleFilter.addEventListener('change', filterTable);
+
+  document.addEventListener("DOMContentLoaded", function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has("resetSuccess")) {
+      const toastEl = document.getElementById("resetToast");
+      const toast = new bootstrap.Toast(toastEl);
+      toast.show();
+
+      // Clean URL (remove query param after showing toast)
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }); // ✅ this was missing
 </script>
 
 </body>
