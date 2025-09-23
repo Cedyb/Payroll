@@ -2,123 +2,89 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>Attendance Summary</title>
+  <title>Attendance</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/css/app.css" />
+  <link rel="stylesheet" href="/css/attendance.css" />
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
-<div class="container-fluid">
-  <div class="row">
 
-    <!-- Sidebar -->
-    <nav class="col-md-2 p-0" th:replace="fragments/userNav :: nav"></nav>
+<nav class="sidebar" th:replace="fragments/userNav :: Usernav"></nav>
 
-    <!-- Main Content -->
-    <main class="col-md-10 ms-sm-auto px-4 py-4">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 th:text="'Welcome, ' + ${employee.fullName}">Welcome, User</h4>
-      </div>
+<main>
+  <h2>Attendance</h2>
 
-      <p>This is your daily attendance summary. Select a date to view your clock-in/clock-out record, or leave it empty to see all.</p>
-
-      <!-- Date Picker -->
-      <form method="get" th:action="@{/userAttendance}" class="mb-3">
-        <div class="input-group" style="max-width: 300px;">
-          <input type="date" class="form-control" name="date"
-                 th:value="${selectedDate}"
-                 th:attr="max=${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}">
-          <button class="btn btn-primary" type="submit">View</button>
-        </div>
-      </form>
-
-      <!-- Single Attendance Summary Table -->
-      <div th:if="${attendance != null}" class="table-responsive">
-        <table class="table table-bordered table-striped align-middle">
-          <thead class="table-light">
-          <tr>
-            <th>Date</th>
-            <th>Clock In</th>
-            <th>Clock Out</th>
-            <th>Morning In</th>
-            <th>Morning Out</th>
-            <th>Afternoon In</th>
-            <th>Afternoon Out</th>
-            <th>OT In</th>
-            <th>OT Out</th>
-            <th>Regular Hours</th>
-            <th>OT Hours</th>
-            <th>Total Hours</th>
-            <th>Status</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <td th:text="${attendance.date}"></td>
-            <td th:text="${attendance.clockIn != null ? attendance.clockIn : 'N/A'}"></td>
-            <td th:text="${attendance.clockOut != null ? attendance.clockOut : 'N/A'}"></td>
-            <td th:text="${attendance.morningIn != null ? attendance.morningIn : 'N/A'}"></td>
-            <td th:text="${attendance.morningOut != null ? attendance.morningOut : 'N/A'}"></td>
-            <td th:text="${attendance.afternoonIn != null ? attendance.afternoonIn : 'N/A'}"></td>
-            <td th:text="${attendance.afternoonOut != null ? attendance.afternoonOut : 'N/A'}"></td>
-            <td th:text="${attendance.otIn != null ? attendance.otIn : '--'}"></td>
-            <td th:text="${attendance.otOut != null ? attendance.otOut : '--'}"></td>
-            <td th:text="${attendance.regularHours != null ? #numbers.formatDecimal(attendance.regularHours, 1, 2) : '0.00'}"></td>
-            <td th:text="${attendance.overtimeHours != null ? #numbers.formatDecimal(attendance.overtimeHours, 1, 2) : '0.00'}"></td>
-            <td th:text="${attendance.totalHours != null ? #numbers.formatDecimal(attendance.totalHours, 1, 2) : '0.00'}"></td>
-            <td th:text="${attendance.status}"></td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- All Attendance List Table -->
-      <div th:if="${attendanceList != null}" class="table-responsive">
-        <table class="table table-bordered table-striped align-middle">
-          <thead class="table-light">
-          <tr>
-            <th>Date</th>
-            <th>Clock In</th>
-            <th>Clock Out</th>
-            <th>Morning In</th>
-            <th>Morning Out</th>
-            <th>Afternoon In</th>
-            <th>Afternoon Out</th>
-            <th>OT In</th>
-            <th>OT Out</th>
-            <th>Regular Hours</th>
-            <th>OT Hours</th>
-            <th>Total Hours</th>
-            <th>Status</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr th:each="a : ${attendanceList}">
-            <td th:text="${a.date}"></td>
-            <td th:text="${a.clockIn != null ? a.clockIn : 'N/A'}"></td>
-            <td th:text="${a.clockOut != null ? a.clockOut : 'N/A'}"></td>
-            <td th:text="${a.morningIn != null ? a.morningIn : 'N/A'}"></td>
-            <td th:text="${a.morningOut != null ? a.morningOut : 'N/A'}"></td>
-            <td th:text="${a.afternoonIn != null ? a.afternoonIn : 'N/A'}"></td>
-            <td th:text="${a.afternoonOut != null ? a.afternoonOut : 'N/A'}"></td>
-            <td th:text="${a.otIn != null ? a.otIn : '--'}"></td>
-            <td th:text="${a.otOut != null ? a.otOut : '--'}"></td>
-            <td th:text="${a.regularHours != null ? #numbers.formatDecimal(a.regularHours, 1, 2) : '0.00'}"></td>
-            <td th:text="${a.overtimeHours != null ? #numbers.formatDecimal(a.overtimeHours, 1, 2) : '0.00'}"></td>
-            <td th:text="${a.totalHours != null ? #numbers.formatDecimal(a.totalHours, 1, 2) : '0.00'}"></td>
-            <td th:text="${a.status}"></td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- No Records Message -->
-      <div th:if="${attendance == null and attendanceList == null}" class="alert alert-info">
-        No attendance record found.
-      </div>
-    </main>
+  <!-- Week navigation -->
+  <div class="mb-3">
+    <a th:href="@{/userAttendance(week=${weekOffset-1})}" class="btn btn-outline-primary">&lt; Previous Week</a>
+    <span class="mx-3 fw-bold"
+          th:text="'Week: ' + ${#temporals.format(weekStart, 'yyyy - MMM - dd')} + ' - ' + ${#temporals.format(weekEnd, 'yyyy - MMM - dd')}">
+        </span>
+    <a th:href="@{/userAttendance(week=${weekOffset+1})}" class="btn btn-outline-primary">Next Week &gt;</a>
   </div>
-</div>
+
+  <!-- Attendance Table -->
+  <div class="table-container">
+    <table>
+      <thead>
+      <tr>
+        <th>Employee ID</th>
+        <th>Employee Name</th>
+        <th>Morning In</th>
+        <th>Morning Out</th>
+        <th>Afternoon In</th>
+        <th>Afternoon Out</th>
+        <th>Regular Hours</th>
+        <th>OT Hours</th>
+        <th>Total Hours</th>
+        <th>Log Date</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="summary : ${summaries}">
+        <td th:text="${summary.employeeId}"></td>
+        <td th:text="${summary.employeeName}"></td>
+        <td th:text="${summary.morningIn != null ? summary.morningIn : '-'}"></td>
+        <td th:text="${summary.morningOut != null ? summary.morningOut : '-'}"></td>
+        <td th:text="${summary.afternoonIn != null ? summary.afternoonIn : '-'}"></td>
+        <td th:text="${summary.afternoonOut != null ? summary.afternoonOut : '-'}"></td>
+        <td th:text="${summary.regularHours != null ? summary.regularHours : '0.00'}"></td>
+        <td th:text="${summary.overtimeHours != null ? summary.overtimeHours : '0.00'}"></td>
+        <td th:text="${summary.totalHours != null ? summary.totalHours : '0.00'}"></td>
+        <td th:text="${summary.getLogDateWithDay()}"></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-wrapper">
+    <nav>
+      <ul class="pagination d-flex justify-content-center">
+        <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+          <span class="page-link" th:if="${currentPage == 1}">Previous</span>
+          <a class="page-link" th:if="${currentPage > 1}"
+             th:href="@{/userAttendance(week=${weekOffset}, page=${currentPage-1})}">Previous</a>
+        </li>
+
+        <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}"
+            th:classappend="${i == currentPage} ? 'active'">
+          <span class="page-link" th:if="${i == currentPage}" th:text="${i}"></span>
+          <a class="page-link" th:if="${i != currentPage}"
+             th:href="@{/userAttendance(week=${weekOffset}, page=${i})}" th:text="${i}"></a>
+        </li>
+
+        <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+          <span class="page-link" th:if="${currentPage == totalPages}">Next</span>
+          <a class="page-link" th:if="${currentPage < totalPages}"
+             th:href="@{/userAttendance(week=${weekOffset}, page=${currentPage+1})}">Next</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</main>
+
 </body>
 </html>

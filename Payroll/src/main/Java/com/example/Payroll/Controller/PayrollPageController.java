@@ -13,6 +13,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import java.time.LocalDate;
+
 
 import java.util.List;
 
@@ -75,18 +77,31 @@ public class PayrollPageController {
     }
 
     // --- Helper Method: Attach latest payroll status to each employee ---
+    // --- Helper Method: Attach latest payroll status to each employee ---
     private void attachLatestPayrollStatus(List<Employee> employees) {
+        LocalDate today = LocalDate.now();
+
         for (Employee emp : employees) {
             Payroll latestPayroll = payrollRepository
                     .findTopByEmployeeOrderByPayPeriod_EndDateDesc(emp)
                     .orElse(null);
 
-            Payroll.PayrollStatus status = (latestPayroll != null)
-                    ? latestPayroll.getStatus()
-                    : Payroll.PayrollStatus.PENDING;
+            Payroll.PayrollStatus status;
+
+            if (latestPayroll != null) {
+                // ✅ Check if today is after the payroll week
+                if (today.isAfter(latestPayroll.getWeekEnd())) {
+                    status = Payroll.PayrollStatus.PENDING; // Reset to pending for new week
+                } else {
+                    status = latestPayroll.getStatus(); // Keep existing status
+                }
+            } else {
+                status = Payroll.PayrollStatus.PENDING; // Default if no payroll exists
+            }
 
             // Assuming you have a transient field in Employee to hold status for view
             emp.setPayrollStatus(status);
         }
     }
+
 }

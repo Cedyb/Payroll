@@ -1,7 +1,6 @@
 package com.example.Payroll.Controller;
 
 import com.example.Payroll.Entity.AttendanceLog;
-import com.example.Payroll.Entity.Employee;
 import com.example.Payroll.Repository.AttendanceLogRepository;
 import com.example.Payroll.Repository.EmployeeRepository;
 import com.example.Payroll.Service.UnifiedImportService;
@@ -43,15 +42,23 @@ public class AttendanceController {
             @ModelAttribute("message") String message
     ) {
         LocalDate today = LocalDate.now();
-        LocalDate currentWed = today.with(DayOfWeek.WEDNESDAY).plusWeeks(weekOffset);
-        LocalDate weekStart = currentWed;
-        LocalDate weekEnd = weekStart.plusDays(6);
 
+        // ✅ Calculate Wednesday → Tuesday week
+        LocalDate tmpWeekStart = today.with(DayOfWeek.WEDNESDAY);
+        if (today.getDayOfWeek().getValue() < DayOfWeek.WEDNESDAY.getValue()) {
+            tmpWeekStart = tmpWeekStart.minusWeeks(1);
+        }
+        tmpWeekStart = tmpWeekStart.plusWeeks(weekOffset);
+
+        final LocalDate weekStart = tmpWeekStart;
+        final LocalDate weekEnd = tmpWeekStart.plusDays(6);
+
+        // ✅ Filter logs within the current week
         List<AttendanceLog> logsThisWeek = attendanceLogRepo.findAll().stream()
                 .filter(l -> !l.getLogDate().isBefore(weekStart) && !l.getLogDate().isAfter(weekEnd))
                 .collect(Collectors.toList());
 
-        List<AttendanceSummaryDTO> summaries = buildSummaries(logsThisWeek, weekStart, weekEnd);
+        List<AttendanceSummaryDTO> summaries = buildSummaries(logsThisWeek);
 
         // ✅ Pagination logic
         int pageSize = 10;
@@ -71,7 +78,6 @@ public class AttendanceController {
         return "admin/attendance";
     }
 
-
     // Upload & process Excel file
     @PostMapping("/upload")
     public String uploadFile(@RequestParam("file") MultipartFile file,
@@ -86,9 +92,7 @@ public class AttendanceController {
     }
 
     // Build summaries only for logs with actual data
-    private List<AttendanceSummaryDTO> buildSummaries(List<AttendanceLog> logs,
-                                                      LocalDate weekStart,
-                                                      LocalDate weekEnd) {
+    private List<AttendanceSummaryDTO> buildSummaries(List<AttendanceLog> logs) {
         Map<String, AttendanceSummaryDTO> map = new LinkedHashMap<>();
 
         // Sort logs by date + time

@@ -24,6 +24,37 @@
       </div>
 
       <p>This is your Settings page. You can update your profile, change your password, and manage your account preferences.</p>
+
+      <!-- Change Password Form -->
+      <div class="card mt-4" style="max-width: 600px;">
+        <div class="card-body">
+          <h5 class="card-title">Change Password</h5>
+
+          <form th:action="@{/userSettings/changePassword}" method="post">
+            <div class="mb-3">
+              <label for="currentPassword" class="form-label">Current Password</label>
+              <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="newPassword" class="form-label">New Password</label>
+              <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="confirmPassword" class="form-label">Confirm New Password</label>
+              <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+            </div>
+
+            <div th:if="${message}" class="mb-3">
+              <p th:text="${message}" th:classappend="${message.contains('success') ? 'text-success' : 'text-danger'}"></p>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Change Password</button>
+          </form>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>

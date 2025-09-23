@@ -18,12 +18,95 @@
         <!-- Main Content -->
         <main class="col-md-10 ms-sm-auto px-4 py-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h4 th:text="'Welcome, ' + ${employee.fullName}">Welcome, User</h4>
+                <h4 th:text="'Welcome, ' + ${employee.fullName}">Welcome, User</h4>
+            </div>
+
+            <h5>Your Payroll Records</h5>
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Pay Period</th>
+                    <th>Week Start</th>
+                    <th>Week End</th>
+                    <th>Basic Pay</th>
+                    <th>Net Pay</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p, iStat : ${payrolls}">
+                    <td th:text="${p.payPeriod.startDate} + ' - ' + ${p.payPeriod.endDate}"></td>
+                    <td th:text="${p.weekStart}"></td>
+                    <td th:text="${p.weekEnd}"></td>
+                    <td th:text="${p.basicPay}"></td>
+                    <td th:text="${p.netPay}"></td>
+                    <td th:text="${p.status}"></td>
+                    <td>
+                        <!-- Button trigger modal -->
+                        <button class="btn btn-sm btn-primary"
+                                data-bs-toggle="modal"
+                                th:attr="data-bs-target='#payslipModal' + ${iStat.index}">
+                            View Payslip
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <!-- Payslip Modals -->
+            <div th:each="p, iStat : ${payrolls}">
+                <div class="modal fade"
+                     th:id="'payslipModal' + ${iStat.index}"
+                     tabindex="-1"
+                     aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Payslip Details</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <h6 th:text="'Pay Period: ' + ${p.payPeriod.startDate} + ' - ' + ${p.payPeriod.endDate}"></h6>
+                                <p><strong>Week:</strong> <span th:text="${p.weekStart}"></span> to <span th:text="${p.weekEnd}"></span></p>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Earnings</h6>
+                                        <ul class="list-group mb-3">
+                                            <li class="list-group-item">Basic Pay: ₱<span th:text="${p.basicPay}"></span></li>
+                                            <li class="list-group-item">OT Pay: ₱<span th:text="${p.otPay}"></span></li>
+                                            <li class="list-group-item">Leave Pay: ₱<span th:text="${p.leavePay}"></span></li>
+                                            <li class="list-group-item">Holiday Pay: ₱<span th:text="${p.regularHolidayPay}"></span></li>
+                                            <li class="list-group-item">Allowance: ₱<span th:text="${p.allowance}"></span></li>
+                                            <li class="list-group-item">Adjustment: ₱<span th:text="${p.adjustment}"></span></li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Deductions</h6>
+                                        <ul class="list-group mb-3">
+                                            <li class="list-group-item">SSS: ₱<span th:text="${p.sss}"></span></li>
+                                            <li class="list-group-item">PhilHealth: ₱<span th:text="${p.philhealth}"></span></li>
+                                            <li class="list-group-item">Pag-IBIG: ₱<span th:text="${p.pagibig}"></span></li>
+                                            <li class="list-group-item">Canteen: ₱<span th:text="${p.canteen}"></span></li>
+                                            <li class="list-group-item">Cash Advance: ₱<span th:text="${p.cashAdvance}"></span></li>
+                                            <li class="list-group-item">Medical: ₱<span th:text="${p.medical}"></span></li>
+                                            <li class="list-group-item">Insurance: ₱<span th:text="${p.insurance}"></span></li>
+                                            <li class="list-group-item">Utilities: ₱<span th:text="${p.utilities}"></span></li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <h5 class="text-end">Net Pay: ₱<span th:text="${p.netPay}"></span></h5>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <p>This is your Payroll page. You can view your attendance, salary info, and more.</p>
         </main>
     </div>
 </div>

@@ -1,24 +1,21 @@
 package com.example.Payroll.Controller;
 
-import com.example.Payroll.Entity.Attendance;
 import com.example.Payroll.Entity.AttendanceLog;
 import com.example.Payroll.Entity.Employee;
 import com.example.Payroll.Repository.AttendanceLogRepository;
-import com.example.Payroll.Repository.AttendanceRepository;
 import com.example.Payroll.Repository.EmployeeRepository;
+import com.example.Payroll.dto.AttendanceSummaryDTO;
 import com.example.Payroll.Service.AttendanceService;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/userAttendance")
@@ -28,90 +25,93 @@ public class UserAttendanceController {
     private AttendanceLogRepository attendanceLogRepo;
 
     @Autowired
-    private AttendanceRepository attendanceRepo;
-
-    @Autowired
     private EmployeeRepository employeeRepo;
 
     @Autowired
     private AttendanceService attendanceService;
 
-    @PostMapping("/attendance")
-    public String recordAttendance(
-            @RequestParam("type") String type, // "IN" or "OUT"
-            @RequestParam("dateTime") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateTime,
-            @RequestParam("employeeId") Long employeeId,
-            RedirectAttributes redirectAttributes
-    ) {
-        Optional<Employee> employeeOpt = employeeRepo.findById(employeeId);
-        if (employeeOpt.isEmpty()) {
-            redirectAttributes.addFlashAttribute("error", "Invalid employee.");
-            return "redirect:/userDashboard";
-        }
-
-        Employee employee = employeeOpt.get();
-
-        AttendanceLog lastLog = attendanceLogRepo.findTopByEmployeeOrderByLogDateDesc(employee);
-
-
-
-        if (lastLog != null
-                && lastLog.getStatus().name().equalsIgnoreCase(type)
-                && lastLog.getLogDate().equals(dateTime.toLocalDate())) {
-            redirectAttributes.addFlashAttribute("error", "You already clocked " + type + " today.");
-            return "redirect:/userDashboard";
-        }
-
-        // ✅ Create new attendance log
-        // ✅ Create new attendance log
-        AttendanceLog log = new AttendanceLog();
-        log.setEmployee(employee); // store relation, not just ID
-        log.setEmployeeName(employee.getFullName());
-        log.setLogDate(dateTime.toLocalDate());
-        log.setLogTime(dateTime.toLocalTime());
-        log.setStatus(AttendanceLog.Status.valueOf(type.toUpperCase()));
-
-
-        attendanceLogRepo.save(log);
-
-        // ✅ Update attendance summary
-        LocalDate date = dateTime.toLocalDate();
-        LocalTime time = dateTime.toLocalTime();
-
-        Attendance attendance = attendanceRepo.findByEmployeeAndDate(employee, date)
-                .orElse(new Attendance(date, employee));
-
-        if (type.equalsIgnoreCase("in")) {
-            attendance.setClockIn(time);
-        } else if (type.equalsIgnoreCase("out")) {
-            attendance.setClockOut(time);
-        }
-
-        attendanceRepo.save(attendance);
-        attendanceService.computeAndSaveDailyAttendance(employee, date);
-
-        redirectAttributes.addFlashAttribute("message", "Clock " + type + " recorded.");
-        return "redirect:/userDashboard";
-    }
-
-    @GetMapping("")
-    public String showAttendancePage(
-            @RequestParam(value = "date", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+    // Show weekly attendance for the logged-in user
+    @GetMapping
+    public String showWeeklyAttendance(
+            @RequestParam(value = "week", required = false, defaultValue = "0") int weekOffset,
+            @RequestParam(value = "page", required = false, defaultValue = "1") int page,
             @SessionAttribute("employee") Employee employee,
-            Model model) {
+            Model model
+    ) {
+        LocalDate today = LocalDate.now();
+
+        // Wednesday → Tuesday week (same as admin)
+        LocalDate tmpWeekStart = today.with(DayOfWeek.WEDNESDAY);
+        if (today.getDayOfWeek().getValue() < DayOfWeek.WEDNESDAY.getValue()) {
+            tmpWeekStart = tmpWeekStart.minusWeeks(1);
+        }
+        tmpWeekStart = tmpWeekStart.plusWeeks(weekOffset);
+
+        LocalDate weekStart = tmpWeekStart;
+        LocalDate weekEnd = tmpWeekStart.plusDays(6);
+
+        // Fetch logs for this employee and week
+        List<AttendanceLog> logsThisWeek = attendanceLogRepo
+                .findByEmployeeAndLogDateBetween(employee, weekStart, weekEnd);
+
+        List<AttendanceSummaryDTO> summaries = buildSummaries(logsThisWeek);
+
+        // Pagination
+        int pageSize = 10;
+        int totalPages = (int) Math.ceil((double) summaries.size() / pageSize);
+        int fromIndex = Math.min((page - 1) * pageSize, summaries.size());
+        int toIndex = Math.min(fromIndex + pageSize, summaries.size());
+        List<AttendanceSummaryDTO> pageSummaries = summaries.subList(fromIndex, toIndex);
 
         model.addAttribute("employee", employee);
-        model.addAttribute("selectedDate", date != null ? date.toString() : "");
-
-        if (date != null) {
-            attendanceService.computeAndSaveDailyAttendance(employee, date);
-            Optional<Attendance> attendanceOpt = attendanceRepo.findByEmployeeAndDate(employee, date);
-            model.addAttribute("attendance", attendanceOpt.orElse(null));
-        } else {
-            model.addAttribute("attendanceList", attendanceRepo.findByEmployeeOrderByDateDesc(employee));
-        }
+        model.addAttribute("summaries", pageSummaries);
+        model.addAttribute("weekOffset", weekOffset);
+        model.addAttribute("weekStart", weekStart);
+        model.addAttribute("weekEnd", weekEnd);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
 
         return "employee/userAttendance";
+    }
+
+    // Helper: build AttendanceSummaryDTO from AttendanceLogs
+    private List<AttendanceSummaryDTO> buildSummaries(List<AttendanceLog> logs) {
+        Map<String, AttendanceSummaryDTO> map = new LinkedHashMap<>();
+
+        logs = logs.stream()
+                .sorted(Comparator.comparing(AttendanceLog::getLogDate)
+                        .thenComparing(AttendanceLog::getLogTime))
+                .collect(Collectors.toList());
+
+        for (AttendanceLog log : logs) {
+            String key = log.getEmployee().getEmployeeId() + "-" + log.getLogDate();
+            String empIdStr = "E" + String.format("%03d", log.getEmployee().getEmployeeId());
+
+            AttendanceSummaryDTO dto = map.computeIfAbsent(
+                    key,
+                    k -> new AttendanceSummaryDTO(empIdStr, log.getEmployee().getFullName(), log.getLogDate())
+            );
+
+            LocalTime logTime = log.getLogTime();
+            if (!logTime.isAfter(LocalTime.of(12, 30))) {
+                if (log.getStatus() == AttendanceLog.Status.IN && dto.getMorningIn() == null)
+                    dto.setMorningIn(logTime.toString());
+                else if (log.getStatus() == AttendanceLog.Status.OUT && dto.getMorningOut() == null)
+                    dto.setMorningOut(logTime.toString());
+            } else {
+                if (log.getStatus() == AttendanceLog.Status.IN && dto.getAfternoonIn() == null)
+                    dto.setAfternoonIn(logTime.toString());
+                else if (log.getStatus() == AttendanceLog.Status.OUT && dto.getAfternoonOut() == null)
+                    dto.setAfternoonOut(logTime.toString());
+            }
+
+            dto.computeTotalHoursAndOT();
+        }
+
+        return map.values().stream()
+                .filter(AttendanceSummaryDTO::hasAttendance)
+                .sorted(Comparator.comparing(AttendanceSummaryDTO::getEmployeeId)
+                        .thenComparing(AttendanceSummaryDTO::getLogDate))
+                .collect(Collectors.toList());
     }
 }
