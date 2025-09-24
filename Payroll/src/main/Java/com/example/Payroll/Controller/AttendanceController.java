@@ -5,6 +5,7 @@ import com.example.Payroll.Repository.AttendanceLogRepository;
 import com.example.Payroll.Repository.EmployeeRepository;
 import com.example.Payroll.Service.UnifiedImportService;
 import com.example.Payroll.dto.AttendanceSummaryDTO;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -33,17 +34,17 @@ public class AttendanceController {
         this.importService = importService;
     }
 
-    // Attendance list with optional week filter
     @GetMapping
     public String viewAttendance(
             @RequestParam(value = "week", required = false, defaultValue = "0") int weekOffset,
             @RequestParam(value = "page", required = false, defaultValue = "1") int page,
             Model model,
-            @ModelAttribute("message") String message
+            @ModelAttribute("message") String message,
+            HttpSession session
     ) {
         LocalDate today = LocalDate.now();
 
-        // ✅ Calculate Wednesday → Tuesday week
+        // Calculate Wednesday → Tuesday week
         LocalDate tmpWeekStart = today.with(DayOfWeek.WEDNESDAY);
         if (today.getDayOfWeek().getValue() < DayOfWeek.WEDNESDAY.getValue()) {
             tmpWeekStart = tmpWeekStart.minusWeeks(1);
@@ -53,14 +54,32 @@ public class AttendanceController {
         final LocalDate weekStart = tmpWeekStart;
         final LocalDate weekEnd = tmpWeekStart.plusDays(6);
 
-        // ✅ Filter logs within the current week
-        List<AttendanceLog> logsThisWeek = attendanceLogRepo.findAll().stream()
-                .filter(l -> !l.getLogDate().isBefore(weekStart) && !l.getLogDate().isAfter(weekEnd))
-                .collect(Collectors.toList());
+        // Get logged-in user’s role and department
+        String systemRole = (String) session.getAttribute("system_role");
+        Long departmentId = (Long) session.getAttribute("department_id");
+
+        // Debugging
+        System.out.println("Logged-in user role: " + systemRole);
+        System.out.println("Logged-in user departmentId: " + departmentId);
+
+        List<AttendanceLog> logsThisWeek;
+
+        // Option 2: Filter in memory
+        logsThisWeek = attendanceLogRepo.findByLogDateBetween(weekStart, weekEnd);
+
+        if ("SITE ADMIN".equalsIgnoreCase(systemRole) && departmentId != null) {
+            logsThisWeek = logsThisWeek.stream()
+                    .filter(log -> log.getEmployee() != null
+                            && departmentId.equals(log.getEmployee().getDepartmentId()))
+                    .collect(Collectors.toList());
+            System.out.println("Site Admin logs fetched after filtering: " + logsThisWeek.size());
+        } else {
+            System.out.println("System Admin logs fetched: " + logsThisWeek.size());
+        }
 
         List<AttendanceSummaryDTO> summaries = buildSummaries(logsThisWeek);
 
-        // ✅ Pagination logic
+        // Pagination
         int pageSize = 10;
         int totalPages = (int) Math.ceil((double) summaries.size() / pageSize);
         int fromIndex = (page - 1) * pageSize;
@@ -78,7 +97,6 @@ public class AttendanceController {
         return "admin/attendance";
     }
 
-    // Upload & process Excel file
     @PostMapping("/upload")
     public String uploadFile(@RequestParam("file") MultipartFile file,
                              RedirectAttributes redirectAttributes) {
@@ -88,7 +106,7 @@ public class AttendanceController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("message", "❌ Failed to import file: " + e.getMessage());
         }
-        return "redirect:/attendance"; // redirect back to merged attendance page
+        return "redirect:/attendance";
     }
 
     // Build summaries only for logs with actual data
@@ -102,6 +120,7 @@ public class AttendanceController {
                 .collect(Collectors.toList());
 
         for (AttendanceLog log : logs) {
+            if (log.getEmployee() == null) continue; // safety check
             String key = log.getEmployee().getEmployeeId() + "-" + log.getLogDate();
             String empIdStr = "E" + String.format("%03d", log.getEmployee().getEmployeeId());
 
@@ -111,7 +130,6 @@ public class AttendanceController {
             );
 
             LocalTime logTime = log.getLogTime();
-
             if (!logTime.isAfter(LocalTime.of(12, 30))) {
                 if (log.getStatus() == AttendanceLog.Status.IN && dto.getMorningIn() == null) {
                     dto.setMorningIn(logTime.toString());
@@ -129,7 +147,6 @@ public class AttendanceController {
             dto.computeTotalHoursAndOT();
         }
 
-        // Only keep rows where there is at least one time entry
         return map.values().stream()
                 .filter(dto -> dto.getMorningIn() != null || dto.getMorningOut() != null ||
                         dto.getAfternoonIn() != null || dto.getAfternoonOut() != null)

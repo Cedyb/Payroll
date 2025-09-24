@@ -4,6 +4,7 @@ import com.example.Payroll.Entity.Employee;
 import com.example.Payroll.Entity.Payroll;
 import com.example.Payroll.Service.EmployeeService;
 import com.example.Payroll.Repository.PayrollRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -13,9 +14,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
 import java.time.LocalDate;
-
-
 import java.util.List;
 
 @Controller
@@ -28,16 +28,26 @@ public class PayrollPageController {
     @Autowired
     private PayrollRepository payrollRepository;
 
-    private final int PAGE_SIZE = 10; // 10 employees per page
+    private final int PAGE_SIZE = 10;
 
     // --- Main Payroll Page ---
     @GetMapping("")
     public String showPayrollPage(
             @RequestParam(defaultValue = "0") int page,
-            Model model) {
+            Model model,
+            HttpSession session) {
+
+        String role = (String) session.getAttribute("role");
+        Long departmentId = (Long) session.getAttribute("departmentId");
 
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
-        Page<Employee> employeesPage = employeeService.getAllEmployees(pageable);
+        Page<Employee> employeesPage;
+
+        if ("SITE ADMIN".equals(role) && departmentId != null) {
+            employeesPage = employeeService.getEmployeesByDepartment(departmentId, pageable);
+        } else {
+            employeesPage = employeeService.getAllEmployees(pageable);
+        }
 
         List<Employee> employees = employeesPage.getContent();
         attachLatestPayrollStatus(employees);
@@ -54,15 +64,27 @@ public class PayrollPageController {
     public String searchEmployees(
             @RequestParam("keyword") String keyword,
             @RequestParam(defaultValue = "0") int page,
-            Model model) {
+            Model model,
+            HttpSession session) {
+
+        String role = (String) session.getAttribute("role");
+        Long departmentId = (Long) session.getAttribute("departmentId");
 
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
         Page<Employee> employeesPage;
 
-        if (keyword == null || keyword.trim().isEmpty()) {
-            employeesPage = employeeService.getAllEmployees(pageable);
+        if ("SITE ADMIN".equals(role) && departmentId != null) {
+            if (keyword == null || keyword.trim().isEmpty()) {
+                employeesPage = employeeService.getEmployeesByDepartment(departmentId, pageable);
+            } else {
+                employeesPage = employeeService.searchEmployeesByKeywordAndDepartment(keyword, departmentId, pageable);
+            }
         } else {
-            employeesPage = employeeService.searchEmployeesByKeyword(keyword, pageable);
+            if (keyword == null || keyword.trim().isEmpty()) {
+                employeesPage = employeeService.getAllEmployees(pageable);
+            } else {
+                employeesPage = employeeService.searchEmployeesByKeyword(keyword, pageable);
+            }
         }
 
         List<Employee> employees = employeesPage.getContent();
@@ -76,8 +98,7 @@ public class PayrollPageController {
         return "admin/payroll";
     }
 
-    // --- Helper Method: Attach latest payroll status to each employee ---
-    // --- Helper Method: Attach latest payroll status to each employee ---
+    // --- Helper Method ---
     private void attachLatestPayrollStatus(List<Employee> employees) {
         LocalDate today = LocalDate.now();
 
@@ -89,19 +110,16 @@ public class PayrollPageController {
             Payroll.PayrollStatus status;
 
             if (latestPayroll != null) {
-                // ✅ Check if today is after the payroll week
                 if (today.isAfter(latestPayroll.getWeekEnd())) {
-                    status = Payroll.PayrollStatus.PENDING; // Reset to pending for new week
+                    status = Payroll.PayrollStatus.PENDING;
                 } else {
-                    status = latestPayroll.getStatus(); // Keep existing status
+                    status = latestPayroll.getStatus();
                 }
             } else {
-                status = Payroll.PayrollStatus.PENDING; // Default if no payroll exists
+                status = Payroll.PayrollStatus.PENDING;
             }
 
-            // Assuming you have a transient field in Employee to hold status for view
             emp.setPayrollStatus(status);
         }
     }
-
 }

@@ -1,10 +1,11 @@
 package com.example.Payroll.Controller;
 
 import com.example.Payroll.Entity.Positions;
-import com.example.Payroll.Entity.Department; // ✅ ADD THIS
+import com.example.Payroll.Entity.Department;
 import com.example.Payroll.Forms.PositionsForm;
 import com.example.Payroll.Service.PositionsService;
 import com.example.Payroll.Service.DepartmentService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,9 +24,23 @@ public class PositionPageController {
     private DepartmentService departmentService;
 
     @GetMapping
-    public String showPage(Model model) {
-        List<Positions> positions = positionsService.getAllPositions();
-        List<Department> departments = departmentService.getAllDepartments();
+    public String showPage(Model model, HttpSession session) {
+        String role = (String) session.getAttribute("role");
+        Long departmentId = (Long) session.getAttribute("departmentId");
+
+        List<Positions> positions;
+        List<Department> departments;
+
+        if ("SITE ADMIN".equals(role) && departmentId != null) {
+            // Only show positions for the Site Admin's department
+            positions = positionsService.getPositionsByDepartment(departmentId);
+            departments = List.of(departmentService.getDepartmentById(departmentId)); // only their department
+        } else {
+            // Super Admin sees all
+            positions = positionsService.getAllPositions();
+            departments = departmentService.getAllDepartments();
+        }
+
         model.addAttribute("departments", departments);
         model.addAttribute("positionList", positions);
         model.addAttribute("positionsForm", new PositionsForm());
@@ -52,7 +67,13 @@ public class PositionPageController {
 
     @GetMapping("/retrieve")
     @ResponseBody
-    public List<Positions> getAllPositions(Model model) {
+    public List<Positions> getAllPositions(HttpSession session) {
+        String role = (String) session.getAttribute("role");
+        Long departmentId = (Long) session.getAttribute("departmentId");
+
+        if ("SITE ADMIN".equals(role) && departmentId != null) {
+            return positionsService.getPositionsByDepartment(departmentId);
+        }
         return positionsService.getAllPositions();
     }
 }

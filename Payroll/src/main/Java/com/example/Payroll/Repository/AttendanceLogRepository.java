@@ -17,9 +17,15 @@ public interface AttendanceLogRepository extends JpaRepository<AttendanceLog, Lo
     // ✅ Get all logs for an employee on a specific date
     List<AttendanceLog> findByEmployeeAndLogDate(Employee employee, LocalDate logDate);
 
+    // ✅ Get logs for an employee in ascending order of logDate
     List<AttendanceLog> findByEmployeeOrderByLogDateAsc(Employee employee);
-    // Get logs for an employee between two dates
+
+    // ✅ Get logs for an employee between two dates
     List<AttendanceLog> findByEmployeeAndLogDateBetween(Employee employee, LocalDate start, LocalDate end);
 
+    // 🔹 NEW: Get all logs between two dates (for System Admin)
+    List<AttendanceLog> findByLogDateBetween(LocalDate start, LocalDate end);
 
+    // 🔹 NEW: Get logs for employees in a specific department between two dates (for Site Admin)
+    List<AttendanceLog> findByEmployee_DepartmentIdAndLogDateBetween(Long departmentId, LocalDate start, LocalDate end);
 }

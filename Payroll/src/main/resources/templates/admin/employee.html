@@ -30,6 +30,7 @@
                 </div>
             </div>
 
+            <!-- Filters -->
             <div class="row mb-3">
                 <div class="col-md-3">
                     <input type="text" id="searchName" class="form-control" placeholder="Search by name">
@@ -50,6 +51,7 @@
                 </div>
             </div>
 
+            <!-- Employee Table -->
             <div class="table-container p-3">
                 <table class="table table-striped table-hover mt-3" th:if="${not #lists.isEmpty(employeeList)}">
                     <thead>
@@ -76,8 +78,8 @@
                         <td class="emp-lastname" th:text="${emp.lastName}"></td>
                         <td class="emp-email" th:text="${emp.email}"></td>
 
-                        <td class="emp-departmentid" th:data-id="${emp.position?.department?.departmentId}" hidden></td>
                         <td class="emp-positionid" th:data-id="${emp.position?.positionId}" hidden></td>
+                        <td class="emp-departmentid" th:data-id="${emp.position?.department?.departmentId}" hidden></td>
 
                         <td th:text="${emp.position?.title ?: 'N/A'}"></td>
                         <td th:text="${emp.position?.department?.name ?: 'N/A'}"></td>
@@ -95,6 +97,7 @@
                 </table>
             </div>
 
+            <!-- Pagination -->
             <div class="pagination-wrapper mt-3">
                 <ul class="pagination justify-content-start">
                     <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
@@ -154,7 +157,6 @@
                                             <option value="SITE ADMIN">SITE ADMIN</option>
                                         </select>
                                     </div>
-
 
                                     <div class="col-md-6">
                                         <label>First Name</label>
@@ -282,7 +284,5 @@
         </main>
     </div>
 </div>
-
-
 </body>
 </html>

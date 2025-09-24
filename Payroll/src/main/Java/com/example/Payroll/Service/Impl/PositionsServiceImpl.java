@@ -25,6 +25,14 @@ public class PositionsServiceImpl implements PositionsService {
         return positionsRepository.findByIsActiveTrue();
     }
 
+    // -----------------------------
+    // Department-aware positions
+    // -----------------------------
+    @Override
+    public List<Positions> getPositionsByDepartment(Long departmentId) {
+        return positionsRepository.findByDepartment_DepartmentIdAndIsActiveTrue(departmentId);
+    }
+
     @Override
     public Positions createPosition(PositionsForm form) {
         Department department = departmentRepository.findById(form.getDepartmentId())

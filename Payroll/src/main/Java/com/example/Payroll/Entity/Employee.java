@@ -35,7 +35,7 @@ public class Employee {
     @Column(nullable = false, length = 20)
     private String role;
 
-    // new system_role field
+    // system_role field
     @Column(name = "system_role", length = 20, nullable = false)
     private String system_role = "EMPLOYEE";
 
@@ -61,6 +61,10 @@ public class Employee {
     @JoinColumn(name = "position_id", referencedColumnName = "position_id", foreignKey = @ForeignKey(name = "fk_employee_position"))
     private Positions position;
 
+    // NEW: department_id column
+    @Column(name = "department_id")
+    private Long departmentId;
+
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
@@ -80,6 +84,11 @@ public class Employee {
     @Transient
     private Payroll.PayrollStatus payrollStatus;
 
-    public Payroll.PayrollStatus getPayrollStatus() { return payrollStatus; }
-    public void setPayrollStatus(Payroll.PayrollStatus payrollStatus) { this.payrollStatus = payrollStatus; }
+    public Payroll.PayrollStatus getPayrollStatus() {
+        return payrollStatus;
+    }
+
+    public void setPayrollStatus(Payroll.PayrollStatus payrollStatus) {
+        this.payrollStatus = payrollStatus;
+    }
 }

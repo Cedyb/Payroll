@@ -3,6 +3,7 @@ package com.example.Payroll.Controller;
 import com.example.Payroll.Entity.Department;
 import com.example.Payroll.Forms.DepartmentsForm;
 import com.example.Payroll.Service.DepartmentService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -18,20 +19,36 @@ public class DepartmentPageController {
     @Autowired
     private DepartmentService departmentService;
 
-    // ✅ Merged showPage method with pagination support
     @GetMapping
     public String showPage(@RequestParam(defaultValue = "0") int page,
                            @RequestParam(defaultValue = "10") int size,
-                           Model model) {
+                           Model model,
+                           HttpSession session) {
 
-        Page<Department> departmentPage = departmentService.getDepartmentsPaginated(page, size);
+        String role = (String) session.getAttribute("role");
+        Long departmentId = (Long) session.getAttribute("departmentId");
 
-        model.addAttribute("departmentList", departmentPage.getContent());
-        model.addAttribute("currentPage", departmentPage.getNumber());
-        model.addAttribute("totalPages", departmentPage.getTotalPages());
-        model.addAttribute("totalItems", departmentPage.getTotalElements());
+        List<Department> departments;
+        Page<Department> departmentPage;
+
+        if ("SITE ADMIN".equals(role) && departmentId != null) {
+            // Only their own department
+            Department dept = departmentService.getDepartmentById(departmentId);
+            departments = List.of(dept);
+            model.addAttribute("departmentList", departments);
+            model.addAttribute("currentPage", 0);
+            model.addAttribute("totalPages", 1);
+            model.addAttribute("totalItems", 1);
+        } else {
+            // Super Admin sees all
+            departmentPage = departmentService.getDepartmentsPaginated(page, size);
+            model.addAttribute("departmentList", departmentPage.getContent());
+            model.addAttribute("currentPage", departmentPage.getNumber());
+            model.addAttribute("totalPages", departmentPage.getTotalPages());
+            model.addAttribute("totalItems", departmentPage.getTotalElements());
+        }
+
         model.addAttribute("departmentsForm", new DepartmentsForm());
-
         return "admin/department";
     }
 
@@ -55,7 +72,13 @@ public class DepartmentPageController {
 
     @GetMapping("/retrieve")
     @ResponseBody
-    public List<Department> getAllDepartments() {
+    public List<Department> getAllDepartments(HttpSession session) {
+        String role = (String) session.getAttribute("role");
+        Long departmentId = (Long) session.getAttribute("departmentId");
+
+        if ("SITE ADMIN".equals(role) && departmentId != null) {
+            return List.of(departmentService.getDepartmentById(departmentId));
+        }
         return departmentService.getAllDepartments();
     }
 }

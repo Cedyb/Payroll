@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+
 import java.util.List;
 
 @Service
@@ -29,6 +30,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         department.setActive(true);
         return departmentRepository.save(department);
     }
+
     @Override
     public Page<Department> getDepartmentsPaginated(int page, int size) {
         return departmentRepository.findByIsActiveTrue(PageRequest.of(page, size));
@@ -49,5 +51,12 @@ public class DepartmentServiceImpl implements DepartmentService {
             dept.setActive(false);
             departmentRepository.save(dept);
         });
+    }
+
+    // ✅ New method for EmployeePageController
+    @Override
+    public Department getDepartmentById(Long id) {
+        return departmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Department not found with ID: " + id));
     }
 }

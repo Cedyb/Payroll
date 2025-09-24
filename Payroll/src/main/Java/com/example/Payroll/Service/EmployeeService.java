@@ -1,14 +1,20 @@
 package com.example.Payroll.Service;
-import org.springframework.stereotype.Service;
+
 import com.example.Payroll.Entity.Employee;
 import com.example.Payroll.Forms.EmployeeForm;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public interface EmployeeService {
+
+    // =========================
+    // General Employee Methods
+    // =========================
+
     List<Employee> getAllEmployees();
     Page<Employee> getAllEmployees(Pageable pageable);
 
@@ -18,6 +24,25 @@ public interface EmployeeService {
 
     List<Employee> searchEmployeesByKeyword(String keyword);
     Page<Employee> searchEmployeesByKeyword(String keyword, Pageable pageable);
+
     void resetPassword(Long id, String newPassword);
 
+    Employee getEmployeeById(Long id);
+
+    // =========================
+    // Archived Employees
+    // =========================
+
+    List<Employee> getArchivedEmployees();
+    void restoreEmployee(Long id);
+
+    // =========================
+    // Department-aware Methods (for Site Admin)
+    // =========================
+
+    // Get all employees in a specific department (paged)
+    Page<Employee> getEmployeesByDepartment(Long departmentId, Pageable pageable);
+
+    // Search employees by keyword within a specific department (paged)
+    Page<Employee> searchEmployeesByKeywordAndDepartment(String keyword, Long departmentId, Pageable pageable);
 }

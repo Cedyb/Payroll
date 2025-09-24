@@ -29,29 +29,53 @@ public class LoginController {
                                HttpSession session,
                                Model model) {
 
-        // Hardcoded admin login
+        // -----------------------------
+        // Hardcoded Super Admin login
+        // -----------------------------
         if ("admin".equalsIgnoreCase(email) && "123".equals(password)) {
             Employee admin = new Employee();
             admin.setFirstName("System");
             admin.setLastName("Administrator");
             admin.setEmail("admin");
-            admin.setSystem_role("SITE ADMIN");
+            admin.setSystem_role("SUPER_ADMIN");
+            admin.setPosition(null); // Super Admin has no department
 
+            // Session attributes
             session.setAttribute("employee", admin);
-            session.setAttribute("role", "SITE ADMIN");
+            session.setAttribute("system_role", "SUPER_ADMIN");  // for AttendanceController
+            session.setAttribute("role", "SUPER_ADMIN");         // optional for other controllers
+            session.setAttribute("department_id", null);
+            session.setAttribute("employeeId", null);
 
             return "redirect:/dashboard";
         }
 
+        // -----------------------------
+        // Normal employee login
+        // -----------------------------
         Employee employee = employeeRepository.findByEmail(email);
 
         if (employee != null && passwordEncoder.matches(password, employee.getPassword())) {
-            session.setAttribute("employee", employee);
-            session.setAttribute("role", employee.getSystem_role());
+            String role = employee.getSystem_role().toUpperCase();
 
-            switch (employee.getSystem_role().toUpperCase()) {
+            // Determine departmentId
+            Long departmentId = null;
+            if (employee.getPosition() != null && employee.getPosition().getDepartment() != null) {
+                departmentId = employee.getPosition().getDepartment().getDepartmentId();
+            }
+
+            // Store session attributes
+            session.setAttribute("employee", employee);
+            session.setAttribute("system_role", role);          // used in AttendanceController
+            session.setAttribute("role", role);                 // optional for other controllers
+            session.setAttribute("employeeId", employee.getEmployeeId());
+            session.setAttribute("department_id", departmentId);
+
+            // Redirect based on role
+            switch (role) {
                 case "SITE ADMIN":
-                    return "redirect:/dashboard";
+                case "SUPER_ADMIN":
+                    return "redirect:/dashboard";  // Shared admin dashboard
                 case "CLERK":
                     return "redirect:/clerkDashboard";
                 case "EMPLOYEE":
@@ -60,10 +84,14 @@ public class LoginController {
             }
         }
 
+        // Invalid login
         model.addAttribute("error", "Invalid email or password");
         return "login";
     }
 
+    // -----------------------------
+    // Helper method to add employee to model
+    // -----------------------------
     private void addEmployeeToModel(HttpSession session, Model model) {
         Employee employee = (Employee) session.getAttribute("employee");
         if (employee != null) {
@@ -71,34 +99,51 @@ public class LoginController {
         }
     }
 
-    @GetMapping("/userDashboard")
-    public String showUserDashboard(HttpSession session, Model model) {
+    // -----------------------------
+    // Dashboards
+    // -----------------------------
+    @GetMapping("/dashboard")
+    public String showAdminDashboard(HttpSession session, Model model) {
         Employee employee = (Employee) session.getAttribute("employee");
-        if (employee == null) return "redirect:/login";
+        String role = (String) session.getAttribute("role");
+
+        if (employee == null || !(role.equals("SITE ADMIN") || role.equals("SUPER_ADMIN"))) {
+            return "redirect:/login";
+        }
+
         addEmployeeToModel(session, model);
-        return "employee/userDashboard";
+        return "admin/dashboard";
     }
 
     @GetMapping("/clerkDashboard")
     public String showClerkDashboard(HttpSession session, Model model) {
         Employee employee = (Employee) session.getAttribute("employee");
-        if (employee == null || !"CLERK".equalsIgnoreCase(employee.getSystem_role())) {
+        String role = (String) session.getAttribute("role");
+
+        if (employee == null || !role.equals("CLERK")) {
             return "redirect:/login";
         }
+
         addEmployeeToModel(session, model);
         return "clerk/clerkDashboard";
     }
 
-    @GetMapping("/dashboard")
-    public String showAdminDashboard(HttpSession session, Model model) {
+    @GetMapping("/userDashboard")
+    public String showUserDashboard(HttpSession session, Model model) {
         Employee employee = (Employee) session.getAttribute("employee");
-        if (employee == null || !"SITE ADMIN".equalsIgnoreCase(employee.getSystem_role())) {
+        String role = (String) session.getAttribute("role");
+
+        if (employee == null || !role.equals("EMPLOYEE")) {
             return "redirect:/login";
         }
+
         addEmployeeToModel(session, model);
-        return "admin/dashboard";
+        return "employee/userDashboard";
     }
 
+    // -----------------------------
+    // Logout
+    // -----------------------------
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();

@@ -1,7 +1,6 @@
 package com.example.Payroll.Service.Impl;
 
 import com.example.Payroll.Entity.Employee;
-import com.example.Payroll.Entity.Positions;
 import com.example.Payroll.Forms.EmployeeForm;
 import com.example.Payroll.Repository.EmployeeRepository;
 import com.example.Payroll.Repository.PositionsRepository;
@@ -13,7 +12,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -27,20 +25,26 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
-    // ✅ List all active employees
+    // =========================
+    // General Employee Methods
+    // =========================
+
     @Override
     public List<Employee> getAllEmployees() {
         return employeeRepository.findByIsActiveTrue();
     }
 
-
-    // ✅ Paged active employees
     @Override
     public Page<Employee> getAllEmployees(Pageable pageable) {
         return employeeRepository.findByIsActiveTrue(pageable);
     }
 
-    // ✅ Create employee
+    @Override
+    public Employee getEmployeeById(Long id) {
+        return employeeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Employee not found with ID: " + id));
+    }
+
     @Override
     public Employee createEmployee(EmployeeForm employeeForm) {
         Employee employee = new Employee();
@@ -48,17 +52,13 @@ public class EmployeeServiceImpl implements EmployeeService {
         return employeeRepository.save(employee);
     }
 
-    // ✅ Update employee
     @Override
     public Employee updateEmployee(Long id, EmployeeForm employeeForm) {
-        Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Employee not found with ID: " + id));
-
+        Employee employee = getEmployeeById(id);
         mapFormToEmployee(employeeForm, employee, false);
         return employeeRepository.save(employee);
     }
 
-    // ✅ Soft delete employee
     @Override
     public void deleteEmployee(Long id) {
         employeeRepository.findById(id).ifPresent(employee -> {
@@ -67,13 +67,11 @@ public class EmployeeServiceImpl implements EmployeeService {
         });
     }
 
-    // ✅ Search employees by keyword (List)
     @Override
     public List<Employee> searchEmployeesByKeyword(String keyword) {
         return employeeRepository.searchByNameOrId(keyword);
     }
 
-    // ✅ Search employees by keyword (Paged)
     @Override
     public Page<Employee> searchEmployeesByKeyword(String keyword, Pageable pageable) {
         return employeeRepository.searchByNameOrId(keyword, pageable);
@@ -81,25 +79,58 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public void resetPassword(Long id, String newPassword) {
-        Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Employee not found with ID: " + id));
-
-        // 🔒 encode the new password before saving
+        Employee employee = getEmployeeById(id);
         employee.setPassword(passwordEncoder.encode(newPassword));
-
         employeeRepository.save(employee);
     }
 
+    // =========================
+    // Archived Employees
+    // =========================
 
-    // 🔹 Helper method to avoid duplicate mapping logic
+    @Override
+    public List<Employee> getArchivedEmployees() {
+        return employeeRepository.findByIsActiveFalse();
+    }
+
+    @Override
+    public void restoreEmployee(Long id) {
+        employeeRepository.findById(id).ifPresent(employee -> {
+            employee.setActive(true);
+            employeeRepository.save(employee);
+        });
+    }
+
+    // =========================
+    // Department-aware Methods (Site Admin)
+    // =========================
+
+    @Override
+    public Page<Employee> getEmployeesByDepartment(Long departmentId, Pageable pageable) {
+        return employeeRepository.findByIsActiveTrueAndPosition_Department_DepartmentId(departmentId, pageable);
+    }
+
+    @Override
+    public Page<Employee> searchEmployeesByKeywordAndDepartment(String keyword, Long departmentId, Pageable pageable) {
+        return employeeRepository.searchByNameOrIdAndDepartment(keyword, departmentId, pageable);
+    }
+
+    // =========================
+    // Helper: Map EmployeeForm to Employee
+    // =========================
+
     private void mapFormToEmployee(EmployeeForm employeeForm, Employee employee, boolean isNew) {
-        employee.setUsername(employeeForm.getUsername());
+        // Set username only on creation
+        if (isNew && employeeForm.getUsername() != null && !employeeForm.getUsername().isEmpty()) {
+            employee.setUsername(employeeForm.getUsername());
+        }
 
-        // Password: encode on create, or update if new value provided
+        // Password handling
         if (isNew || (employeeForm.getPassword() != null && !employeeForm.getPassword().isEmpty())) {
             employee.setPassword(passwordEncoder.encode(employeeForm.getPassword()));
         }
 
+        // Map standard fields
         employee.setFirstName(employeeForm.getFirstName());
         employee.setLastName(employeeForm.getLastName());
         employee.setEmail(employeeForm.getEmail());
@@ -107,17 +138,22 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setPhone(employeeForm.getPhone());
         employee.setHireDate(employeeForm.getHireDate());
 
+        // Map position and derive department
         if (employeeForm.getPositionId() != null) {
             positionsRepository.findById(employeeForm.getPositionId()).ifPresent(pos -> {
                 employee.setPosition(pos);
                 employee.setRole(pos.getTitle()); // legacy role
+
+                if (pos.getDepartment() != null) {
+                    employee.setDepartmentId(pos.getDepartment().getDepartmentId());
+                }
             });
         }
 
-        // Explicitly set system_role
+        // Explicit system role
         employee.setSystem_role(employeeForm.getSystem_role());
 
-        // If new employee, mark active
+        // Mark active if new
         if (isNew) {
             employee.setActive(true);
         }
