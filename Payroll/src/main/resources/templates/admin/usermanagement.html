@@ -62,7 +62,6 @@
                       th:data-hiredate="${emp.hireDate}"
                       th:data-address="${emp.address}"
                       th:data-phone="${emp.phone}">
-
                 Edit
               </button>
 
@@ -160,6 +159,7 @@
                   <option value="EMPLOYEE">Employee</option>
                   <option value="SITE_ADMIN">Site Admin</option>
                   <option value="CLERK">Clerk</option>
+                  <option value="SUPER_ADMIN">Super Admin</option>
                 </select>
 
                 <!-- Position -->
@@ -235,17 +235,16 @@
     document.querySelectorAll(".js-edit-user").forEach(btn => {
       btn.addEventListener("click", () => {
         userForm.reset();
-        userForm.action = /usermanagement/${btn.dataset.id}/update;
+        userForm.action = `/usermanagement/${btn.dataset.id}/update`;
         userForm.method = "post";
 
         userForm.querySelector("input[name='id']").value = btn.dataset.id;
         userForm.querySelector("input[name='firstName']").value = btn.dataset.firstname;
         userForm.querySelector("input[name='lastName']").value = btn.dataset.lastname;
         userForm.querySelector("input[name='email']").value = btn.dataset.email;
-        userForm.querySelector("select[name='system_role']").value = btn.dataset.role;
         userForm.querySelector("input[name='address']").value = btn.dataset.address || '';
         userForm.querySelector("input[name='phone']").value = btn.dataset.phone || '';
-
+        userForm.querySelector("select[name='system_role']").value = btn.dataset.role;
 
         if (btn.dataset.positionid) {
           userForm.querySelector("select[name='positionId']").value = btn.dataset.positionid;
@@ -253,13 +252,12 @@
         if (btn.dataset.departmentid) {
           userForm.querySelector("select[name='departmentId']").value = btn.dataset.departmentid;
         }
-
-        // Set hire date
-        userForm.querySelector("input[name='hireDate']").value = btn.dataset.hiredate || '';
+        if (btn.dataset.hiredate) {
+          userForm.querySelector("input[name='hireDate']").value = btn.dataset.hiredate;
+        }
 
         document.querySelector("#userModal .modal-title").textContent = "Edit User";
         saveUserBtn.textContent = "Update";
-
         userModal.show();
       });
     });
@@ -270,6 +268,5 @@
     });
   });
 </script>
-
 </body>
 </html>

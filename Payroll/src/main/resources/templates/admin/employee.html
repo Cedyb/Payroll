@@ -67,7 +67,6 @@
                         <th>Address</th>
                         <th>Phone</th>
                         <th>Hire Date</th>
-                        <th>Actions</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -87,11 +86,6 @@
                         <td class="emp-address" th:text="${emp.address}"></td>
                         <td class="emp-phone" th:text="${emp.phone}"></td>
                         <td class="emp-hiredate" th:text="${emp.hireDate}"></td>
-
-                        <td>
-                            <span class="js-employee-update text-primary" style="cursor:pointer;">UPDATE</span> |
-                            <span class="js-employee-delete text-danger" th:data-id="${emp.employeeId}" style="cursor:pointer;">DELETE</span>
-                        </td>
                     </tr>
                     </tbody>
                 </table>

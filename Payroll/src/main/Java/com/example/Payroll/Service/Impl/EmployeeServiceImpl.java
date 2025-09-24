@@ -107,7 +107,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     // =========================
-    // Department-aware Methods (Site Admin)
+    // Department-aware Methods
     // =========================
 
     @Override
@@ -155,7 +155,12 @@ public class EmployeeServiceImpl implements EmployeeService {
             });
         }
 
-        employee.setSystem_role(employeeForm.getSystem_role());
+        // ✅ Ensure role is not lost during update
+        if (employeeForm.getSystem_role() != null && !employeeForm.getSystem_role().isEmpty()) {
+            employee.setSystem_role(employeeForm.getSystem_role());
+        } else if (isNew) {
+            employee.setSystem_role("EMPLOYEE");
+        }
 
         if (isNew) {
             employee.setActive(true);

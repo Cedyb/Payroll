@@ -39,14 +39,12 @@ public class UsermanagementPageController {
         List<Employee> employees;
         List<Employee> archivedEmployees;
 
-        Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE); // fetch all for simplicity
+        Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
 
         if ("SITE ADMIN".equals(role) && departmentId != null) {
-            // Only employees in Site Admin's department
             employees = employeeService.getEmployeesByDepartment(departmentId, pageable).getContent();
             archivedEmployees = employeeService.getArchivedEmployeesByDepartment(departmentId, pageable).getContent();
         } else {
-            // Super Admin sees all
             employees = employeeService.getAllEmployees(pageable).getContent();
             archivedEmployees = employeeService.getArchivedEmployees(pageable).getContent();
         }
@@ -76,7 +74,6 @@ public class UsermanagementPageController {
         Long departmentId = (Long) session.getAttribute("department_id");
 
         if ("SITE ADMIN".equals(role) && departmentId != null) {
-            // Force new employee's department to Site Admin's department
             employeeForm.setDepartmentId(departmentId);
         }
 
@@ -105,7 +102,7 @@ public class UsermanagementPageController {
     }
 
     // -----------------------------
-    // Archive Employee (soft delete)
+    // Archive Employee
     // -----------------------------
     @PostMapping("/{id}/delete")
     public String archive(@PathVariable Long id, HttpSession session) {
@@ -128,12 +125,12 @@ public class UsermanagementPageController {
     // -----------------------------
     @PostMapping("/{id}/reset-password")
     public String resetPassword(@PathVariable Long id) {
-        employeeService.resetPassword(id, "password"); // default reset
+        employeeService.resetPassword(id, "password");
         return "redirect:/usermanagement?resetSuccess";
     }
 
     // -----------------------------
-    // Restore Archived Employee
+    // Restore Employee
     // -----------------------------
     @PostMapping("/{id}/restore")
     public String restoreEmployee(@PathVariable Long id, HttpSession session) {
