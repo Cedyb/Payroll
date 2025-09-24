@@ -11,6 +11,8 @@ public interface PositionsService {
 
     // Department-aware positions
     List<Positions> getPositionsByDepartment(Long departmentId);
+    Positions getPositionById(Long id);
+
 
     Positions updatePosition(PositionsForm positionsForm);
 

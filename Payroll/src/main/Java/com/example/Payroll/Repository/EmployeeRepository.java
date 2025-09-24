@@ -18,9 +18,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     // All active employees
     List<Employee> findByIsActiveTrue();
+    Page<Employee> findByIsActiveTrue(Pageable pageable);
 
     // All archived employees
     List<Employee> findByIsActiveFalse();
+    Page<Employee> findByIsActiveFalse(Pageable pageable); // <-- added for paging
 
     // Find employee by email (for login)
     Employee findByEmail(String email);
@@ -36,7 +38,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     // Search Queries
     // =========================
 
-    // Search active employees by keyword
     @Query("SELECT e FROM Employee e " +
             "WHERE e.isActive = true AND (" +
             "LOWER(e.firstName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
@@ -48,7 +49,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             ")")
     List<Employee> searchByNameOrId(@Param("keyword") String keyword);
 
-    // Paged version of search
     @Query("SELECT e FROM Employee e " +
             "WHERE e.isActive = true AND (" +
             "LOWER(e.firstName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
@@ -61,23 +61,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     Page<Employee> searchByNameOrId(@Param("keyword") String keyword, Pageable pageable);
 
     // =========================
-    // Pagination Queries
-    // =========================
-
-    // Paged active employees
-    Page<Employee> findByIsActiveTrue(Pageable pageable);
-
-    // =========================
     // Department-Aware Queries
     // =========================
 
-    // Active employees in a department
     List<Employee> findByIsActiveTrueAndPosition_Department_DepartmentId(Long departmentId);
-
-    // Paged version
     Page<Employee> findByIsActiveTrueAndPosition_Department_DepartmentId(Long departmentId, Pageable pageable);
 
-    // Search active employees by keyword within a department
     @Query("SELECT e FROM Employee e " +
             "WHERE e.isActive = true AND e.position.department.departmentId = :deptId AND (" +
             "LOWER(e.firstName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
@@ -88,7 +77,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             ")")
     List<Employee> searchByNameOrIdAndDepartment(@Param("keyword") String keyword, @Param("deptId") Long departmentId);
 
-    // Paged version
     @Query("SELECT e FROM Employee e " +
             "WHERE e.isActive = true AND e.position.department.departmentId = :deptId AND (" +
             "LOWER(e.firstName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
@@ -99,7 +87,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             ")")
     Page<Employee> searchByNameOrIdAndDepartment(@Param("keyword") String keyword, @Param("deptId") Long departmentId, Pageable pageable);
 
-    // Department + system role
     @Query("SELECT e FROM Employee e WHERE e.isActive = true AND e.position.department.departmentId = :deptId AND e.system_role = :systemRole")
     List<Employee> findByIsActiveTrueAndPosition_Department_DepartmentIdAndSystemRole(@Param("deptId") Long departmentId, @Param("systemRole") String systemRole);
+
+    // =========================
+    // Archived employees by department (paged)
+    // =========================
+    Page<Employee> findByIsActiveFalseAndPosition_Department_DepartmentId(Long departmentId, Pageable pageable);
 }

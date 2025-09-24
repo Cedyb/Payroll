@@ -14,7 +14,6 @@ public interface EmployeeService {
     // =========================
     // General Employee Methods
     // =========================
-
     List<Employee> getAllEmployees();
     Page<Employee> getAllEmployees(Pageable pageable);
 
@@ -32,17 +31,16 @@ public interface EmployeeService {
     // =========================
     // Archived Employees
     // =========================
-
     List<Employee> getArchivedEmployees();
+    Page<Employee> getArchivedEmployees(Pageable pageable); // <-- added for paging
     void restoreEmployee(Long id);
 
     // =========================
     // Department-aware Methods (for Site Admin)
     // =========================
-
-    // Get all employees in a specific department (paged)
     Page<Employee> getEmployeesByDepartment(Long departmentId, Pageable pageable);
-
-    // Search employees by keyword within a specific department (paged)
     Page<Employee> searchEmployeesByKeywordAndDepartment(String keyword, Long departmentId, Pageable pageable);
+
+    // New: Archived employees by department (paged)
+    Page<Employee> getArchivedEmployeesByDepartment(Long departmentId, Pageable pageable);
 }

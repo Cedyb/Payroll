@@ -94,6 +94,11 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
+    public Page<Employee> getArchivedEmployees(Pageable pageable) {
+        return employeeRepository.findByIsActiveFalse(pageable);
+    }
+
+    @Override
     public void restoreEmployee(Long id) {
         employeeRepository.findById(id).ifPresent(employee -> {
             employee.setActive(true);
@@ -115,22 +120,24 @@ public class EmployeeServiceImpl implements EmployeeService {
         return employeeRepository.searchByNameOrIdAndDepartment(keyword, departmentId, pageable);
     }
 
+    @Override
+    public Page<Employee> getArchivedEmployeesByDepartment(Long departmentId, Pageable pageable) {
+        return employeeRepository.findByIsActiveFalseAndPosition_Department_DepartmentId(departmentId, pageable);
+    }
+
     // =========================
     // Helper: Map EmployeeForm to Employee
     // =========================
 
     private void mapFormToEmployee(EmployeeForm employeeForm, Employee employee, boolean isNew) {
-        // Set username only on creation
         if (isNew && employeeForm.getUsername() != null && !employeeForm.getUsername().isEmpty()) {
             employee.setUsername(employeeForm.getUsername());
         }
 
-        // Password handling
         if (isNew || (employeeForm.getPassword() != null && !employeeForm.getPassword().isEmpty())) {
             employee.setPassword(passwordEncoder.encode(employeeForm.getPassword()));
         }
 
-        // Map standard fields
         employee.setFirstName(employeeForm.getFirstName());
         employee.setLastName(employeeForm.getLastName());
         employee.setEmail(employeeForm.getEmail());
@@ -138,22 +145,18 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setPhone(employeeForm.getPhone());
         employee.setHireDate(employeeForm.getHireDate());
 
-        // Map position and derive department
         if (employeeForm.getPositionId() != null) {
             positionsRepository.findById(employeeForm.getPositionId()).ifPresent(pos -> {
                 employee.setPosition(pos);
-                employee.setRole(pos.getTitle()); // legacy role
-
+                employee.setRole(pos.getTitle());
                 if (pos.getDepartment() != null) {
                     employee.setDepartmentId(pos.getDepartment().getDepartmentId());
                 }
             });
         }
 
-        // Explicit system role
         employee.setSystem_role(employeeForm.getSystem_role());
 
-        // Mark active if new
         if (isNew) {
             employee.setActive(true);
         }

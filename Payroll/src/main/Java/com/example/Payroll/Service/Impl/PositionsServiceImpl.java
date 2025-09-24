@@ -70,4 +70,13 @@ public class PositionsServiceImpl implements PositionsService {
             positionsRepository.save(pos);
         });
     }
+
+    // -----------------------------
+    // NEW: Get position by ID
+    // -----------------------------
+    @Override
+    public Positions getPositionById(Long id) {
+        return positionsRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Position not found with id: " + id));
+    }
 }
