@@ -177,7 +177,7 @@
                       <select class="form-select" name="system_role" required>
                         <option value="">Select Role</option>
                         <option value="EMPLOYEE">Employee</option>
-                        <option value="SITE_ADMIN">Site Admin</option>
+                        <option value="SITE ADMIN">Site Admin</option>
                         <option value="CLERK">Clerk</option>
                       </select>
                     </div>
@@ -188,9 +188,12 @@
                         <option value="">Select Position</option>
                         <option th:each="pos : ${positionList}"
                                 th:value="${pos.positionId}"
-                                th:text="${pos.title}"></option>
+                                th:text="${pos.title}"
+                                th:attr="data-department=${pos.department.departmentId}">
+                        </option>
                       </select>
                     </div>
+
 
                     <div class="mb-2">
                       <label class="form-label">Department</label>
