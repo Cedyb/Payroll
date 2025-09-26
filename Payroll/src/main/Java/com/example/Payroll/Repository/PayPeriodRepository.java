@@ -10,12 +10,7 @@ import java.util.Optional;
 @Repository
 public interface PayPeriodRepository extends JpaRepository<PayPeriod, Long> {
 
-
-    // Pinakahuling pay period
     Optional<PayPeriod> findTopByOrderByStartDateDesc();
 
-    // Hanapin kung may existing na pay period with exact start & end
     Optional<PayPeriod> findByStartDateAndEndDate(LocalDate startDate, LocalDate endDate);
-
-
 }

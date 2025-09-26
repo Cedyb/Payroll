@@ -10,10 +10,8 @@ import java.util.Optional;
 
 public interface PayrollRepository extends JpaRepository<Payroll, Long> {
 
-    // Find payroll by employee only
     Optional<Payroll> findByEmployee_EmployeeId(Long employeeId);
 
-    // Find payroll by employee + pay period (wala nang weekStart/weekEnd)
     Optional<Payroll> findByEmployee_EmployeeIdAndPayPeriod(Long employeeId, PayPeriod payPeriod);
     Optional<Payroll> findTopByEmployeeOrderByPayPeriod_EndDateDesc(Employee employee);
     List<Payroll> findByEmployee_EmployeeIdOrderByPayPeriod_EndDateDesc(Long employeeId);

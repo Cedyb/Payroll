@@ -142,9 +142,6 @@ public class LoginController {
         return "employee/userDashboard";
     }
 
-    // -----------------------------
-    // Logout
-    // -----------------------------
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();

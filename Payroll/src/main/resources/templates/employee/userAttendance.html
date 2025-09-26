@@ -16,7 +16,6 @@
 <main>
   <h2>Attendance</h2>
 
-  <!-- Week navigation -->
   <div class="mb-3">
     <a th:href="@{/userAttendance(week=${weekOffset-1})}" class="btn btn-outline-primary">&lt; Previous Week</a>
     <span class="mx-3 fw-bold"
@@ -25,7 +24,6 @@
     <a th:href="@{/userAttendance(week=${weekOffset+1})}" class="btn btn-outline-primary">Next Week &gt;</a>
   </div>
 
-  <!-- Attendance Table -->
   <div class="table-container">
     <table>
       <thead>
@@ -59,7 +57,6 @@
     </table>
   </div>
 
-  <!-- Pagination -->
   <div class="pagination-wrapper">
     <nav>
       <ul class="pagination d-flex justify-content-center">

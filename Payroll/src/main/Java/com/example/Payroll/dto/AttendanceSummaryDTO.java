@@ -25,7 +25,7 @@ public class AttendanceSummaryDTO {
     private String regularHours;
     private String overtimeHours;
     private String totalHours;
-    private String status; // ✅ add this
+    private String status;
 
     public AttendanceSummaryDTO(String employeeId, String employeeName, LocalDate logDate) {
         this.employeeId = employeeId;
@@ -33,7 +33,6 @@ public class AttendanceSummaryDTO {
         this.logDate = logDate;
     }
 
-    // --- Getters ---
     public String getEmployeeId() { return employeeId; }
     public String getEmployeeName() { return employeeName; }
     public LocalDate getLogDate() { return logDate; }
@@ -47,9 +46,8 @@ public class AttendanceSummaryDTO {
     public String getRegularHours() { return regularHours; }
     public String getOvertimeHours() { return overtimeHours; }
     public String getTotalHours() { return totalHours; }
-    public String getStatus() { return status; } // ✅ getter
+    public String getStatus() { return status; }
 
-    // --- Setters ---
     public void setMorningIn(String morningIn) { this.morningIn = morningIn; }
     public void setMorningOut(String morningOut) { this.morningOut = morningOut; }
     public void setAfternoonIn(String afternoonIn) { this.afternoonIn = afternoonIn; }
@@ -58,7 +56,6 @@ public class AttendanceSummaryDTO {
     public void setAfternoonHours(double afternoonHours) { this.afternoonHours = afternoonHours; }
     public void setLogs(List<LocalDate> logs) { this.logs = logs; }
 
-    // ✅ Add these setters to fix compilation
     public void setRegularHours(String regularHours) { this.regularHours = regularHours; }
     public void setOvertimeHours(String overtimeHours) { this.overtimeHours = overtimeHours; }
     public void setTotalHours(String totalHours) { this.totalHours = totalHours; }
@@ -80,7 +77,6 @@ public class AttendanceSummaryDTO {
                 afternoon = computeHours(LocalTime.parse(afternoonIn), LocalTime.parse(afternoonOut));
             }
         } catch (Exception e) {
-            // Invalid time format
         }
 
         this.morningHours = morning;
@@ -101,12 +97,10 @@ public class AttendanceSummaryDTO {
 
     public String getLogDateWithDay() {
         if (logDate == null) return "-";
-        // Get the first three letters of the day (Mon, Tue, etc.)
         String day = logDate.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.ENGLISH).toUpperCase();
         return logDate.toString() + " " + day;
     }
 
-    // ✅ Add this inside your AttendanceSummaryDTO class
     public boolean hasAttendance() {
         return (morningIn != null && !morningIn.equals("-")) ||
                 (morningOut != null && !morningOut.equals("-")) ||

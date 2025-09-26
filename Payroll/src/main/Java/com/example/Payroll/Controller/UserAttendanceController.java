@@ -30,7 +30,6 @@ public class UserAttendanceController {
     @Autowired
     private AttendanceService attendanceService;
 
-    // Show weekly attendance for the logged-in user
     @GetMapping
     public String showWeeklyAttendance(
             @RequestParam(value = "week", required = false, defaultValue = "0") int weekOffset,
@@ -40,7 +39,6 @@ public class UserAttendanceController {
     ) {
         LocalDate today = LocalDate.now();
 
-        // Wednesday → Tuesday week (same as admin)
         LocalDate tmpWeekStart = today.with(DayOfWeek.WEDNESDAY);
         if (today.getDayOfWeek().getValue() < DayOfWeek.WEDNESDAY.getValue()) {
             tmpWeekStart = tmpWeekStart.minusWeeks(1);
@@ -50,13 +48,11 @@ public class UserAttendanceController {
         LocalDate weekStart = tmpWeekStart;
         LocalDate weekEnd = tmpWeekStart.plusDays(6);
 
-        // Fetch logs for this employee and week
         List<AttendanceLog> logsThisWeek = attendanceLogRepo
                 .findByEmployeeAndLogDateBetween(employee, weekStart, weekEnd);
 
         List<AttendanceSummaryDTO> summaries = buildSummaries(logsThisWeek);
 
-        // Pagination
         int pageSize = 10;
         int totalPages = (int) Math.ceil((double) summaries.size() / pageSize);
         int fromIndex = Math.min((page - 1) * pageSize, summaries.size());
@@ -74,7 +70,6 @@ public class UserAttendanceController {
         return "employee/userAttendance";
     }
 
-    // Helper: build AttendanceSummaryDTO from AttendanceLogs
     private List<AttendanceSummaryDTO> buildSummaries(List<AttendanceLog> logs) {
         Map<String, AttendanceSummaryDTO> map = new LinkedHashMap<>();
 

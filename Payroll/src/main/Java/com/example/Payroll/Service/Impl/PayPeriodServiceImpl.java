@@ -17,7 +17,6 @@ public class PayPeriodServiceImpl implements PayPeriodService {
         this.payPeriodRepository = payPeriodRepository;
     }
 
-    // Core method: create or fetch a specific week
     public PayPeriod getOrCreatePayPeriod(LocalDate weekStart, LocalDate weekEnd) {
         return payPeriodRepository.findByStartDateAndEndDate(weekStart, weekEnd)
                 .orElseGet(() -> {
@@ -28,7 +27,6 @@ public class PayPeriodServiceImpl implements PayPeriodService {
                 });
     }
 
-    // Implementation for interface method
     @Override
     public PayPeriod getOrCreateCurrentWeekPeriod() {
         LocalDate today = LocalDate.now();

@@ -74,12 +74,10 @@ public class AttendanceServiceImpl implements AttendanceService {
             }
         }
 
-        // ✅ Apply company grace period: morning out capped at 12:30 PM
         if (morningOut == null || morningOut.isAfter(LocalTime.of(12, 30))) {
             morningOut = LocalTime.of(12, 30);
         }
 
-        // Compute regular hours
         double regularHours = 0;
         if (morningIn != null && morningOut != null) {
             regularHours += Duration.between(morningIn, morningOut).toMinutes() / 60.0;
@@ -88,7 +86,6 @@ public class AttendanceServiceImpl implements AttendanceService {
             regularHours += Duration.between(afternoonIn, afternoonOut).toMinutes() / 60.0;
         }
 
-        // Compute OT hours
         double overtimeHours = 0;
         if (otIn != null && otOut != null && otOut.isAfter(otIn)) {
             overtimeHours = Duration.between(otIn, otOut).toMinutes() / 60.0;
@@ -96,7 +93,6 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         double totalHours = regularHours + overtimeHours;
 
-        // Attendance status
         String status;
         if (regularHours >= 8) {
             status = "present";
@@ -106,7 +102,6 @@ public class AttendanceServiceImpl implements AttendanceService {
             status = "absent";
         }
 
-        // Save attendance
         Attendance attendance = attendanceRepo.findByEmployeeAndDate(employee, date)
                 .orElse(new Attendance(date, employee));
 

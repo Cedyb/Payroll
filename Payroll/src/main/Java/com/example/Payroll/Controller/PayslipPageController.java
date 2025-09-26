@@ -261,14 +261,12 @@ public class PayslipPageController {
             @RequestParam(required = false) Double insurance,
             @RequestParam(required = false) Double utilities
     ) {
-        // ✅ Get weekStart & weekEnd from session
         LocalDate weekStart = (LocalDate) session.getAttribute("weekStart");
         LocalDate weekEnd = (LocalDate) session.getAttribute("weekEnd");
         if (weekStart == null || weekEnd == null) {
             throw new RuntimeException("Week range not found in session");
         }
 
-        // ✅ Get or create PayPeriod for that week
         PayPeriod payPeriod = payPeriodRepository.findByStartDateAndEndDate(weekStart, weekEnd)
                 .orElseGet(() -> {
                     PayPeriod newPeriod = new PayPeriod();
@@ -277,7 +275,6 @@ public class PayslipPageController {
                     return payPeriodRepository.save(newPeriod);
                 });
 
-        // ✅ Fetch existing payroll for that employee + payPeriod
         Payroll payroll = payrollRepository
                 .findByEmployee_EmployeeIdAndPayPeriod(employeeId, payPeriod)
                 .orElseGet(() -> {
@@ -291,7 +288,6 @@ public class PayslipPageController {
                     return p;
                 });
 
-        // ✅ Set earnings ONLY if not null (preserve existing values)
         if (basicPay != null) payroll.setBasicPay(basicPay);
         if (otPay != null) payroll.setOtPay(otPay);
         if (leavePay != null) payroll.setLeavePay(leavePay);
@@ -301,7 +297,6 @@ public class PayslipPageController {
         if (allowance != null) payroll.setAllowance(allowance);
         if (adjustment != null) payroll.setAdjustment(adjustment);
 
-        // ✅ Set deductions ONLY if not null
         if (savings != null) payroll.setSavings(savings);
         if (sss != null) payroll.setSss(sss);
         if (philhealth != null) payroll.setPhilhealth(philhealth);
@@ -312,7 +307,6 @@ public class PayslipPageController {
         if (insurance != null) payroll.setInsurance(insurance);
         if (utilities != null) payroll.setUtilities(utilities);
 
-        // ✅ Recalculate totals (always based on current values)
         double totalEarnings =
                 (payroll.getBasicPay() != null ? payroll.getBasicPay() : 0) +
                         (payroll.getOtPay() != null ? payroll.getOtPay() : 0) +
@@ -339,10 +333,8 @@ public class PayslipPageController {
 
         payroll.setStatus(Payroll.PayrollStatus.APPROVED);
 
-        // ✅ Save payroll
         payrollRepository.save(payroll);
 
-        // Redirect back to same page showing current pay period
         return "redirect:/admin/payslip/" + employeeId + "?payPeriodId=" + payPeriod.getId();
     }
 

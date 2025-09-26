@@ -11,13 +11,10 @@
 <div class="container-fluid">
     <div class="row">
 
-        <!-- Sidebar -->
         <nav th:replace="fragments/nav :: nav"></nav>
 
-        <!-- Main -->
         <main class="col-md-10 offset-md-2 content p-4">
 
-            <!-- Navigation + Filters -->
             <div class="mb-3 d-flex flex-wrap gap-2 align-items-center">
                 <a th:href="@{/payroll}" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Back to Payroll
@@ -29,22 +26,19 @@
                     Next Week <i class="bi bi-chevron-right"></i>
                 </a>
 
-                <!-- Filters -->
                 <form th:action="@{/admin/payslip/{id}(id=${employee.employeeId})}" method="get" class="d-flex gap-2 ms-auto">
-                    <!-- Year -->
+
                     <select name="year" class="form-select" style="width:auto;" onchange="this.form.submit()">
                         <option th:each="y : ${years}" th:value="${y}" th:text="${y}"
                                 th:selected="${y == selectedYear}"></option>
                     </select>
 
-                    <!-- Month -->
                     <select name="month" class="form-select" style="width:auto;" onchange="this.form.submit()">
                         <option value="">All Months</option>
                         <option th:each="m : ${months}" th:value="${m.value}" th:text="${m.name}"
                                 th:selected="${m.value == selectedMonth}"></option>
                     </select>
 
-                    <!-- Week -->
                     <select class="form-select" id="week" name="week"
                             onchange="this.form.submit()">
                         <option th:each="week : ${weeks}"
@@ -56,13 +50,11 @@
                 </form>
             </div>
 
-            <!-- Employee Info -->
             <h4 class="fw-bold mb-3">Payslip for
                 <span th:text="${employee.firstName + ' ' + employee.lastName}"></span>
             </h4>
             <hr>
 
-            <!-- Attendance Table -->
             <div class="table-responsive mb-4">
                 <table class="table table-bordered table-striped align-middle">
                     <thead class="table-secondary text-center">
@@ -97,12 +89,10 @@
                 </table>
             </div>
 
-            <!-- Edit Mode Button -->
             <button id="toggleEditBtn" class="btn btn-primary mb-3">
                 <i class="bi bi-pencil-square"></i> Enable Edit Mode
             </button>
 
-            <!-- Payroll Table -->
             <form th:action="@{/admin/payslip/{id}/save(id=${employee.employeeId})}" method="post">
                 <div class="table-responsive">
                     <table class="table table-bordered align-middle">
@@ -115,7 +105,6 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <!-- Earnings / Deductions rows (same as yours, but with better spacing) -->
                         <tr>
                             <td>Basic Pay</td>
                             <td><input type="number" name="basicPay" class="form-control" th:value="${payroll.basicPay}" readonly></td>
@@ -170,7 +159,6 @@
                             <td>Utilities</td>
                             <td><input type="number" name="utilities" class="form-control editable-input" th:value="${payroll.utilities}" disabled></td>
                         </tr>
-                        <!-- Totals -->
                         <tr class="fw-bold">
                             <td>Total Earnings</td>
                             <td><input type="number" name="subtotal" class="form-control" readonly></td>

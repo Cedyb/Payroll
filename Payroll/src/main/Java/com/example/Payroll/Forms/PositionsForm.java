@@ -3,11 +3,10 @@ package com.example.Payroll.Forms;
 public class PositionsForm {
     private Long positionId;
     private String title;
-    private Long departmentId; // Stores selected department ID
+    private Long departmentId;
     private Double hourlyRate;
     private Boolean active = true;
 
-    // Getters and Setters
     public Long getPositionId() {
         return positionId;
     }

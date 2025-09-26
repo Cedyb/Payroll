@@ -12,12 +12,10 @@ public class Payroll {
     @Column(name = "payroll_id")
     private Long id;
 
-    // 🔗 Employee relationship
     @ManyToOne
     @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;
 
-    // 🔗 PayPeriod relationship
     @ManyToOne
     @JoinColumn(name = "pay_period_id", nullable = false)
     private PayPeriod payPeriod;
@@ -28,12 +26,11 @@ public class Payroll {
     @Column(name = "week_end")
     private LocalDate weekEnd;
 
-    // ✅ Payroll status
+
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
-    private PayrollStatus status = PayrollStatus.PENDING; // default value
+    private PayrollStatus status = PayrollStatus.PENDING;
 
-    // Earnings
     private Double basicPay = 0.0;
     private Double otPay;
     private Double leavePay;
@@ -42,8 +39,6 @@ public class Payroll {
     private Double colaAllowance;
     private Double allowance;
     private Double adjustment;
-
-    // Deductions
     private Double savings;
     private Double sss;
     private Double philhealth;
@@ -53,14 +48,11 @@ public class Payroll {
     private Double medical;
     private Double insurance;
     private Double utilities;
-
-    // Totals
     private Double subtotal = 0.0;
     private Double netPay = 0.0;
 
     public Payroll() {}
 
-    // ===== Getters and Setters =====
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -136,7 +128,6 @@ public class Payroll {
     public Double getNetPay() { return netPay; }
     public void setNetPay(Double netPay) { this.netPay = netPay; }
 
-    // ✅ Inner enum for status
     public enum PayrollStatus {
         PENDING,
         APPROVED

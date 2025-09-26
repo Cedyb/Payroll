@@ -20,6 +20,6 @@ public class UserDashboardController {
         }
 
         model.addAttribute("employee", employee);
-        return "employee/userDashboard";  // This is the HTML page
+        return "employee/userDashboard";
     }
 }

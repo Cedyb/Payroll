@@ -30,9 +30,6 @@ public class PayrollPageController {
 
     private final int PAGE_SIZE = 10;
 
-    // -----------------------------
-    // Main Payroll Page
-    // -----------------------------
     @GetMapping("")
     public String showPayrollPage(
             @RequestParam(defaultValue = "0") int page,
@@ -40,7 +37,7 @@ public class PayrollPageController {
             HttpSession session) {
 
         String role = (String) session.getAttribute("role");
-        Long departmentId = (Long) session.getAttribute("department_id"); // consistent with login
+        Long departmentId = (Long) session.getAttribute("department_id");
 
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
         Page<Employee> employeesPage;
@@ -61,9 +58,6 @@ public class PayrollPageController {
         return "admin/payroll";
     }
 
-    // -----------------------------
-    // Search Payroll
-    // -----------------------------
     @GetMapping("/search")
     public String searchEmployees(
             @RequestParam("keyword") String keyword,
@@ -72,7 +66,7 @@ public class PayrollPageController {
             HttpSession session) {
 
         String role = (String) session.getAttribute("role");
-        Long departmentId = (Long) session.getAttribute("department_id"); // consistent with login
+        Long departmentId = (Long) session.getAttribute("department_id");
 
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
         Page<Employee> employeesPage;
@@ -102,9 +96,6 @@ public class PayrollPageController {
         return "admin/payroll";
     }
 
-    // -----------------------------
-    // Helper: Attach latest payroll status to employees
-    // -----------------------------
     private void attachLatestPayrollStatus(List<Employee> employees) {
         LocalDate today = LocalDate.now();
 

@@ -12,31 +12,17 @@ import java.util.Optional;
 
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
-    // =========================
-    // Basic Queries
-    // =========================
-
-    // All active employees
     List<Employee> findByIsActiveTrue();
     Page<Employee> findByIsActiveTrue(Pageable pageable);
 
-    // All archived employees
     List<Employee> findByIsActiveFalse();
-    Page<Employee> findByIsActiveFalse(Pageable pageable); // <-- added for paging
-
-    // Find employee by email (for login)
+    Page<Employee> findByIsActiveFalse(Pageable pageable);
     Employee findByEmail(String email);
 
-    // Find employee by ID
     Optional<Employee> findByEmployeeId(Long employeeId);
 
-    // Find by full name
     @Query("SELECT e FROM Employee e WHERE LOWER(TRIM(CONCAT(e.firstName, ' ', e.lastName))) = LOWER(TRIM(:fullName))")
     Optional<Employee> findByFullName(@Param("fullName") String fullName);
-
-    // =========================
-    // Search Queries
-    // =========================
 
     @Query("SELECT e FROM Employee e " +
             "WHERE e.isActive = true AND (" +
@@ -59,10 +45,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             "LOWER(e.position.department.name) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
             ")")
     Page<Employee> searchByNameOrId(@Param("keyword") String keyword, Pageable pageable);
-
-    // =========================
-    // Department-Aware Queries
-    // =========================
 
     List<Employee> findByIsActiveTrueAndPosition_Department_DepartmentId(Long departmentId);
     Page<Employee> findByIsActiveTrueAndPosition_Department_DepartmentId(Long departmentId, Pageable pageable);
@@ -90,8 +72,5 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Query("SELECT e FROM Employee e WHERE e.isActive = true AND e.position.department.departmentId = :deptId AND e.system_role = :systemRole")
     List<Employee> findByIsActiveTrueAndPosition_Department_DepartmentIdAndSystemRole(@Param("deptId") Long departmentId, @Param("systemRole") String systemRole);
 
-    // =========================
-    // Archived employees by department (paged)
-    // =========================
     Page<Employee> findByIsActiveFalseAndPosition_Department_DepartmentId(Long departmentId, Pageable pageable);
 }

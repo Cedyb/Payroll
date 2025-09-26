@@ -14,16 +14,13 @@
 <div class="container-fluid">
   <div class="row">
 
-    <!-- Navigation -->
     <nav th:replace="fragments/nav :: nav"></nav>
 
-    <!-- Main Content -->
     <main class="col-md-10 offset-md-2 content p-4">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">PAYROLL</h4>
       </div>
 
-      <!-- Search Form -->
       <form th:action="@{/payroll/search}" method="get" class="mb-3">
         <div class="input-group w-50">
           <input type="text" name="keyword" class="form-control"
@@ -32,7 +29,6 @@
         </div>
       </form>
 
-      <!-- Table -->
       <div class="table-container mt-4">
         <div class="table-responsive">
           <table class="table align-middle table-hover">
@@ -68,7 +64,6 @@
 
               <td th:text="${emp.email}">email@example.com</td>
 
-              <!-- Status Badge -->
               <td>
   <span class="badge"
         th:text="${emp.payrollStatus != null ? emp.payrollStatus.name() : 'PENDING'}"
@@ -89,7 +84,6 @@
         </div>
       </div>
 
-      <!-- Pagination -->
       <nav aria-label="Page navigation example" class="mt-3">
         <ul class="pagination justify-content-center">
           <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">

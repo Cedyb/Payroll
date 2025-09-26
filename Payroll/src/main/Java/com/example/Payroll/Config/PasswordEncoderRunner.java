@@ -20,7 +20,6 @@ public class PasswordEncoderRunner implements CommandLineRunner {
     public void run(String... args) {
         for (Employee employee : employeeRepository.findAll()) {
             String pwd = employee.getPassword();
-            // Only encode plain-text passwords
             if (pwd != null && !pwd.startsWith("$2a$")) {
                 employee.setPassword(passwordEncoder.encode(pwd));
                 employeeRepository.save(employee);

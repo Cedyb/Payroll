@@ -9,7 +9,6 @@ public interface PositionsService {
 
     List<Positions> getAllPositions();
 
-    // Department-aware positions
     List<Positions> getPositionsByDepartment(Long departmentId);
     Positions getPositionById(Long id);
 

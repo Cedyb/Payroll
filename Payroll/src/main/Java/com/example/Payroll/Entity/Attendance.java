@@ -34,7 +34,6 @@ public class Attendance {
     @Column(name = "afternoon_out")
     private LocalTime afternoonOut;
 
-    // New fields for Overtime In/Out
     @Column(name = "ot_in")
     private LocalTime otIn;
 

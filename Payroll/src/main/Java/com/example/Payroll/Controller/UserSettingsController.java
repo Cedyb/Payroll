@@ -38,7 +38,6 @@ public class UserSettingsController {
         Employee sessionEmployee = (Employee) session.getAttribute("employee");
         if (sessionEmployee == null) return "redirect:/login";
 
-        // Reload from DB to get hashed password
         Employee employee = employeeRepo.findByEmail(sessionEmployee.getEmail());
         if (employee == null) return "redirect:/login";
 
@@ -59,7 +58,7 @@ public class UserSettingsController {
         employee.setPassword(passwordEncoder.encode(newPassword));
         employeeRepo.save(employee);
 
-        // Update session
+
         session.setAttribute("employee", employee);
 
         model.addAttribute("message", "Password updated successfully!");

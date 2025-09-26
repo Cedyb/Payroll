@@ -34,7 +34,7 @@ public class AttendanceLog {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 3)
-    private Status status; // IN / OUT
+    private Status status;
 
     @Column(name = "total_hours")
     private double totalHours;

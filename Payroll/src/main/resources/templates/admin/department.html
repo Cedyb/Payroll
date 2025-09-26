@@ -28,7 +28,6 @@
         </div>
       </div>
 
-      <!-- 🔍 Search bar -->
       <div class="mb-3 w-50">
         <input type="text" id="deptSearchInput" class="form-control"
                placeholder="Search departments by name...">
@@ -70,7 +69,6 @@
   </div>
 </div>
 
-<!-- Add Department Modal -->
 <div class="modal fade" id="deptAddModal" tabindex="-1" role="dialog" aria-labelledby="deptAddModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <form th:action="@{/departments/create}" th:object="${departmentsForm}" method="post" class="modal-content">
@@ -96,7 +94,6 @@
   </div>
 </div>
 
-<!-- Update Department Modal -->
 <div class="modal fade" id="deptUpdateModal" tabindex="-1" role="dialog" aria-labelledby="deptUpdateModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <form th:action="@{/departments/update}" th:object="${departmentsForm}" method="post" class="modal-content">
@@ -123,7 +120,6 @@
   </div>
 </div>
 
-<!-- Pagination -->
 <div class="d-flex justify-content-center my-4">
   <nav aria-label="Department pagination">
     <ul class="pagination">

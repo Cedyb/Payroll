@@ -16,6 +16,5 @@ public interface DepartmentService {
 
     void deleteDepartment(Long id);
 
-    // ✅ Add this method
     Department getDepartmentById(Long id);
 }

@@ -9,6 +9,6 @@ public class DashboardController {
 
     @RequestMapping("/dashboard")
     public String showDashboardPage() {
-        return "admin/dashboard"; // NOT "dashboard"
+        return "admin/dashboard";
     }
 }

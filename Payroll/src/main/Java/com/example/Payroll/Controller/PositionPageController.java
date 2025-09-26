@@ -32,11 +32,11 @@ public class PositionPageController {
         List<Department> departments;
 
         if ("CLERK".equals(role) && departmentId != null) {
-            // Only show positions for the Site Admin's department
+
             positions = positionsService.getPositionsByDepartment(departmentId);
             departments = List.of(departmentService.getDepartmentById(departmentId));
         } else {
-            // Super Admin sees all
+
             positions = positionsService.getAllPositions();
             departments = departmentService.getAllDepartments();
         }
@@ -53,7 +53,6 @@ public class PositionPageController {
         Long departmentId = (Long) session.getAttribute("department_id");
 
         if ("SITE ADMIN".equals(role) && departmentId != null) {
-            // Force new position to Site Admin's department
             positionsForm.setDepartmentId(departmentId);
         }
 
@@ -67,7 +66,6 @@ public class PositionPageController {
         Long departmentId = (Long) session.getAttribute("department_id");
 
         if ("SITE ADMIN".equals(role) && departmentId != null) {
-            // Restrict update to Site Admin's department
             Positions existing = positionsService.getPositionById(positionsForm.getPositionId());
             if (!existing.getDepartment().getDepartmentId().equals(departmentId)) {
                 return "redirect:/positions?error=unauthorized";

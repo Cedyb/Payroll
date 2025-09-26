@@ -61,7 +61,6 @@ public class Employee {
     @JoinColumn(name = "position_id", referencedColumnName = "position_id", foreignKey = @ForeignKey(name = "fk_employee_position"))
     private Positions position;
 
-    // NEW: department_id column
     @Column(name = "department_id")
     private Long departmentId;
 

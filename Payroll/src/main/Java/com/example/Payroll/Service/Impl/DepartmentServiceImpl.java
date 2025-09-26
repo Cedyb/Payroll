@@ -53,7 +53,6 @@ public class DepartmentServiceImpl implements DepartmentService {
         });
     }
 
-    // ✅ New method for EmployeePageController
     @Override
     public Department getDepartmentById(Long id) {
         return departmentRepository.findById(id)

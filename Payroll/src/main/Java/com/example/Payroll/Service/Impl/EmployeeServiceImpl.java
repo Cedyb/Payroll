@@ -25,10 +25,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
-    // =========================
-    // General Employee Methods
-    // =========================
-
     @Override
     public List<Employee> getAllEmployees() {
         return employeeRepository.findByIsActiveTrue();
@@ -84,10 +80,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeRepository.save(employee);
     }
 
-    // =========================
-    // Archived Employees
-    // =========================
-
     @Override
     public List<Employee> getArchivedEmployees() {
         return employeeRepository.findByIsActiveFalse();
@@ -106,10 +98,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         });
     }
 
-    // =========================
-    // Department-aware Methods
-    // =========================
-
     @Override
     public Page<Employee> getEmployeesByDepartment(Long departmentId, Pageable pageable) {
         return employeeRepository.findByIsActiveTrueAndPosition_Department_DepartmentId(departmentId, pageable);
@@ -124,10 +112,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     public Page<Employee> getArchivedEmployeesByDepartment(Long departmentId, Pageable pageable) {
         return employeeRepository.findByIsActiveFalseAndPosition_Department_DepartmentId(departmentId, pageable);
     }
-
-    // =========================
-    // Helper: Map EmployeeForm to Employee
-    // =========================
 
     private void mapFormToEmployee(EmployeeForm employeeForm, Employee employee, boolean isNew) {
         if (isNew && employeeForm.getUsername() != null && !employeeForm.getUsername().isEmpty()) {
@@ -155,7 +139,6 @@ public class EmployeeServiceImpl implements EmployeeService {
             });
         }
 
-        // ✅ Ensure role is not lost during update
         if (employeeForm.getSystem_role() != null && !employeeForm.getSystem_role().isEmpty()) {
             employee.setSystem_role(employeeForm.getSystem_role());
         } else if (isNew) {

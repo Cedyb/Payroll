@@ -9,5 +9,5 @@ import org.springframework.data.domain.Pageable;
 public interface DepartmentRepository extends JpaRepository<Department, Long> {
     List<Department> findByIsActiveTrue();
 
-    Page<Department> findByIsActiveTrue(Pageable pageable); // new method for pagination
+    Page<Department> findByIsActiveTrue(Pageable pageable);
 }

@@ -65,7 +65,6 @@ public class UnifiedImportService {
 
                 String firstCellValue = getCellValueAsString(row.getCell(0)).trim();
 
-                // Detect Employee
                 if (firstCellValue.toUpperCase().startsWith("EMPLOYEE")) {
                     employeeName = parseEmployeeName(firstCellValue, row);
                     System.out.println("🔹 Employee detected: " + employeeName);
@@ -138,7 +137,6 @@ public class UnifiedImportService {
 
         if (time == null) return;
 
-        // Lookup employee by full name
         Employee employee = employeeRepository.findByFullName(employeeName)
                 .orElseThrow(() -> new RuntimeException("Employee not found: " + employeeName));
 

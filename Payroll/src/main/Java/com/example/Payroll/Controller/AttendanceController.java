@@ -44,7 +44,6 @@ public class AttendanceController {
     ) {
         LocalDate today = LocalDate.now();
 
-        // Calculate Wednesday → Tuesday week
         LocalDate tmpWeekStart = today.with(DayOfWeek.WEDNESDAY);
         if (today.getDayOfWeek().getValue() < DayOfWeek.WEDNESDAY.getValue()) {
             tmpWeekStart = tmpWeekStart.minusWeeks(1);
@@ -54,17 +53,14 @@ public class AttendanceController {
         final LocalDate weekStart = tmpWeekStart;
         final LocalDate weekEnd = tmpWeekStart.plusDays(6);
 
-        // Get logged-in user’s role and department
         String systemRole = (String) session.getAttribute("system_role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
-        // Debugging
         System.out.println("Logged-in user role: " + systemRole);
         System.out.println("Logged-in user departmentId: " + departmentId);
 
         List<AttendanceLog> logsThisWeek;
 
-        // Option 2: Filter in memory
         logsThisWeek = attendanceLogRepo.findByLogDateBetween(weekStart, weekEnd);
 
         if ("CLERK".equalsIgnoreCase(systemRole) && departmentId != null) {
@@ -79,7 +75,6 @@ public class AttendanceController {
 
         List<AttendanceSummaryDTO> summaries = buildSummaries(logsThisWeek);
 
-        // Pagination
         int pageSize = 10;
         int totalPages = (int) Math.ceil((double) summaries.size() / pageSize);
         int fromIndex = (page - 1) * pageSize;
@@ -109,18 +104,16 @@ public class AttendanceController {
         return "redirect:/attendance";
     }
 
-    // Build summaries only for logs with actual data
     private List<AttendanceSummaryDTO> buildSummaries(List<AttendanceLog> logs) {
         Map<String, AttendanceSummaryDTO> map = new LinkedHashMap<>();
 
-        // Sort logs by date + time
         logs = logs.stream()
                 .sorted(Comparator.comparing(AttendanceLog::getLogDate)
                         .thenComparing(AttendanceLog::getLogTime))
                 .collect(Collectors.toList());
 
         for (AttendanceLog log : logs) {
-            if (log.getEmployee() == null) continue; // safety check
+            if (log.getEmployee() == null) continue;
             String key = log.getEmployee().getEmployeeId() + "-" + log.getLogDate();
             String empIdStr = "E" + String.format("%03d", log.getEmployee().getEmployeeId());
 

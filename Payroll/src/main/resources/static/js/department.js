@@ -1,11 +1,9 @@
 $(document).ready(function () {
 
-    // Open Add Department Modal
     $('#openAddDeptModal').on('click', function () {
         $('#deptAddModal').modal('show');
     });
 
-    // Open Update Department Modal
     $('.js-dept-update').on('click', function () {
         const id = $(this).data('id');
         const name = $(this).data('name');
@@ -18,10 +16,9 @@ $(document).ready(function () {
         $('#deptUpdateModal').modal('show');
     });
 
-    // Advanced search/filter by department name
     $('#deptSearchInput').on('keyup', function () {
         const value = $(this).val().toLowerCase().trim();
-        $('#deptTable tbody tr').filter(function () {  // <-- match the table ID
+        $('#deptTable tbody tr').filter(function () {
             const deptName = $(this).find('.dept-name').text().toLowerCase();
             $(this).toggle(deptName.includes(value));
         });
@@ -30,7 +27,6 @@ $(document).ready(function () {
 
 });
 
-// Optional helper function (if you still need it)
 function editDepartment(id, name, description) {
     document.getElementById('editId').value = id;
     document.getElementById('editName').value = name;
@@ -40,7 +36,6 @@ function editDepartment(id, name, description) {
     modal.show();
 }
 
-// Optional helper for populating department dropdowns
 function getDepartments(selected = null) {
     $.ajax({
         url: '/departments/retrieve',

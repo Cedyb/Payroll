@@ -12,10 +12,8 @@
 <div class="container-fluid">
     <div class="row">
 
-        <!-- Sidebar -->
         <nav class="col-md-2 p-0" th:replace="fragments/userNav :: nav"></nav>
 
-        <!-- Main Content -->
         <main class="col-md-10 ms-sm-auto px-4 py-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 th:text="'Welcome, ' + ${employee.fullName}">Welcome, User</h4>
@@ -43,7 +41,6 @@
                     <td th:text="${p.netPay}"></td>
                     <td th:text="${p.status}"></td>
                     <td>
-                        <!-- Button trigger modal -->
                         <button class="btn btn-sm btn-primary"
                                 data-bs-toggle="modal"
                                 th:attr="data-bs-target='#payslipModal' + ${iStat.index}">
@@ -54,7 +51,6 @@
                 </tbody>
             </table>
 
-            <!-- Payslip Modals -->
             <div th:each="p, iStat : ${payrolls}">
                 <div class="modal fade"
                      th:id="'payslipModal' + ${iStat.index}"

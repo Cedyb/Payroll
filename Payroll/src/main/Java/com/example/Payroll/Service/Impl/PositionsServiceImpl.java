@@ -25,9 +25,6 @@ public class PositionsServiceImpl implements PositionsService {
         return positionsRepository.findByIsActiveTrue();
     }
 
-    // -----------------------------
-    // Department-aware positions
-    // -----------------------------
     @Override
     public List<Positions> getPositionsByDepartment(Long departmentId) {
         return positionsRepository.findByDepartment_DepartmentIdAndIsActiveTrue(departmentId);
@@ -71,9 +68,6 @@ public class PositionsServiceImpl implements PositionsService {
         });
     }
 
-    // -----------------------------
-    // NEW: Get position by ID
-    // -----------------------------
     @Override
     public Positions getPositionById(Long id) {
         return positionsRepository.findById(id)

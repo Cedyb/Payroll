@@ -45,19 +45,16 @@ public class EmployeePageController {
         } else if ("CLERK".equals(role)) {
             employeePage = employeeService.getEmployeesByDepartment(departmentId, PageRequest.of(page, pageSize));
         } else {
-            return "redirect:/login"; // unauthorized
+            return "redirect:/login";
         }
 
-        // Add attributes to model
         model.addAttribute("employeePage", employeePage);
         model.addAttribute("employeeList", employeePage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", employeePage.getTotalPages());
 
-        // Form-backing bean
         model.addAttribute("employeeForm", new EmployeeForm());
 
-        // Dropdowns (positions & departments)
         if ("SUPER_ADMIN".equals(role)) {
             model.addAttribute("positionList", positionsService.getAllPositions());
             model.addAttribute("departments", departmentService.getAllDepartments());
@@ -69,9 +66,6 @@ public class EmployeePageController {
         return "admin/employee";
     }
 
-    // -----------------------------
-    // Create Employee
-    // -----------------------------
     @PostMapping("/create")
     public String create(@ModelAttribute EmployeeForm employeeForm,
                          HttpSession session) {
@@ -80,16 +74,13 @@ public class EmployeePageController {
         Long departmentId = (Long) session.getAttribute("department_id");
 
         if ("SITE ADMIN".equals(role)) {
-            employeeForm.setDepartmentId(departmentId); // force department
+            employeeForm.setDepartmentId(departmentId);
         }
 
         employeeService.createEmployee(employeeForm);
         return "redirect:/employees";
     }
 
-    // -----------------------------
-    // Update Employee
-    // -----------------------------
     @PostMapping("/update")
     public String update(@ModelAttribute EmployeeForm employeeForm,
                          HttpSession session) {
@@ -109,9 +100,6 @@ public class EmployeePageController {
         return "redirect:/employees";
     }
 
-    // -----------------------------
-    // Delete Employee
-    // -----------------------------
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable Long id,
                          HttpSession session) {

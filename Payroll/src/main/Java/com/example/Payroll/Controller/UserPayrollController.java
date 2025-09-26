@@ -42,13 +42,13 @@ public class UserPayrollController {
 
         Optional<Payroll> payrollOpt = payrollRepository.findById(id);
         if (payrollOpt.isEmpty() || !payrollOpt.get().getEmployee().equals(employee)) {
-            return "redirect:/userPayroll"; // security: employee can see only their payroll
+            return "redirect:/userPayroll";
         }
 
         Payroll payroll = payrollOpt.get();
         model.addAttribute("employee", employee);
         model.addAttribute("payroll", payroll);
 
-        return "employee/payslipDetails"; // 👈 bagong template for employee
+        return "employee/payslipDetails";
     }
 }

@@ -27,7 +27,7 @@ public class Positions {
     private String title;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "department_id", nullable = false) // ← FIXED this line
+    @JoinColumn(name = "department_id", nullable = false)
     private Department department;
 
 
