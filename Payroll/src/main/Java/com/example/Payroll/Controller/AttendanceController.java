@@ -67,12 +67,12 @@ public class AttendanceController {
         // Option 2: Filter in memory
         logsThisWeek = attendanceLogRepo.findByLogDateBetween(weekStart, weekEnd);
 
-        if ("SITE ADMIN".equalsIgnoreCase(systemRole) && departmentId != null) {
+        if ("CLERK".equalsIgnoreCase(systemRole) && departmentId != null) {
             logsThisWeek = logsThisWeek.stream()
                     .filter(log -> log.getEmployee() != null
                             && departmentId.equals(log.getEmployee().getDepartmentId()))
                     .collect(Collectors.toList());
-            System.out.println("Site Admin logs fetched after filtering: " + logsThisWeek.size());
+            System.out.println("CLERK Admin logs fetched after filtering: " + logsThisWeek.size());
         } else {
             System.out.println("System Admin logs fetched: " + logsThisWeek.size());
         }

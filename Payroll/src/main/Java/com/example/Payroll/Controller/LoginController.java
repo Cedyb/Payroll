@@ -73,15 +73,16 @@ public class LoginController {
 
             // Redirect based on role
             switch (role) {
-                case "SITE ADMIN":
-                case "SUPER_ADMIN":
-                    return "redirect:/dashboard";  // Shared admin dashboard
                 case "CLERK":
-                    return "redirect:/clerkDashboard";
+                case "SUPER_ADMIN":
+                    return "redirect:/dashboard";   // Clerk + Super Admin → admin dashboard
+                case "SITE ADMIN":
+                    return "redirect:/clerkDashboard"; // Site Admin → lighter features
                 case "EMPLOYEE":
                 default:
                     return "redirect:/userDashboard";
             }
+
         }
 
         // Invalid login
@@ -107,7 +108,7 @@ public class LoginController {
         Employee employee = (Employee) session.getAttribute("employee");
         String role = (String) session.getAttribute("role");
 
-        if (employee == null || !(role.equals("SITE ADMIN") || role.equals("SUPER_ADMIN"))) {
+        if (employee == null || !(role.equals("CLERK") || role.equals("SUPER_ADMIN"))) {
             return "redirect:/login";
         }
 
@@ -120,7 +121,7 @@ public class LoginController {
         Employee employee = (Employee) session.getAttribute("employee");
         String role = (String) session.getAttribute("role");
 
-        if (employee == null || !role.equals("CLERK")) {
+        if (employee == null || !role.equals("SITE ADMIN")) {
             return "redirect:/login";
         }
 

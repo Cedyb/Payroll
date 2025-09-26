@@ -45,7 +45,7 @@ public class PayrollPageController {
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
         Page<Employee> employeesPage;
 
-        if ("SITE ADMIN".equals(role) && departmentId != null) {
+        if ("CLERK".equals(role) && departmentId != null) {
             employeesPage = employeeService.getEmployeesByDepartment(departmentId, pageable);
         } else {
             employeesPage = employeeService.getAllEmployees(pageable);
@@ -77,7 +77,7 @@ public class PayrollPageController {
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
         Page<Employee> employeesPage;
 
-        if ("SITE ADMIN".equals(role) && departmentId != null) {
+        if ("CLERK".equals(role) && departmentId != null) {
             if (keyword == null || keyword.trim().isEmpty()) {
                 employeesPage = employeeService.getEmployeesByDepartment(departmentId, pageable);
             } else {

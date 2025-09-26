@@ -42,7 +42,7 @@ public class EmployeePageController {
 
         if ("SUPER_ADMIN".equals(role)) {
             employeePage = employeeService.getAllEmployees(PageRequest.of(page, pageSize));
-        } else if ("SITE ADMIN".equals(role)) {
+        } else if ("CLERK".equals(role)) {
             employeePage = employeeService.getEmployeesByDepartment(departmentId, PageRequest.of(page, pageSize));
         } else {
             return "redirect:/login"; // unauthorized

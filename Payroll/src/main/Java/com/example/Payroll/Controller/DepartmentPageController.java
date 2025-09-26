@@ -32,7 +32,7 @@ public class DepartmentPageController {
         String role = (String) session.getAttribute("role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
-        if ("SITE ADMIN".equals(role) && departmentId != null) {
+        if ("CLERK".equals(role) && departmentId != null) {
             // Site Admin sees only their own department
             Department dept = departmentService.getDepartmentById(departmentId);
             model.addAttribute("departmentList", List.of(dept));
@@ -89,7 +89,7 @@ public class DepartmentPageController {
         String role = (String) session.getAttribute("role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
-        if ("SITE ADMIN".equals(role) && departmentId != null) {
+        if ("CLERK".equals(role) && departmentId != null) {
             return List.of(departmentService.getDepartmentById(departmentId));
         }
         return departmentService.getAllDepartments();

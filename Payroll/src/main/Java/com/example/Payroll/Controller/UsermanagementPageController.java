@@ -41,7 +41,7 @@ public class UsermanagementPageController {
 
         Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
 
-        if ("SITE ADMIN".equals(role) && departmentId != null) {
+        if ("CLERK".equals(role) && departmentId != null) {
             employees = employeeService.getEmployeesByDepartment(departmentId, pageable).getContent();
             archivedEmployees = employeeService.getArchivedEmployeesByDepartment(departmentId, pageable).getContent();
         } else {
@@ -54,7 +54,7 @@ public class UsermanagementPageController {
         model.addAttribute("employeeForm", new EmployeeForm());
 
         // Dropdowns
-        if ("SITE ADMIN".equals(role) && departmentId != null) {
+        if ("CLERK".equals(role) && departmentId != null) {
             model.addAttribute("positionList", positionsService.getPositionsByDepartment(departmentId));
             model.addAttribute("departments", List.of(departmentService.getDepartmentById(departmentId)));
         } else {
@@ -73,7 +73,7 @@ public class UsermanagementPageController {
         String role = (String) session.getAttribute("role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
-        if ("SITE ADMIN".equals(role) && departmentId != null) {
+        if ("CLERK".equals(role) && departmentId != null) {
             employeeForm.setDepartmentId(departmentId);
         }
 
@@ -89,7 +89,7 @@ public class UsermanagementPageController {
         String role = (String) session.getAttribute("role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
-        if ("SITE ADMIN".equals(role) && departmentId != null) {
+        if ("CLERK".equals(role) && departmentId != null) {
             Employee existing = employeeService.getEmployeeById(id);
             if (!existing.getDepartmentId().equals(departmentId)) {
                 return "redirect:/usermanagement?error=unauthorized";
@@ -109,7 +109,7 @@ public class UsermanagementPageController {
         String role = (String) session.getAttribute("role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
-        if ("SITE ADMIN".equals(role) && departmentId != null) {
+        if ("CLERK".equals(role) && departmentId != null) {
             Employee existing = employeeService.getEmployeeById(id);
             if (!existing.getDepartmentId().equals(departmentId)) {
                 return "redirect:/usermanagement?error=unauthorized";
@@ -137,7 +137,7 @@ public class UsermanagementPageController {
         String role = (String) session.getAttribute("role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
-        if ("SITE ADMIN".equals(role) && departmentId != null) {
+        if ("CLERK".equals(role) && departmentId != null) {
             Employee existing = employeeService.getEmployeeById(id);
             if (!existing.getDepartmentId().equals(departmentId)) {
                 return "redirect:/usermanagement?error=unauthorized";

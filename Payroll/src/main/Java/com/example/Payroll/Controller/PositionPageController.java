@@ -31,7 +31,7 @@ public class PositionPageController {
         List<Positions> positions;
         List<Department> departments;
 
-        if ("SITE ADMIN".equals(role) && departmentId != null) {
+        if ("CLERK".equals(role) && departmentId != null) {
             // Only show positions for the Site Admin's department
             positions = positionsService.getPositionsByDepartment(departmentId);
             departments = List.of(departmentService.getDepartmentById(departmentId));
