@@ -29,6 +29,7 @@ public class LoginController {
                                HttpSession session,
                                Model model) {
 
+        // Hardcoded system super admin
         if ("admin".equalsIgnoreCase(email) && "123".equals(password)) {
             Employee admin = new Employee();
             admin.setFirstName("System");
@@ -46,10 +47,12 @@ public class LoginController {
             return "redirect:/dashboard";
         }
 
+        // Lookup employee from DB
         Employee employee = employeeRepository.findByEmail(email);
 
         if (employee != null && passwordEncoder.matches(password, employee.getPassword())) {
-            String role = employee.getSystem_role().toUpperCase();
+            // normalize role (replace spaces with underscores, uppercase)
+            String role = employee.getSystem_role().toUpperCase().replace(" ", "_");
 
             Long departmentId = null;
             if (employee.getPosition() != null && employee.getPosition().getDepartment() != null) {
@@ -65,14 +68,12 @@ public class LoginController {
             switch (role) {
                 case "CLERK":
                 case "SUPER_ADMIN":
+                case "SITE_ADMIN": // Site Admin now goes to the same dashboard
                     return "redirect:/dashboard";
-                case "SITE ADMIN":
-                    return "redirect:/clerkDashboard";
                 case "EMPLOYEE":
                 default:
                     return "redirect:/userDashboard";
             }
-
         }
 
         model.addAttribute("error", "Invalid email or password");
@@ -91,41 +92,16 @@ public class LoginController {
         Employee employee = (Employee) session.getAttribute("employee");
         String role = (String) session.getAttribute("role");
 
-        if (employee == null || !(role.equals("CLERK") || role.equals("SUPER_ADMIN"))) {
+        if (employee == null ||
+                !(role.equals("CLERK") || role.equals("SUPER_ADMIN") || role.equals("SITE_ADMIN"))) {
             return "redirect:/login";
         }
 
         addEmployeeToModel(session, model);
         model.addAttribute("dashboardTitle", formatRole(role) + " Dashboard");
 
-        return "admin/dashboard";
+        return "admin/dashboard"; // one dashboard reused
     }
-
-    @GetMapping("/clerkDashboard")
-    public String showClerkDashboard(HttpSession session, Model model) {
-        Employee employee = (Employee) session.getAttribute("employee");
-        String role = (String) session.getAttribute("role");
-
-        if (employee == null || !role.equals("SITE ADMIN")) {
-            return "redirect:/login";
-        }
-
-        addEmployeeToModel(session, model);
-        model.addAttribute("dashboardTitle", formatRole(role) + " Dashboard");
-
-        return "clerk/clerkDashboard";
-    }
-
-    private String formatRole(String role) {
-        return switch (role) {
-            case "SUPER_ADMIN" -> "Super Admin";
-            case "CLERK" -> "Clerk";
-            case "SITE ADMIN" -> "Site Admin";
-            case "EMPLOYEE" -> "Employee";
-            default -> role;
-        };
-    }
-
 
     @GetMapping("/userDashboard")
     public String showUserDashboard(HttpSession session, Model model) {
@@ -144,5 +120,15 @@ public class LoginController {
     public String logout(HttpSession session) {
         session.invalidate();
         return "redirect:/login?logout";
+    }
+
+    private String formatRole(String role) {
+        return switch (role) {
+            case "SUPER_ADMIN" -> "Super Admin";
+            case "CLERK" -> "Clerk";
+            case "SITE_ADMIN" -> "Site Admin";
+            case "EMPLOYEE" -> "Employee";
+            default -> role;
+        };
     }
 }

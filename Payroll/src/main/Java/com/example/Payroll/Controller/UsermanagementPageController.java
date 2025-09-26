@@ -38,7 +38,6 @@ public class UsermanagementPageController {
 
         List<Employee> employees;
         List<Employee> archivedEmployees;
-
         Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
 
         if ("CLERK".equals(role) && departmentId != null) {
@@ -52,6 +51,7 @@ public class UsermanagementPageController {
         model.addAttribute("employees", employees);
         model.addAttribute("archivedEmployees", archivedEmployees);
         model.addAttribute("employeeForm", new EmployeeForm());
+        model.addAttribute("role", role); // Pass role to Thymeleaf
 
         // Dropdowns
         if ("CLERK".equals(role) && departmentId != null) {
@@ -71,12 +71,12 @@ public class UsermanagementPageController {
     @PostMapping("/create")
     public String create(@ModelAttribute EmployeeForm employeeForm, HttpSession session) {
         String role = (String) session.getAttribute("role");
-        Long departmentId = (Long) session.getAttribute("department_id");
+        if ("SITE ADMIN".equals(role)) return "redirect:/usermanagement?error=unauthorized";
 
+        Long departmentId = (Long) session.getAttribute("department_id");
         if ("CLERK".equals(role) && departmentId != null) {
             employeeForm.setDepartmentId(departmentId);
         }
-
         employeeService.createEmployee(employeeForm);
         return "redirect:/usermanagement";
     }
@@ -87,13 +87,12 @@ public class UsermanagementPageController {
     @PostMapping("/{id}/update")
     public String update(@PathVariable Long id, @ModelAttribute EmployeeForm employeeForm, HttpSession session) {
         String role = (String) session.getAttribute("role");
-        Long departmentId = (Long) session.getAttribute("department_id");
+        if ("SITE ADMIN".equals(role)) return "redirect:/usermanagement?error=unauthorized";
 
+        Long departmentId = (Long) session.getAttribute("department_id");
         if ("CLERK".equals(role) && departmentId != null) {
             Employee existing = employeeService.getEmployeeById(id);
-            if (!existing.getDepartmentId().equals(departmentId)) {
-                return "redirect:/usermanagement?error=unauthorized";
-            }
+            if (!existing.getDepartmentId().equals(departmentId)) return "redirect:/usermanagement?error=unauthorized";
             employeeForm.setDepartmentId(departmentId);
         }
 
@@ -107,13 +106,12 @@ public class UsermanagementPageController {
     @PostMapping("/{id}/delete")
     public String archive(@PathVariable Long id, HttpSession session) {
         String role = (String) session.getAttribute("role");
-        Long departmentId = (Long) session.getAttribute("department_id");
+        if ("SITE ADMIN".equals(role)) return "redirect:/usermanagement?error=unauthorized";
 
+        Long departmentId = (Long) session.getAttribute("department_id");
         if ("CLERK".equals(role) && departmentId != null) {
             Employee existing = employeeService.getEmployeeById(id);
-            if (!existing.getDepartmentId().equals(departmentId)) {
-                return "redirect:/usermanagement?error=unauthorized";
-            }
+            if (!existing.getDepartmentId().equals(departmentId)) return "redirect:/usermanagement?error=unauthorized";
         }
 
         employeeService.deleteEmployee(id);
@@ -124,7 +122,10 @@ public class UsermanagementPageController {
     // Reset Password
     // -----------------------------
     @PostMapping("/{id}/reset-password")
-    public String resetPassword(@PathVariable Long id) {
+    public String resetPassword(@PathVariable Long id, HttpSession session) {
+        String role = (String) session.getAttribute("role");
+        if ("SITE ADMIN".equals(role)) return "redirect:/usermanagement?error=unauthorized";
+
         employeeService.resetPassword(id, "password");
         return "redirect:/usermanagement?resetSuccess";
     }
@@ -135,13 +136,12 @@ public class UsermanagementPageController {
     @PostMapping("/{id}/restore")
     public String restoreEmployee(@PathVariable Long id, HttpSession session) {
         String role = (String) session.getAttribute("role");
-        Long departmentId = (Long) session.getAttribute("department_id");
+        if ("SITE ADMIN".equals(role)) return "redirect:/usermanagement?error=unauthorized";
 
+        Long departmentId = (Long) session.getAttribute("department_id");
         if ("CLERK".equals(role) && departmentId != null) {
             Employee existing = employeeService.getEmployeeById(id);
-            if (!existing.getDepartmentId().equals(departmentId)) {
-                return "redirect:/usermanagement?error=unauthorized";
-            }
+            if (!existing.getDepartmentId().equals(departmentId)) return "redirect:/usermanagement?error=unauthorized";
         }
 
         employeeService.restoreEmployee(id);

@@ -19,8 +19,10 @@ public class EmployeePageController {
 
     @Autowired
     private EmployeeService employeeService;
+
     @Autowired
     private PositionsService positionsService;
+
     @Autowired
     private DepartmentService departmentService;
 
@@ -38,7 +40,7 @@ public class EmployeePageController {
 
         if ("SUPER_ADMIN".equals(role)) {
             employeePage = employeeService.getAllEmployees(PageRequest.of(page, pageSize));
-        } else if ("CLERK".equals(role)) {
+        } else if ("CLERK".equals(role) || "SITE_ADMIN".equals(role)) {
             employeePage = employeeService.getEmployeesByDepartment(departmentId, PageRequest.of(page, pageSize));
         } else {
             return "redirect:/login";
@@ -54,7 +56,7 @@ public class EmployeePageController {
         if ("SUPER_ADMIN".equals(role)) {
             model.addAttribute("positionList", positionsService.getAllPositions());
             model.addAttribute("departments", departmentService.getAllDepartments());
-        } else if ("SITE ADMIN".equals(role)) {
+        } else if ("CLERK".equals(role) || "SITE_ADMIN".equals(role)) {
             model.addAttribute("positionList", positionsService.getPositionsByDepartment(departmentId));
             model.addAttribute("departments", departmentService.getDepartmentById(departmentId));
         }
@@ -69,7 +71,13 @@ public class EmployeePageController {
         String role = (String) session.getAttribute("system_role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
-        if ("SITE ADMIN".equals(role)) {
+        // Block SITE_ADMIN from creating
+        if ("SITE_ADMIN".equals(role)) {
+            return "redirect:/employees?error=forbidden";
+        }
+
+        if ("CLERK".equals(role)) {
+            // Clerk can only create employees within their department
             employeeForm.setDepartmentId(departmentId);
         }
 
@@ -84,7 +92,12 @@ public class EmployeePageController {
         String role = (String) session.getAttribute("system_role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
-        if ("SITE ADMIN".equals(role)) {
+        // Block SITE_ADMIN from updating
+        if ("SITE_ADMIN".equals(role)) {
+            return "redirect:/employees?error=forbidden";
+        }
+
+        if ("CLERK".equals(role)) {
             Employee existing = employeeService.getEmployeeById(employeeForm.getId());
             if (!existing.getPosition().getDepartment().getDepartmentId().equals(departmentId)) {
                 return "redirect:/employees?error=unauthorized";
@@ -103,7 +116,12 @@ public class EmployeePageController {
         String role = (String) session.getAttribute("system_role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
-        if ("SITE ADMIN".equals(role)) {
+        // Block SITE_ADMIN from deleting
+        if ("SITE_ADMIN".equals(role)) {
+            return "redirect:/employees?error=forbidden";
+        }
+
+        if ("CLERK".equals(role)) {
             Employee existing = employeeService.getEmployeeById(id);
             if (!existing.getPosition().getDepartment().getDepartmentId().equals(departmentId)) {
                 return "redirect:/employees?error=unauthorized";

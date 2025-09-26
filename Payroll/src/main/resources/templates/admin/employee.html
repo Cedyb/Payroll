@@ -25,7 +25,11 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h2>Employees</h2>
-                    <button id="openModalBtn" type="button" class="btn btn-primary">Add Employee</button>
+                    <!-- Only show Add button for SUPER_ADMIN or CLERK -->
+                    <button id="openModalBtn" type="button" class="btn btn-primary"
+                            th:if="${session.system_role == 'SUPER_ADMIN' or session.system_role == 'CLERK'}">
+                        Add Employee
+                    </button>
                 </div>
             </div>
 
@@ -103,7 +107,13 @@
                 </ul>
             </div>
 
-            <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="employeeModalLabel" aria-hidden="true">
+            <!-- Add Employee Modal -->
+            <div class="modal fade"
+                 id="myModal"
+                 tabindex="-1"
+                 aria-labelledby="employeeModalLabel"
+                 aria-hidden="true"
+                 th:if="${session.system_role == 'SUPER_ADMIN' or session.system_role == 'CLERK'}">
                 <div class="modal-dialog modal-dialog-centered modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -186,7 +196,13 @@
                 </div>
             </div>
 
-            <div class="modal fade" id="myUpdateModal" tabindex="-1" aria-labelledby="employeeUpdateLabel" aria-hidden="true">
+            <!-- Update Employee Modal -->
+            <div class="modal fade"
+                 id="myUpdateModal"
+                 tabindex="-1"
+                 aria-labelledby="employeeUpdateLabel"
+                 aria-hidden="true"
+                 th:if="${session.system_role == 'SUPER_ADMIN' or session.system_role == 'CLERK'}">
                 <div class="modal-dialog modal-dialog-centered modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">

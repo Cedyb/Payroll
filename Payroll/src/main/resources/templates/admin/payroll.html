@@ -9,11 +9,15 @@
   <link rel="stylesheet" href="/css/payroll.css" />
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script th:src="@{/js/payroll.js}"></script>
+
+  <style>
+    /* Disable interaction for read-only buttons */
+    .readonly { pointer-events: none; opacity: 0.6; }
+  </style>
 </head>
 <body>
 <div class="container-fluid">
   <div class="row">
-
     <nav th:replace="fragments/nav :: nav"></nav>
 
     <main class="col-md-10 offset-md-2 content p-4">
@@ -59,22 +63,22 @@
               </td>
 
               <td th:text="${emp.position.title}">Position</td>
-
               <td th:text="${emp.position.department.name}">Department</td>
-
               <td th:text="${emp.email}">email@example.com</td>
 
               <td>
-  <span class="badge"
-        th:text="${emp.payrollStatus != null ? emp.payrollStatus.name() : 'PENDING'}"
-        th:classappend="${emp.payrollStatus == T(com.example.Payroll.Entity.Payroll.PayrollStatus).APPROVED} ? ' bg-success' : ' bg-secondary'">
-    Status
-  </span>
+                <span class="badge"
+                      th:text="${emp.payrollStatus != null ? emp.payrollStatus.name() : 'PENDING'}"
+                      th:classappend="${emp.payrollStatus == T(com.example.Payroll.Entity.Payroll.PayrollStatus).APPROVED} ? ' bg-success' : ' bg-secondary'">
+                  Status
+                </span>
               </td>
 
               <td>
+                <!-- Payslip button: read-only for SITE_ADMIN -->
                 <a th:href="@{/admin/payslip/{id}(id=${emp.employeeId})}"
-                   class="btn btn-primary btn-sm">
+                   class="btn btn-primary btn-sm"
+                   th:classappend="${session.role == 'SITE_ADMIN'} ? ' readonly'">
                   Payslip
                 </a>
               </td>
