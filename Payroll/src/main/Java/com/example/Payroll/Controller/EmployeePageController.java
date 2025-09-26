@@ -24,9 +24,6 @@ public class EmployeePageController {
     @Autowired
     private DepartmentService departmentService;
 
-    // -----------------------------
-    // Show Employee Page with Pagination & Department Filtering
-    // -----------------------------
     @GetMapping
     public String showPage(@RequestParam(defaultValue = "0") int page,
                            HttpSession session,
@@ -34,7 +31,6 @@ public class EmployeePageController {
 
         int pageSize = 10;
 
-        // Get session attributes
         String role = (String) session.getAttribute("system_role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
