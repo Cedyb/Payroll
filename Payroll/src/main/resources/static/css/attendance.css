@@ -31,7 +31,7 @@ main {
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     overflow-x: auto;
-    padding: 15px;
+    padding: 10px;
 }
 
 /* Table */
@@ -40,7 +40,7 @@ main {
     border-collapse: separate;
     border-spacing: 0;
     table-layout: fixed; /* fixes column widths */
-    font-size: 16px; /* smaller font for table content */
+    font-size: 15px; /* smaller font for table content */
 }
 
 .table-container th,
