@@ -12,7 +12,11 @@
 
   <style>
     /* Disable interaction for read-only buttons */
-    .readonly { pointer-events: none; opacity: 0.6; }
+    .readonly {
+      pointer-events: none;
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -25,6 +29,7 @@
         <h4 class="mb-0">PAYROLL</h4>
       </div>
 
+      <!-- Search -->
       <form th:action="@{/payroll/search}" method="get" class="mb-3">
         <div class="input-group w-50">
           <input type="text" name="keyword" class="form-control"
@@ -33,6 +38,7 @@
         </div>
       </form>
 
+      <!-- Table -->
       <div class="table-container mt-4">
         <div class="table-responsive">
           <table class="table align-middle table-hover">
@@ -75,12 +81,13 @@
               </td>
 
               <td>
-                <!-- Payslip button: read-only for SITE_ADMIN -->
+                <!-- Payslip button: disabled if SITE_ADMIN -->
                 <a th:href="@{/admin/payslip/{id}(id=${emp.employeeId})}"
                    class="btn btn-primary btn-sm"
                    th:classappend="${session.role == 'SITE_ADMIN'} ? ' readonly'">
                   Payslip
                 </a>
+
               </td>
             </tr>
             </tbody>
@@ -88,6 +95,7 @@
         </div>
       </div>
 
+      <!-- Pagination -->
       <nav aria-label="Page navigation example" class="mt-3">
         <ul class="pagination justify-content-center">
           <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">

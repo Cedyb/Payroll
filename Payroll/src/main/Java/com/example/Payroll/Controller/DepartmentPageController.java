@@ -35,6 +35,13 @@ public class DepartmentPageController {
             model.addAttribute("currentPage", 0);
             model.addAttribute("totalPages", 1);
             model.addAttribute("totalItems", 1);
+        } else if ("SITE_ADMIN".equals(role) && departmentId != null) {
+            // Filter for site admin's department only
+            Department dept = departmentService.getDepartmentById(departmentId);
+            model.addAttribute("departmentList", List.of(dept));
+            model.addAttribute("currentPage", 0);
+            model.addAttribute("totalPages", 1);
+            model.addAttribute("totalItems", 1);
         } else {
             Page<Department> departmentPage = departmentService.getDepartmentsPaginated(page, size);
             model.addAttribute("departmentList", departmentPage.getContent());
@@ -42,6 +49,7 @@ public class DepartmentPageController {
             model.addAttribute("totalPages", departmentPage.getTotalPages());
             model.addAttribute("totalItems", departmentPage.getTotalElements());
         }
+
 
         model.addAttribute("departmentsForm", new DepartmentsForm());
         return "admin/department";

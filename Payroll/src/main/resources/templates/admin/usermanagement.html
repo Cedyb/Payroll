@@ -8,21 +8,32 @@
   <link rel="stylesheet" href="/css/app.css" />
   <script th:src="@{/js/usermanagement.js}"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <style>
+    .readonly {
+      pointer-events: none;
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  </style>
 </head>
 <body>
 <div class="container-fluid">
   <div class="row">
-
     <nav class="col-md-2 p-0" th:replace="fragments/nav :: nav"></nav>
-
     <main class="col-md-10 ms-sm-auto px-4 py-4">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h4>User Management</h4>
         <div>
-          <button class="btn btn-secondary me-2" data-bs-toggle="modal" data-bs-target="#archivedModal">
+          <button class="btn btn-secondary me-2"
+                  data-bs-toggle="modal"
+                  data-bs-target="#archivedModal"
+                  th:classappend="${session.role == 'SITE_ADMIN'} ? ' readonly'">
             <i class="bi bi-archive"></i> View Archived
           </button>
-          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#userModal" id="addUserBtn">
+          <button class="btn btn-primary"
+                  id="addUserBtn"
+                  th:classappend="${session.role == 'SITE_ADMIN'} ? ' readonly'">
             <i class="bi bi-person-plus"></i> Add User
           </button>
         </div>
@@ -48,7 +59,8 @@
             <td th:text="${emp.position != null && emp.position.department != null ? emp.position.department.name : 'N/A'}"></td>
             <td th:text="${emp.system_role}"></td>
             <td>
-              <button class="btn btn-sm btn-warning me-1 js-edit-user"
+              <button class="btn btn-sm btn-warning js-edit-user"
+                      th:classappend="${session.role == 'SITE_ADMIN'} ? ' readonly'"
                       th:data-id="${emp.employeeId}"
                       th:data-firstname="${emp.firstName}"
                       th:data-lastname="${emp.lastName}"
@@ -64,15 +76,15 @@
 
               <form th:action="@{'/usermanagement/' + ${emp.employeeId} + '/delete'}"
                     method="post" style="display:inline"
+                    th:classappend="${session.role == 'SITE_ADMIN'} ? ' readonly'"
                     onsubmit="return confirm('Are you sure you want to archive this user?');">
                 <button type="submit" class="btn btn-sm btn-danger">Archive</button>
               </form>
 
               <form th:action="@{'/usermanagement/' + ${emp.employeeId} + '/reset-password'}"
-                    method="post" style="display:inline">
-                <button type="submit" class="btn btn-sm btn-secondary">
-                  Reset Password
-                </button>
+                    method="post" style="display:inline"
+                    th:classappend="${session.role == 'SITE_ADMIN'} ? ' readonly'">
+                <button type="submit" class="btn btn-sm btn-secondary">Reset Password</button>
               </form>
             </td>
           </tr>
@@ -81,7 +93,7 @@
       </div>
 
       <!-- Archived Modal -->
-      <div class="modal fade" id="archivedModal" tabindex="-1">
+      <div class="modal fade" id="archivedModal" tabindex="-1" th:if="${session.role != 'SITE_ADMIN'}">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header">
@@ -111,9 +123,7 @@
                     <td>
                       <form th:action="@{'/usermanagement/' + ${arch.employeeId} + '/restore'}"
                             method="post" style="display:inline">
-                        <button type="submit" class="btn btn-sm btn-success">
-                          Restore
-                        </button>
+                        <button type="submit" class="btn btn-sm btn-success">Restore</button>
                       </form>
                     </td>
                   </tr>
@@ -132,8 +142,8 @@
       </div>
 
       <!-- User Add/Edit Modal -->
-      <div class="modal fade" id="userModal" tabindex="-1">
-        <div class="modal-dialog modal-lg"> <!-- wider modal -->
+      <div class="modal fade" id="userModal" tabindex="-1" th:if="${session.role != 'SITE_ADMIN'}">
+        <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title">Add / Edit User</h5>
@@ -142,38 +152,17 @@
             <div class="modal-body">
               <form id="userForm" method="post">
                 <input type="hidden" name="id" />
-
                 <div class="row">
                   <div class="col-md-6">
-                    <div class="mb-2">
-                      <label class="form-label">First Name</label>
-                      <input type="text" class="form-control" name="firstName" required placeholder="Enter first name">
-                    </div>
-
-                    <div class="mb-2">
-                      <label class="form-label">Last Name</label>
-                      <input type="text" class="form-control" name="lastName" required placeholder="Enter last name">
-                    </div>
-
-                    <div class="mb-2">
-                      <label class="form-label">Email</label>
-                      <input type="email" class="form-control" name="email" required placeholder="Enter email">
-                    </div>
-
-                    <div class="mb-2">
-                      <label class="form-label">Address</label>
-                      <input type="text" class="form-control" name="address" placeholder="Enter address">
-                    </div>
-
-                    <div class="mb-2">
-                      <label class="form-label">Phone</label>
-                      <input type="text" class="form-control" name="phone" placeholder="Enter phone number">
-                    </div>
+                    <div class="mb-2"><label>First Name</label><input type="text" class="form-control" name="firstName" required></div>
+                    <div class="mb-2"><label>Last Name</label><input type="text" class="form-control" name="lastName" required></div>
+                    <div class="mb-2"><label>Email</label><input type="email" class="form-control" name="email" required></div>
+                    <div class="mb-2"><label>Address</label><input type="text" class="form-control" name="address"></div>
+                    <div class="mb-2"><label>Phone</label><input type="text" class="form-control" name="phone"></div>
                   </div>
-
                   <div class="col-md-6">
                     <div class="mb-2">
-                      <label class="form-label">Role</label>
+                      <label>Role</label>
                       <select class="form-select" name="system_role" required>
                         <option value="">Select Role</option>
                         <option value="EMPLOYEE">Employee</option>
@@ -181,34 +170,21 @@
                         <option value="CLERK">Clerk</option>
                       </select>
                     </div>
-
                     <div class="mb-2">
-                      <label class="form-label">Position</label>
+                      <label>Position</label>
                       <select class="form-select" name="positionId" required>
                         <option value="">Select Position</option>
-                        <option th:each="pos : ${positionList}"
-                                th:value="${pos.positionId}"
-                                th:text="${pos.title}"
-                                th:attr="data-department=${pos.department.departmentId}">
-                        </option>
+                        <option th:each="pos : ${positionList}" th:value="${pos.positionId}" th:text="${pos.title}" th:attr="data-department=${pos.department.departmentId}"></option>
                       </select>
                     </div>
-
-
                     <div class="mb-2">
-                      <label class="form-label">Department</label>
+                      <label>Department</label>
                       <select class="form-select" name="departmentId" required>
                         <option value="">Select Department</option>
-                        <option th:each="dept : ${departments}"
-                                th:value="${dept.departmentId}"
-                                th:text="${dept.name}"></option>
+                        <option th:each="dept : ${departments}" th:value="${dept.departmentId}" th:text="${dept.name}"></option>
                       </select>
                     </div>
-
-                    <div class="mb-2">
-                      <label class="form-label">Hire Date</label>
-                      <input type="date" class="form-control" name="hireDate" required>
-                    </div>
+                    <div class="mb-2"><label>Hire Date</label><input type="date" class="form-control" name="hireDate" required></div>
                   </div>
                 </div>
               </form>
@@ -221,12 +197,11 @@
         </div>
       </div>
 
+      <!-- Toast -->
       <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-        <div id="resetToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div id="resetToast" class="toast align-items-center text-bg-success border-0" role="alert">
           <div class="d-flex">
-            <div class="toast-body">
-              ✅ Password has been reset to <strong>password</strong>.
-            </div>
+            <div class="toast-body">✅ Password has been reset to <strong>password</strong>.</div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
           </div>
         </div>

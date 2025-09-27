@@ -4,6 +4,7 @@ import com.example.Payroll.Entity.Employee;
 import com.example.Payroll.Entity.Payroll;
 import com.example.Payroll.Service.EmployeeService;
 import com.example.Payroll.Repository.PayrollRepository;
+import com.example.Payroll.Service.PayrollService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -26,6 +27,9 @@ public class PayrollPageController {
     private EmployeeService employeeService;
 
     @Autowired
+    private PayrollService payrollService;
+
+    @Autowired
     private PayrollRepository payrollRepository;
 
     private final int PAGE_SIZE = 10;
@@ -42,14 +46,15 @@ public class PayrollPageController {
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
         Page<Employee> employeesPage;
 
-        if ("CLERK".equals(role) && departmentId != null) {
-            employeesPage = employeeService.getEmployeesByDepartment(departmentId, pageable);
+        // Both CLERK and SITE ADMIN should only see their department
+        if (("CLERK".equalsIgnoreCase(role) || "SITE_ADMIN".equalsIgnoreCase(role)) && departmentId != null) {
+            employeesPage = payrollService.getEmployeesByDepartment(departmentId, pageable);
         } else {
             employeesPage = employeeService.getAllEmployees(pageable);
         }
 
         List<Employee> employees = employeesPage.getContent();
-        attachLatestPayrollStatus(employees);
+        payrollService.attachLatestPayrollStatus(employees, LocalDate.now());
 
         model.addAttribute("employees", employees);
         model.addAttribute("currentPage", page);
@@ -71,9 +76,10 @@ public class PayrollPageController {
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
         Page<Employee> employeesPage;
 
-        if ("CLERK".equals(role) && departmentId != null) {
+        // Both CLERK and SITE ADMIN are restricted to their department
+        if (("CLERK".equalsIgnoreCase(role) || "SITE_ADMIN".equalsIgnoreCase(role)) && departmentId != null) {
             if (keyword == null || keyword.trim().isEmpty()) {
-                employeesPage = employeeService.getEmployeesByDepartment(departmentId, pageable);
+                employeesPage = payrollService.getEmployeesByDepartment(departmentId, pageable);
             } else {
                 employeesPage = employeeService.searchEmployeesByKeywordAndDepartment(keyword, departmentId, pageable);
             }
@@ -86,7 +92,7 @@ public class PayrollPageController {
         }
 
         List<Employee> employees = employeesPage.getContent();
-        attachLatestPayrollStatus(employees);
+        payrollService.attachLatestPayrollStatus(employees, LocalDate.now());
 
         model.addAttribute("employees", employees);
         model.addAttribute("currentPage", page);

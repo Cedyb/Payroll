@@ -1,8 +1,11 @@
+/* Body & Layout */
 body {
     overflow-x: hidden;
     margin: 0;
     padding: 0;
     background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 20px; /* slightly smaller body font */
 }
 
 nav.sidebar {
@@ -22,45 +25,49 @@ main {
     min-height: 100vh;
 }
 
-
+/* Table Container */
 .table-container {
     background-color: #fff;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     overflow-x: auto;
-    padding: 20px;
+    padding: 15px;
 }
 
-
+/* Table */
 .table-container table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
+    table-layout: fixed; /* fixes column widths */
+    font-size: 16px; /* smaller font for table content */
+}
+
+.table-container th,
+.table-container td {
+    text-align: center;
+    padding: 8px; /* tighter padding */
+    white-space: nowrap; /* prevent wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis; /* show "..." if text is too long */
 }
 
 .table-container th {
     background-color: #007bff;
     color: #fff;
-    text-align: center;
-    padding: 12px;
     position: sticky;
     top: 0;
     z-index: 10;
     border-bottom: 2px solid #dee2e6;
 }
 
-.table-container td {
-    text-align: center;
-    padding: 12px;
-    border-bottom: 1px solid #dee2e6;
-}
-
+/* Hover effect */
 .table-container tr:hover {
     background-color: #f1f5f9;
     transition: 0.2s;
 }
 
-
+/* Pagination */
 .pagination-wrapper {
     margin-top: 20px;
     display: flex;

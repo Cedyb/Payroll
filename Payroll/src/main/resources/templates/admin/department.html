@@ -7,31 +7,41 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/css/app.css" />
   <link rel="stylesheet" href="/css/department.css" />
-  <script src="https://code.jquery.com/jquery-3.6.3.min.js"
-          integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU="
-          crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script th:src="@{/js/department.js}"></script>
+
+  <style>
+    .readonly {
+      pointer-events: none;
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  </style>
 </head>
 <body>
 <div class="container-fluid">
   <div class="row">
     <nav th:replace="fragments/nav :: nav"></nav>
     <main class="col-md-10 offset-md-2 content p-4">
+
       <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h2>Departments</h2>
-          <button id="openAddDeptModal" type="button" class="btn btn-success">
+          <button id="openAddDeptModal" type="button" class="btn btn-success"
+                  th:classappend="${session.role == 'SITE_ADMIN'} ? ' readonly'">
             Add Department
           </button>
         </div>
       </div>
 
+      <!-- Search -->
       <div class="mb-3 w-50">
         <input type="text" id="deptSearchInput" class="form-control"
                placeholder="Search departments by name...">
       </div>
 
+      <!-- Table -->
       <div class="table-responsive table-container" th:if="${not #lists.isEmpty(departmentList)}">
         <table id="deptTable" class="table table-striped table-bordered align-middle">
           <thead>
@@ -49,13 +59,15 @@
             <td th:text="${dept.description}"></td>
             <td>
               <button type="button" class="btn btn-warning js-dept-update"
+                      th:classappend="${session.role == 'SITE_ADMIN'} ? ' readonly'"
                       th:data-id="${dept.departmentId}"
                       th:data-name="${dept.name}"
                       th:data-description="${dept.description}">
                 Edit
               </button>
               <a th:href="@{/departments/delete/{id}(id=${dept.departmentId})}"
-                 class="btn btn-danger"
+                 class="btn btn-danger js-dept-delete"
+                 th:classappend="${session.role == 'SITE_ADMIN'} ? ' readonly'"
                  onclick="return confirm('Are you sure you want to delete this department?')">
                 Delete
               </a>
@@ -64,16 +76,37 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Pagination -->
+      <div class="d-flex justify-content-center my-4">
+        <nav aria-label="Department pagination">
+          <ul class="pagination">
+            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+              <a class="page-link" th:href="@{/departments(page=${currentPage - 1}, size=10)}">Previous</a>
+            </li>
+            <li class="page-item"
+                th:each="i : ${#numbers.sequence(0, totalPages-1)}"
+                th:classappend="${i == currentPage} ? 'active'">
+              <a class="page-link" th:text="${i+1}" th:href="@{/departments(page=${i}, size=10)}"></a>
+            </li>
+            <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+              <a class="page-link" th:href="@{/departments(page=${currentPage + 1}, size=10)}">Next</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
     </main>
   </div>
 </div>
 
-<div class="modal fade" id="deptAddModal" tabindex="-1" role="dialog" aria-labelledby="deptAddModalLabel" aria-hidden="true">
+<!-- Add Modal: hidden if SITE_ADMIN -->
+<div class="modal fade" id="deptAddModal" tabindex="-1" role="dialog" th:if="${session.role != 'SITE_ADMIN'}">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <form th:action="@{/departments/create}" th:object="${departmentsForm}" method="post" class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="deptAddModalLabel">Add Department</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title">Add Department</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <div class="form-group mb-3">
@@ -93,12 +126,13 @@
   </div>
 </div>
 
-<div class="modal fade" id="deptUpdateModal" tabindex="-1" role="dialog" aria-labelledby="deptUpdateModalLabel" aria-hidden="true">
+<!-- Update Modal: hidden if SITE_ADMIN -->
+<div class="modal fade" id="deptUpdateModal" tabindex="-1" role="dialog" th:if="${session.role != 'SITE_ADMIN'}">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <form th:action="@{/departments/update}" th:object="${departmentsForm}" method="post" class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="deptUpdateModalLabel">Edit Department</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title">Edit Department</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="deptIdUpdate" th:field="*{departmentId}" />
@@ -117,24 +151,6 @@
       </div>
     </form>
   </div>
-</div>
-
-<div class="d-flex justify-content-center my-4">
-  <nav aria-label="Department pagination">
-    <ul class="pagination">
-      <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-        <a class="page-link" th:href="@{/departments(page=${currentPage - 1}, size=10)}">Previous</a>
-      </li>
-      <li class="page-item"
-          th:each="i : ${#numbers.sequence(0, totalPages-1)}"
-          th:classappend="${i == currentPage} ? 'active'">
-        <a class="page-link" th:text="${i+1}" th:href="@{/departments(page=${i}, size=10)}"></a>
-      </li>
-      <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
-        <a class="page-link" th:href="@{/departments(page=${currentPage + 1}, size=10)}">Next</a>
-      </li>
-    </ul>
-  </nav>
 </div>
 
 </body>

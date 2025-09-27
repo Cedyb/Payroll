@@ -28,9 +28,6 @@ public class UsermanagementPageController {
     @Autowired
     private DepartmentService departmentService;
 
-    // -----------------------------
-    // Show User Management Page
-    // -----------------------------
     @GetMapping("")
     public String showUsermanagementPage(Model model, HttpSession session) {
         String role = (String) session.getAttribute("role");
@@ -40,7 +37,8 @@ public class UsermanagementPageController {
         List<Employee> archivedEmployees;
         Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
 
-        if ("CLERK".equals(role) && departmentId != null) {
+        // Clerk or Site Admin see only their department
+        if (("CLERK".equals(role) || "SITE_ADMIN".equals(role)) && departmentId != null) {
             employees = employeeService.getEmployeesByDepartment(departmentId, pageable).getContent();
             archivedEmployees = employeeService.getArchivedEmployeesByDepartment(departmentId, pageable).getContent();
         } else {
@@ -51,10 +49,10 @@ public class UsermanagementPageController {
         model.addAttribute("employees", employees);
         model.addAttribute("archivedEmployees", archivedEmployees);
         model.addAttribute("employeeForm", new EmployeeForm());
-        model.addAttribute("role", role); // Pass role to Thymeleaf
+        model.addAttribute("role", role);
 
         // Dropdowns
-        if ("CLERK".equals(role) && departmentId != null) {
+        if (("CLERK".equals(role) || "SITE_ADMIN".equals(role)) && departmentId != null) {
             model.addAttribute("positionList", positionsService.getPositionsByDepartment(departmentId));
             model.addAttribute("departments", List.of(departmentService.getDepartmentById(departmentId)));
         } else {
@@ -65,13 +63,11 @@ public class UsermanagementPageController {
         return "admin/usermanagement";
     }
 
-    // -----------------------------
     // Create Employee
-    // -----------------------------
     @PostMapping("/create")
     public String create(@ModelAttribute EmployeeForm employeeForm, HttpSession session) {
         String role = (String) session.getAttribute("role");
-        if ("SITE ADMIN".equals(role)) return "redirect:/usermanagement?error=unauthorized";
+        if ("SITE_ADMIN".equals(role)) return "redirect:/usermanagement?error=unauthorized";
 
         Long departmentId = (Long) session.getAttribute("department_id");
         if ("CLERK".equals(role) && departmentId != null) {
@@ -81,13 +77,11 @@ public class UsermanagementPageController {
         return "redirect:/usermanagement";
     }
 
-    // -----------------------------
     // Update Employee
-    // -----------------------------
     @PostMapping("/{id}/update")
     public String update(@PathVariable Long id, @ModelAttribute EmployeeForm employeeForm, HttpSession session) {
         String role = (String) session.getAttribute("role");
-        if ("SITE ADMIN".equals(role)) return "redirect:/usermanagement?error=unauthorized";
+        if ("SITE_ADMIN".equals(role)) return "redirect:/usermanagement?error=unauthorized";
 
         Long departmentId = (Long) session.getAttribute("department_id");
         if ("CLERK".equals(role) && departmentId != null) {
@@ -100,13 +94,11 @@ public class UsermanagementPageController {
         return "redirect:/usermanagement";
     }
 
-    // -----------------------------
     // Archive Employee
-    // -----------------------------
     @PostMapping("/{id}/delete")
     public String archive(@PathVariable Long id, HttpSession session) {
         String role = (String) session.getAttribute("role");
-        if ("SITE ADMIN".equals(role)) return "redirect:/usermanagement?error=unauthorized";
+        if ("SITE_ADMIN".equals(role)) return "redirect:/usermanagement?error=unauthorized";
 
         Long departmentId = (Long) session.getAttribute("department_id");
         if ("CLERK".equals(role) && departmentId != null) {
@@ -118,25 +110,21 @@ public class UsermanagementPageController {
         return "redirect:/usermanagement";
     }
 
-    // -----------------------------
     // Reset Password
-    // -----------------------------
     @PostMapping("/{id}/reset-password")
     public String resetPassword(@PathVariable Long id, HttpSession session) {
         String role = (String) session.getAttribute("role");
-        if ("SITE ADMIN".equals(role)) return "redirect:/usermanagement?error=unauthorized";
+        if ("SITE_ADMIN".equals(role)) return "redirect:/usermanagement?error=unauthorized";
 
         employeeService.resetPassword(id, "password");
         return "redirect:/usermanagement?resetSuccess";
     }
 
-    // -----------------------------
     // Restore Employee
-    // -----------------------------
     @PostMapping("/{id}/restore")
     public String restoreEmployee(@PathVariable Long id, HttpSession session) {
         String role = (String) session.getAttribute("role");
-        if ("SITE ADMIN".equals(role)) return "redirect:/usermanagement?error=unauthorized";
+        if ("SITE_ADMIN".equals(role)) return "redirect:/usermanagement?error=unauthorized";
 
         Long departmentId = (Long) session.getAttribute("department_id");
         if ("CLERK".equals(role) && departmentId != null) {

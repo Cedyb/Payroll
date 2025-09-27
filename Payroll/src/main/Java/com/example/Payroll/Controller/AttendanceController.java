@@ -56,21 +56,17 @@ public class AttendanceController {
         String systemRole = (String) session.getAttribute("system_role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
-        System.out.println("Logged-in user role: " + systemRole);
-        System.out.println("Logged-in user departmentId: " + departmentId);
+        List<AttendanceLog> logsThisWeek = attendanceLogRepo.findByLogDateBetween(weekStart, weekEnd);
 
-        List<AttendanceLog> logsThisWeek;
-
-        logsThisWeek = attendanceLogRepo.findByLogDateBetween(weekStart, weekEnd);
-
-        if ("CLERK".equalsIgnoreCase(systemRole) && departmentId != null) {
+        // Filter logs by user's department if CLERK or SITE ADMIN
+        if (("CLERK".equalsIgnoreCase(systemRole) || "SITE_ADMIN".equalsIgnoreCase(systemRole))
+                && departmentId != null) {
             logsThisWeek = logsThisWeek.stream()
                     .filter(log -> log.getEmployee() != null
-                            && departmentId.equals(log.getEmployee().getDepartmentId()))
+                            && log.getEmployee().getPosition() != null
+                            && log.getEmployee().getPosition().getDepartment() != null
+                            && departmentId.equals(log.getEmployee().getPosition().getDepartment().getDepartmentId()))
                     .collect(Collectors.toList());
-            System.out.println("CLERK Admin logs fetched after filtering: " + logsThisWeek.size());
-        } else {
-            System.out.println("System Admin logs fetched: " + logsThisWeek.size());
         }
 
         List<AttendanceSummaryDTO> summaries = buildSummaries(logsThisWeek);

@@ -1,10 +1,17 @@
 $(document).ready(function () {
-
-    $('#openAddDeptModal').on('click', function () {
+    // Add Department
+    $('#openAddDeptModal').on('click', function (e) {
+        if ($(this).hasClass('readonly')) {
+            e.preventDefault();
+            return;
+        }
         $('#deptAddModal').modal('show');
     });
 
+    // Update Department
     $('.js-dept-update').on('click', function () {
+        if ($(this).hasClass('readonly')) return;
+
         const id = $(this).data('id');
         const name = $(this).data('name');
         const desc = $(this).data('description');
@@ -16,6 +23,15 @@ $(document).ready(function () {
         $('#deptUpdateModal').modal('show');
     });
 
+    // Delete Department
+    $('.js-dept-delete').on('click', function (e) {
+        if ($(this).hasClass('readonly')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // Search
     $('#deptSearchInput').on('keyup', function () {
         const value = $(this).val().toLowerCase().trim();
         $('#deptTable tbody tr').filter(function () {
@@ -23,33 +39,4 @@ $(document).ready(function () {
             $(this).toggle(deptName.includes(value));
         });
     });
-
-
 });
-
-function editDepartment(id, name, description) {
-    document.getElementById('editId').value = id;
-    document.getElementById('editName').value = name;
-    document.getElementById('editDescription').value = description;
-
-    const modal = new bootstrap.Modal(document.getElementById('editModal'));
-    modal.show();
-}
-
-function getDepartments(selected = null) {
-    $.ajax({
-        url: '/departments/retrieve',
-        method: 'GET',
-        success: function (data) {
-            const dropdown = $('#departmentUpdate');
-            dropdown.empty().append('<option value="">Select Department</option>');
-            data.forEach(function (dept) {
-                const isSelected = selected && dept.name === selected ? 'selected' : '';
-                dropdown.append(`<option value="${dept.name}" ${isSelected}>${dept.name}</option>`);
-            });
-        },
-        error: function (xhr, status, error) {
-            console.error("Error loading departments:", error);
-        }
-    });
-}

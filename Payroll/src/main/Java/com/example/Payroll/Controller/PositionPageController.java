@@ -31,12 +31,11 @@ public class PositionPageController {
         List<Positions> positions;
         List<Department> departments;
 
-        if ("CLERK".equals(role) && departmentId != null) {
-
+        // parehong Clerk at Site Admin filtered by department
+        if ((("CLERK".equals(role) || "SITE_ADMIN".equals(role)) && departmentId != null)) {
             positions = positionsService.getPositionsByDepartment(departmentId);
             departments = List.of(departmentService.getDepartmentById(departmentId));
         } else {
-
             positions = positionsService.getAllPositions();
             departments = departmentService.getAllDepartments();
         }
@@ -44,6 +43,7 @@ public class PositionPageController {
         model.addAttribute("departments", departments);
         model.addAttribute("positionList", positions);
         model.addAttribute("positionsForm", new PositionsForm());
+        model.addAttribute("readonly", "SITE_ADMIN".equals(role)); // flag para sa readonly
         return "admin/position";
     }
 
@@ -52,7 +52,12 @@ public class PositionPageController {
         String role = (String) session.getAttribute("role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
-        if ("SITE ADMIN".equals(role) && departmentId != null) {
+        if ("SITE_ADMIN".equals(role)) {
+            // block creation for site admin
+            return "redirect:/positions?error=readonly";
+        }
+
+        if ("CLERK".equals(role) && departmentId != null) {
             positionsForm.setDepartmentId(departmentId);
         }
 
@@ -65,7 +70,12 @@ public class PositionPageController {
         String role = (String) session.getAttribute("role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
-        if ("SITE ADMIN".equals(role) && departmentId != null) {
+        if ("SITE_ADMIN".equals(role)) {
+            // block update for site admin
+            return "redirect:/positions?error=readonly";
+        }
+
+        if ("CLERK".equals(role) && departmentId != null) {
             Positions existing = positionsService.getPositionById(positionsForm.getPositionId());
             if (!existing.getDepartment().getDepartmentId().equals(departmentId)) {
                 return "redirect:/positions?error=unauthorized";
@@ -82,7 +92,12 @@ public class PositionPageController {
         String role = (String) session.getAttribute("role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
-        if ("SITE ADMIN".equals(role) && departmentId != null) {
+        if ("SITE_ADMIN".equals(role)) {
+            // block delete for site admin
+            return "redirect:/positions?error=readonly";
+        }
+
+        if ("CLERK".equals(role) && departmentId != null) {
             Positions existing = positionsService.getPositionById(id);
             if (!existing.getDepartment().getDepartmentId().equals(departmentId)) {
                 return "redirect:/positions?error=unauthorized";
@@ -99,7 +114,7 @@ public class PositionPageController {
         String role = (String) session.getAttribute("role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
-        if ("SITE ADMIN".equals(role) && departmentId != null) {
+        if ((("CLERK".equals(role) || "SITE_ADMIN".equals(role)) && departmentId != null)) {
             return positionsService.getPositionsByDepartment(departmentId);
         }
         return positionsService.getAllPositions();
