@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/css/app.css" />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- PDF libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script th:src="@{/js/userPayroll.js}"></script>
 </head>
 <body>
 <div class="container-fluid">
@@ -51,6 +56,7 @@
                 </tbody>
             </table>
 
+            <!-- Payslip Modals -->
             <div th:each="p, iStat : ${payrolls}">
                 <div class="modal fade"
                      th:id="'payslipModal' + ${iStat.index}"
@@ -62,8 +68,19 @@
                                 <h5 class="modal-title">Payslip Details</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
-                            <div class="modal-body">
-                                <h6 th:text="'Pay Period: ' + ${p.payPeriod.startDate} + ' - ' + ${p.payPeriod.endDate}"></h6>
+                            <!-- Modal Body with unique ID -->
+                            <div class="modal-body" th:id="'payslipContent' + ${iStat.index}">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="mb-0"
+                                        th:text="'Pay Period: ' + ${p.payPeriod.startDate} + ' - ' + ${p.payPeriod.endDate}">
+                                        Pay Period: Sept 1 - Sept 15
+                                    </h6>
+                                    <button type="button" class="btn btn-danger btn-sm"
+                                            th:attr="onclick=|downloadPDF('payslipContent' + ${iStat.index}, '${p.payPeriod.startDate}', '${p.payPeriod.endDate}')|">
+                                        <i class="bi bi-file-earmark-pdf"></i> Download as PDF
+                                    </button>
+                                </div>
+
                                 <p><strong>Week:</strong> <span th:text="${p.weekStart}"></span> to <span th:text="${p.weekEnd}"></span></p>
 
                                 <div class="row">

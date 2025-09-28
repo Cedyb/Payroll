@@ -46,21 +46,32 @@
         <div class="col">
           <input type="text" id="filterID" class="form-control" placeholder="Search ID">
         </div>
+
         <div class="col">
           <input type="text" id="filterName" class="form-control" placeholder="Search Full Name">
         </div>
-        <div class="col">
-          <select id="filterPosition" class="form-select">
-            <option value="">All Positions</option>
-            <option th:each="pos : ${positionList}" th:value="${pos.title}" th:text="${pos.title}"></option>
-          </select>
-        </div>
+
+        <!-- Department filter: value = departmentId -->
         <div class="col">
           <select id="filterDepartment" class="form-select">
             <option value="">All Departments</option>
-            <option th:each="dept : ${departments}" th:value="${dept.name}" th:text="${dept.name}"></option>
+            <option th:each="dept : ${departments}"
+                    th:value="${dept.departmentId}"
+                    th:text="${dept.name}"></option>
           </select>
         </div>
+
+        <!-- Position filter: value = positionId, data-department = departmentId -->
+        <div class="col">
+          <select id="filterPosition" class="form-select">
+            <option value="">All Positions</option>
+            <option th:each="pos : ${positionList}"
+                    th:value="${pos.positionId}"
+                    th:text="${pos.title}"
+                    th:attr="data-department=${pos.department.departmentId}"></option>
+          </select>
+        </div>
+
         <div class="col">
           <select id="filterRole" class="form-select">
             <option value="">All Roles</option>
@@ -70,6 +81,7 @@
           </select>
         </div>
       </div>
+
 
 
       <!-- Main User Table -->

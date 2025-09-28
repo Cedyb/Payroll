@@ -28,3 +28,11 @@ main {
 .pagination-wrapper ul {
     margin-bottom: 0;
 }
+
+/* Center align only the header text */
+/* Center align all table content */
+#userTable th,
+#userTable td {
+    text-align: center;
+    vertical-align: middle;
+}
