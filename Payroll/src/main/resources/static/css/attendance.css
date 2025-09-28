@@ -67,11 +67,18 @@ main {
     transition: 0.2s;
 }
 
-/* Pagination */
 .pagination-wrapper {
-    margin-top: 20px;
+    position: fixed;       /* Remove this */
+    bottom: 20px;          /* Remove this */
+    left: 50%;             /* Remove this */
+    transform: translateX(-50%); /* Remove this */
+    z-index: 1000;         /* Remove this */
+    margin-top: 10px;      /* Add some space above the pagination */
     display: flex;
-    justify-content: center;
-    position: relative;
-    z-index: 100;
+    justify-content: center; /* Center horizontally */
+}
+
+
+.pagination-wrapper ul {
+    margin-bottom: 0;
 }

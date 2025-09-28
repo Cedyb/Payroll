@@ -17,96 +17,140 @@
 
     <!-- Main Content -->
     <main class="col-md-10 ms-sm-auto px-4 py-4">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4>Settings</h4>
+      <h4 class="mb-4">System Configuration</h4>
+
+      <!-- Tabs -->
+      <ul class="nav nav-tabs" id="systemConfigTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="company-tab" data-bs-toggle="tab" data-bs-target="#company" type="button" role="tab" aria-controls="company" aria-selected="true">
+            <i class="bi bi-building me-1"></i> Company Info
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="payperiod-tab" data-bs-toggle="tab" data-bs-target="#payperiod" type="button" role="tab" aria-controls="payperiod" aria-selected="false">
+            <i class="bi bi-calendar2-week me-1"></i> Pay Period Settings
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="attendance-tab" data-bs-toggle="tab" data-bs-target="#attendance" type="button" role="tab" aria-controls="attendance" aria-selected="false">
+            <i class="bi bi-clock-history me-1"></i> Attendance Rules
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="holidays-tab" data-bs-toggle="tab" data-bs-target="#holidays" type="button" role="tab" aria-controls="holidays" aria-selected="false">
+            <i class="bi bi-sun me-1"></i> Holidays
+          </button>
+        </li>
+      </ul>
+
+      <!-- Tab Content -->
+      <div class="tab-content mt-4" id="systemConfigTabsContent">
+
+        <!-- Company Info Tab -->
+        <div class="tab-pane fade show active" id="company" role="tabpanel" aria-labelledby="company-tab">
+          <form>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="companyName" class="form-label">Company Name</label>
+                <input type="text" class="form-control" id="companyName" placeholder="Enter company name">
+              </div>
+              <div class="col-md-6">
+                <label for="companyLogo" class="form-label">Company Logo</label>
+                <input type="file" class="form-control" id="companyLogo">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="companyAddress" class="form-label">Address</label>
+              <input type="text" class="form-control" id="companyAddress" placeholder="Enter address">
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="companyContact" class="form-label">Contact Number</label>
+                <input type="text" class="form-control" id="companyContact" placeholder="Enter contact number">
+              </div>
+              <div class="col-md-6">
+                <label for="companyEmail" class="form-label">Email Address</label>
+                <input type="email" class="form-control" id="companyEmail" placeholder="Enter email address">
+              </div>
+            </div>
+            <button type="button" class="btn btn-primary">Save Company Info</button>
+          </form>
+        </div>
+
+        <!-- Pay Period Settings Tab -->
+        <div class="tab-pane fade" id="payperiod" role="tabpanel" aria-labelledby="payperiod-tab">
+          <form>
+            <div class="mb-3">
+              <label for="payFrequency" class="form-label">Payroll Frequency</label>
+              <select class="form-select" id="payFrequency">
+                <option value="weekly">Weekly</option>
+                <option value="biweekly">Bi-Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="payStart" class="form-label">Start of Pay Period</label>
+                <input type="date" class="form-control" id="payStart">
+              </div>
+              <div class="col-md-6">
+                <label for="payEnd" class="form-label">End of Pay Period</label>
+                <input type="date" class="form-control" id="payEnd">
+              </div>
+            </div>
+            <button type="button" class="btn btn-primary">Save Pay Period Settings</button>
+          </form>
+        </div>
+
+        <!-- Attendance Rules Tab -->
+        <div class="tab-pane fade" id="attendance" role="tabpanel" aria-labelledby="attendance-tab">
+          <form>
+            <div class="mb-3">
+              <label for="workHours" class="form-label">Work Hours per Day</label>
+              <input type="number" class="form-control" id="workHours" placeholder="e.g., 8">
+            </div>
+            <div class="mb-3">
+              <label for="gracePeriod" class="form-label">Grace Period for Late Check-ins (minutes)</label>
+              <input type="number" class="form-control" id="gracePeriod" placeholder="e.g., 15">
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="otRate" class="form-label">Overtime Rate (Multiplier)</label>
+                <input type="number" step="0.01" class="form-control" id="otRate" placeholder="e.g., 1.25">
+              </div>
+              <div class="col-md-6">
+                <label for="otStart" class="form-label">OT Starts After (hours)</label>
+                <input type="number" class="form-control" id="otStart" placeholder="e.g., 8">
+              </div>
+            </div>
+            <button type="button" class="btn btn-primary">Save Attendance Rules</button>
+          </form>
+        </div>
+
+        <!-- Holidays Tab -->
+        <div class="tab-pane fade" id="holidays" role="tabpanel" aria-labelledby="holidays-tab">
+          <form>
+            <div class="mb-3">
+              <label for="holidayName" class="form-label">Holiday Name</label>
+              <input type="text" class="form-control" id="holidayName" placeholder="Enter holiday name">
+            </div>
+            <div class="mb-3">
+              <label for="holidayDate" class="form-label">Date</label>
+              <input type="date" class="form-control" id="holidayDate">
+            </div>
+            <div class="mb-3">
+              <label for="holidayType" class="form-label">Type</label>
+              <select class="form-select" id="holidayType">
+                <option value="regular">Regular</option>
+                <option value="special">Special</option>
+                <option value="national">National</option>
+              </select>
+            </div>
+            <button type="button" class="btn btn-primary">Save Holiday</button>
+          </form>
+        </div>
+
       </div>
-
-      <!-- Settings Accordion -->
-      <div class="accordion" id="settingsAccordion">
-
-        <!-- User & Role Management -->
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="headingUsers">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUsers" aria-expanded="true" aria-controls="collapseUsers">
-              <i class="bi bi-people-fill me-2"></i> User & Role Management
-            </button>
-          </h2>
-          <div id="collapseUsers" class="accordion-collapse collapse show" aria-labelledby="headingUsers" data-bs-parent="#settingsAccordion">
-            <div class="accordion-body">
-              <button class="btn btn-primary mb-2">Manage Users</button>
-              <button class="btn btn-secondary mb-2">Assign Roles & Permissions</button>
-              <button class="btn btn-warning mb-2">Reset Passwords</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- System Configuration -->
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="headingSystem">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSystem" aria-expanded="false" aria-controls="collapseSystem">
-              <i class="bi bi-gear-fill me-2"></i> System Configuration
-            </button>
-          </h2>
-          <div id="collapseSystem" class="accordion-collapse collapse" aria-labelledby="headingSystem" data-bs-parent="#settingsAccordion">
-            <div class="accordion-body">
-              <button class="btn btn-primary mb-2">Company Details</button>
-              <button class="btn btn-secondary mb-2">Attendance Rules</button>
-              <button class="btn btn-success mb-2">Payroll Settings</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Security & Access -->
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="headingSecurity">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSecurity" aria-expanded="false" aria-controls="collapseSecurity">
-              <i class="bi bi-shield-lock-fill me-2"></i> Security & Access
-            </button>
-          </h2>
-          <div id="collapseSecurity" class="accordion-collapse collapse" aria-labelledby="headingSecurity" data-bs-parent="#settingsAccordion">
-            <div class="accordion-body">
-              <button class="btn btn-danger mb-2">Two-Factor Authentication</button>
-              <button class="btn btn-warning mb-2">Login Restrictions</button>
-              <button class="btn btn-secondary mb-2">Audit Logs</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Backup & Maintenance -->
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="headingBackup">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBackup" aria-expanded="false" aria-controls="collapseBackup">
-              <i class="bi bi-hdd-fill me-2"></i> Backup & Maintenance
-            </button>
-          </h2>
-          <div id="collapseBackup" class="accordion-collapse collapse" aria-labelledby="headingBackup" data-bs-parent="#settingsAccordion">
-            <div class="accordion-body">
-              <button class="btn btn-primary mb-2">Backup Database</button>
-              <button class="btn btn-secondary mb-2">Restore Database</button>
-              <button class="btn btn-warning mb-2">Clear Logs</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Customization / Preferences -->
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="headingCustomization">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCustomization" aria-expanded="false" aria-controls="collapseCustomization">
-              <i class="bi bi-palette-fill me-2"></i> Customization / Preferences
-            </button>
-          </h2>
-          <div id="collapseCustomization" class="accordion-collapse collapse" aria-labelledby="headingCustomization" data-bs-parent="#settingsAccordion">
-            <div class="accordion-body">
-              <button class="btn btn-primary mb-2">Dashboard Layout</button>
-              <button class="btn btn-secondary mb-2">Theme / Color</button>
-              <button class="btn btn-success mb-2">Language Preferences</button>
-            </div>
-          </div>
-        </div>
-
-      </div>
-      <!-- End of Accordion -->
-
     </main>
   </div>
 </div>

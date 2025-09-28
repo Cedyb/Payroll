@@ -44,6 +44,7 @@ public class AttendanceController {
     ) {
         LocalDate today = LocalDate.now();
 
+        // Determine the start of the current week (Wednesday-based)
         LocalDate tmpWeekStart = today.with(DayOfWeek.WEDNESDAY);
         if (today.getDayOfWeek().getValue() < DayOfWeek.WEDNESDAY.getValue()) {
             tmpWeekStart = tmpWeekStart.minusWeeks(1);
@@ -56,6 +57,7 @@ public class AttendanceController {
         String systemRole = (String) session.getAttribute("system_role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
+        // Fetch logs for the week
         List<AttendanceLog> logsThisWeek = attendanceLogRepo.findByLogDateBetween(weekStart, weekEnd);
 
         // Filter logs by user's department if CLERK or SITE ADMIN
@@ -69,14 +71,29 @@ public class AttendanceController {
                     .collect(Collectors.toList());
         }
 
+        // Build attendance summaries
         List<AttendanceSummaryDTO> summaries = buildSummaries(logsThisWeek);
 
+        // --- Pagination logic ---
         int pageSize = 10;
         int totalPages = (int) Math.ceil((double) summaries.size() / pageSize);
+        totalPages = totalPages == 0 ? 1 : totalPages; // <-- ensures at least 1 page
+
+        // Adjust page if it exceeds totalPages
+        if (page > totalPages) page = totalPages;
+        if (page < 1) page = 1;
+
         int fromIndex = (page - 1) * pageSize;
         int toIndex = Math.min(fromIndex + pageSize, summaries.size());
-        List<AttendanceSummaryDTO> pageSummaries = summaries.subList(fromIndex, toIndex);
 
+        List<AttendanceSummaryDTO> pageSummaries;
+        if (summaries.isEmpty()) {
+            pageSummaries = Collections.emptyList();
+        } else {
+            pageSummaries = summaries.subList(fromIndex, toIndex);
+        }
+
+        // Add attributes to model
         model.addAttribute("summaries", pageSummaries);
         model.addAttribute("weekOffset", weekOffset);
         model.addAttribute("weekStart", weekStart);
