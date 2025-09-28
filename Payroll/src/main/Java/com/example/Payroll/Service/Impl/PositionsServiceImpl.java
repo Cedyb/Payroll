@@ -11,6 +11,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+// For pagination
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 @Service
 public class PositionsServiceImpl implements PositionsService {
 
@@ -72,5 +76,16 @@ public class PositionsServiceImpl implements PositionsService {
     public Positions getPositionById(Long id) {
         return positionsRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Position not found with id: " + id));
+    }
+
+    // ✅ New Pagination methods
+    @Override
+    public Page<Positions> getPaginatedPositions(Pageable pageable) {
+        return positionsRepository.findByIsActiveTrue(pageable);
+    }
+
+    @Override
+    public Page<Positions> getPaginatedPositionsByDepartment(Long departmentId, Pageable pageable) {
+        return positionsRepository.findByDepartment_DepartmentIdAndIsActiveTrue(departmentId, pageable);
     }
 }

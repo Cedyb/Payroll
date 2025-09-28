@@ -1,13 +1,25 @@
 .table-container {
     margin-top: 20px;
     padding: 20px;
-    background-color: #f8f9fa ;
+    background-color: #f8f9fa;
     border: 2px solid #dee2e6;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
-
 .table-container table {
+    margin-bottom: 0;
+}
+
+/* Pagination fixed bottom center */
+.pagination-wrapper {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+}
+
+.pagination-wrapper ul {
     margin-bottom: 0;
 }

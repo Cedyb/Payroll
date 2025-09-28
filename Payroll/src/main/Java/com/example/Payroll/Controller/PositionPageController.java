@@ -13,6 +13,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+// For pagination
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
 @Controller
 @RequestMapping("/positions")
 public class PositionPageController {
@@ -24,26 +29,34 @@ public class PositionPageController {
     private DepartmentService departmentService;
 
     @GetMapping
-    public String showPage(Model model, HttpSession session) {
+    public String showPage(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Model model,
+            HttpSession session) {
+
         String role = (String) session.getAttribute("role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
-        List<Positions> positions;
+        Page<Positions> positionsPage;
         List<Department> departments;
 
         // parehong Clerk at Site Admin filtered by department
         if ((("CLERK".equals(role) || "SITE_ADMIN".equals(role)) && departmentId != null)) {
-            positions = positionsService.getPositionsByDepartment(departmentId);
+            positionsPage = positionsService.getPaginatedPositionsByDepartment(departmentId, PageRequest.of(page, size));
             departments = List.of(departmentService.getDepartmentById(departmentId));
         } else {
-            positions = positionsService.getAllPositions();
+            positionsPage = positionsService.getPaginatedPositions(PageRequest.of(page, size));
             departments = departmentService.getAllDepartments();
         }
 
         model.addAttribute("departments", departments);
-        model.addAttribute("positionList", positions);
+        model.addAttribute("positionList", positionsPage.getContent());
         model.addAttribute("positionsForm", new PositionsForm());
         model.addAttribute("readonly", "SITE_ADMIN".equals(role)); // flag para sa readonly
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", positionsPage.getTotalPages());
+
         return "admin/position";
     }
 

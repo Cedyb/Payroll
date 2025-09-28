@@ -16,23 +16,6 @@
       opacity: 0.6;
       cursor: not-allowed;
     }
-
-    .table-container {
-      margin-top: 20px;
-      padding: 20px;
-      background-color: #f8f9fa;
-      border: 2px solid #dee2e6;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    }
-
-    .table-container table {
-      margin-bottom: 0;
-    }
-
-    main {
-      margin-left: 240px;
-    }
   </style>
 </head>
 <body>
@@ -57,6 +40,37 @@
           </button>
         </div>
       </div>
+
+      <!-- Advanced Filters -->
+      <div class="row mb-3 g-2">
+        <div class="col">
+          <input type="text" id="filterID" class="form-control" placeholder="Search ID">
+        </div>
+        <div class="col">
+          <input type="text" id="filterName" class="form-control" placeholder="Search Full Name">
+        </div>
+        <div class="col">
+          <select id="filterPosition" class="form-select">
+            <option value="">All Positions</option>
+            <option th:each="pos : ${positionList}" th:value="${pos.title}" th:text="${pos.title}"></option>
+          </select>
+        </div>
+        <div class="col">
+          <select id="filterDepartment" class="form-select">
+            <option value="">All Departments</option>
+            <option th:each="dept : ${departments}" th:value="${dept.name}" th:text="${dept.name}"></option>
+          </select>
+        </div>
+        <div class="col">
+          <select id="filterRole" class="form-select">
+            <option value="">All Roles</option>
+            <option value="EMPLOYEE">Employee</option>
+            <option value="SITE ADMIN">Site Admin</option>
+            <option value="CLERK">Clerk</option>
+          </select>
+        </div>
+      </div>
+
 
       <!-- Main User Table -->
       <div class="table-container">
@@ -113,6 +127,38 @@
           </table>
         </div>
       </div>
+
+      <!-- Pagination: fixed bottom center -->
+      <div class="pagination-wrapper mt-3">
+        <nav aria-label="User pagination">
+          <ul class="pagination justify-content-center">
+            <!-- Previous button -->
+            <li class="page-item" th:classappend="${currentPage == 0} ? ' disabled'">
+              <a class="page-link"
+                 th:if="${currentPage > 0}"
+                 th:href="@{/usermanagement(page=${currentPage - 1}, size=15)}">Previous</a>
+              <span class="page-link" th:if="${currentPage == 0}">Previous</span>
+            </li>
+
+            <!-- Page numbers -->
+            <li class="page-item"
+                th:each="i : ${#numbers.sequence(0, totalPages-1)}"
+                th:classappend="${i == currentPage} ? ' active'">
+              <a class="page-link" th:text="${i+1}"
+                 th:href="@{/usermanagement(page=${i}, size=15)}"></a>
+            </li>
+
+            <!-- Next button -->
+            <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? ' disabled'">
+              <a class="page-link"
+                 th:if="${currentPage + 1 < totalPages}"
+                 th:href="@{/usermanagement(page=${currentPage + 1}, size=15)}">Next</a>
+              <span class="page-link" th:if="${currentPage + 1 >= totalPages}">Next</span>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
 
       <!-- Archived Modal -->
       <div class="modal fade" id="archivedModal" tabindex="-1" th:if="${session.role != 'SITE_ADMIN'}">
@@ -220,7 +266,6 @@
           </div>
         </div>
       </div>
-
 
       <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
         <div id="resetToast" class="toast align-items-center text-bg-success border-0" role="alert">

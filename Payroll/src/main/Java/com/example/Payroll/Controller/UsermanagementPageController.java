@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.ui.Model;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -28,28 +29,36 @@ public class UsermanagementPageController {
     @Autowired
     private DepartmentService departmentService;
 
+    private static final int PAGE_SIZE = 15; // 15 rows per page
+
     @GetMapping("")
-    public String showUsermanagementPage(Model model, HttpSession session) {
+    public String showUsermanagementPage(
+            @RequestParam(defaultValue = "0") int page,
+            Model model,
+            HttpSession session) {
+
         String role = (String) session.getAttribute("role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
-        List<Employee> employees;
-        List<Employee> archivedEmployees;
-        Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
+        Page<Employee> employeesPage;
+        Page<Employee> archivedEmployeesPage;
 
         // Clerk or Site Admin see only their department
         if (("CLERK".equals(role) || "SITE_ADMIN".equals(role)) && departmentId != null) {
-            employees = employeeService.getEmployeesByDepartment(departmentId, pageable).getContent();
-            archivedEmployees = employeeService.getArchivedEmployeesByDepartment(departmentId, pageable).getContent();
+            employeesPage = employeeService.getEmployeesByDepartment(departmentId, PageRequest.of(page, PAGE_SIZE));
+            archivedEmployeesPage = employeeService.getArchivedEmployeesByDepartment(departmentId, PageRequest.of(page, PAGE_SIZE));
         } else {
-            employees = employeeService.getAllEmployees(pageable).getContent();
-            archivedEmployees = employeeService.getArchivedEmployees(pageable).getContent();
+            employeesPage = employeeService.getAllEmployees(PageRequest.of(page, PAGE_SIZE));
+            archivedEmployeesPage = employeeService.getArchivedEmployees(PageRequest.of(page, PAGE_SIZE));
         }
 
-        model.addAttribute("employees", employees);
-        model.addAttribute("archivedEmployees", archivedEmployees);
+        model.addAttribute("employees", employeesPage.getContent());
+        model.addAttribute("archivedEmployees", archivedEmployeesPage.getContent());
         model.addAttribute("employeeForm", new EmployeeForm());
         model.addAttribute("role", role);
+
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", employeesPage.getTotalPages());
 
         // Dropdowns
         if (("CLERK".equals(role) || "SITE_ADMIN".equals(role)) && departmentId != null) {

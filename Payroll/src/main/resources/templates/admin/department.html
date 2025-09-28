@@ -17,6 +17,8 @@
       opacity: 0.6;
       cursor: not-allowed;
     }
+
+
   </style>
 </head>
 <body>
@@ -42,7 +44,8 @@
       </div>
 
       <!-- Table -->
-      <div class="table-responsive table-container" th:if="${not #lists.isEmpty(departmentList)}">
+      <div class="table-responsive table-container"
+           th:if="${not #lists.isEmpty(departmentList)}">
         <table id="deptTable" class="table table-striped table-bordered align-middle">
           <thead>
           <tr>
@@ -77,27 +80,39 @@
         </table>
       </div>
 
-      <!-- Pagination -->
-      <div class="d-flex justify-content-center my-4">
-        <nav aria-label="Department pagination">
-          <ul class="pagination">
-            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-              <a class="page-link" th:href="@{/departments(page=${currentPage - 1}, size=10)}">Previous</a>
-            </li>
-            <li class="page-item"
-                th:each="i : ${#numbers.sequence(0, totalPages-1)}"
-                th:classappend="${i == currentPage} ? 'active'">
-              <a class="page-link" th:text="${i+1}" th:href="@{/departments(page=${i}, size=10)}"></a>
-            </li>
-            <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
-              <a class="page-link" th:href="@{/departments(page=${currentPage + 1}, size=10)}">Next</a>
-            </li>
-          </ul>
-        </nav>
-      </div>
-
     </main>
   </div>
+</div>
+
+<!-- Pagination: fixed bottom center -->
+<div class="pagination-wrapper">
+  <nav aria-label="Department pagination">
+    <ul class="pagination justify-content-center">
+      <!-- Previous button -->
+      <li class="page-item" th:classappend="${currentPage == 0} ? ' disabled'">
+        <a class="page-link"
+           th:if="${currentPage > 0}"
+           th:href="@{/departments(page=${currentPage - 1}, size=10)}">Previous</a>
+        <span class="page-link" th:if="${currentPage == 0}">Previous</span>
+      </li>
+
+      <!-- Page numbers -->
+      <li class="page-item"
+          th:each="i : ${#numbers.sequence(0, totalPages-1)}"
+          th:classappend="${i == currentPage} ? ' active'">
+        <a class="page-link" th:text="${i+1}"
+           th:href="@{/departments(page=${i}, size=10)}"></a>
+      </li>
+
+      <!-- Next button -->
+      <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? ' disabled'">
+        <a class="page-link"
+           th:if="${currentPage + 1 < totalPages}"
+           th:href="@{/departments(page=${currentPage + 1}, size=10)}">Next</a>
+        <span class="page-link" th:if="${currentPage + 1 >= totalPages}">Next</span>
+      </li>
+    </ul>
+  </nav>
 </div>
 
 <!-- Add Modal: hidden if SITE_ADMIN -->

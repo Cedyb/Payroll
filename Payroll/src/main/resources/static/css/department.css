@@ -10,3 +10,16 @@
 .table-container table {
     margin-bottom: 0;
 }
+
+/* Fixed bottom pagination */
+.pagination-wrapper {
+    position: fixed;       /* Fix it relative to viewport */
+    bottom: 20px;          /* Distance from bottom */
+    left: 50%;             /* Start from center horizontally */
+    transform: translateX(-50%); /* Shift left by 50% of its width to center */
+    z-index: 1000;         /* Make sure it stays on top */
+}
+
+.pagination-wrapper ul {
+    margin-bottom: 0;
+}
