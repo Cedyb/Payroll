@@ -75,9 +75,10 @@ document.addEventListener("DOMContentLoaded", function () {
   // ========================
   if (actionButton) {
     actionButton.addEventListener("click", function () {
+      // Always use employeeId for Super Admin
       const selectedIds = Array.from(getEmployeeCheckboxes())
         .filter(cb => cb.checked)
-        .map(cb => cb.value);
+        .map(cb => parseInt(cb.dataset.employeeId || cb.value));
 
       if (selectedIds.length === 0) {
         alert("Please select at least one employee.");
@@ -86,7 +87,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // Determine endpoint and payload based on role
       const url = role === "SUPER_ADMIN" ? "/payroll/approve" : "/payroll/generate";
-      const payload = role === "SUPER_ADMIN" ? { payrollIds: selectedIds } : { employeeIds: selectedIds };
+      const payload = { employeeIds: selectedIds }; // Always send employeeIds
 
       fetch(url, {
         method: "POST",

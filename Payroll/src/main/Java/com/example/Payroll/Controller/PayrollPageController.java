@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Controller
 @RequestMapping("/payroll")
@@ -138,27 +139,36 @@ public class PayrollPageController {
         }
 
         PayPeriod payPeriod = payrollService.getOrCreateCurrentWeekPeriod();
+        AtomicInteger generatedCount = new AtomicInteger(0);
 
         for (Long empId : employeeIds) {
-            Employee employee = employeeService.findByEmployeeId(empId)
-                    .orElseThrow(() -> new RuntimeException("Employee not found"));
+            employeeService.findByEmployeeId(empId).ifPresent(employee -> {
 
-            Payroll payroll = payrollRepository
-                    .findByEmployee_EmployeeIdAndPayPeriod(empId, payPeriod)
-                    .orElseGet(() -> {
-                        Payroll p = new Payroll();
-                        p.setEmployee(employee);
-                        p.setPayPeriod(payPeriod);
-                        p.setWeekStart(payPeriod.getStartDate());
-                        p.setWeekEnd(payPeriod.getEndDate());
-                        return p;
-                    });
+                // Check if payroll already exists for this period
+                boolean alreadyGenerated = payrollRepository
+                        .findByEmployee_EmployeeIdAndPayPeriod(empId, payPeriod)
+                        .isPresent();
 
-            payroll.setStatus(Payroll.PayrollStatus.GENERATED);
-            payrollRepository.save(payroll);
+                if (!alreadyGenerated) {
+                    Payroll payroll = new Payroll();
+                    payroll.setEmployee(employee);
+                    payroll.setPayPeriod(payPeriod);
+                    payroll.setWeekStart(payPeriod.getStartDate());
+                    payroll.setWeekEnd(payPeriod.getEndDate());
+                    payroll.setStatus(Payroll.PayrollStatus.GENERATED);
+
+                    payrollRepository.save(payroll);
+                    generatedCount.incrementAndGet();
+                }
+            });
         }
 
-        return Map.of("success", true, "message", "Payrolls generated successfully.");
+        return Map.of(
+                "success", true,
+                "message", generatedCount.get() > 0
+                        ? generatedCount + " payroll(s) generated successfully."
+                        : "No new payrolls to generate."
+        );
     }
 
     // ==============================
@@ -169,21 +179,42 @@ public class PayrollPageController {
     public Map<String, Object> approvePayrolls(@RequestBody Map<String, List<Long>> payload,
                                                HttpSession session) {
 
-        List<Long> payrollIds = payload.get("payrollIds");
+        List<Long> employeeIds = payload.get("employeeIds");
         String role = (String) session.getAttribute("role");
 
         if (!"SUPER_ADMIN".equalsIgnoreCase(role)) {
             return Map.of("success", false, "message", "Only Super Admin can approve payrolls.");
         }
 
-        for (Long payrollId : payrollIds) {
-            Payroll payroll = payrollRepository.findById(payrollId)
-                    .orElseThrow(() -> new RuntimeException("Payroll not found: " + payrollId));
+        AtomicInteger approvedCount = new AtomicInteger(0);
+        PayPeriod currentPeriod = payrollService.getOrCreateCurrentWeekPeriod();
 
-            payroll.setStatus(Payroll.PayrollStatus.APPROVED);
-            payrollRepository.save(payroll);
+        for (Long empId : employeeIds) {
+            employeeService.findByEmployeeId(empId).ifPresent(employee -> {
+                Payroll payroll = payrollRepository
+                        .findByEmployee_EmployeeIdAndPayPeriod(empId, currentPeriod)
+                        .orElseGet(() -> {
+                            Payroll newPayroll = new Payroll();
+                            newPayroll.setEmployee(employee);
+                            newPayroll.setPayPeriod(currentPeriod);
+                            newPayroll.setWeekStart(currentPeriod.getStartDate());
+                            newPayroll.setWeekEnd(currentPeriod.getEndDate());
+                            return newPayroll;
+                        });
+
+                payroll.setStatus(Payroll.PayrollStatus.APPROVED);
+                payrollRepository.save(payroll);
+                approvedCount.incrementAndGet();
+            });
         }
 
-        return Map.of("success", true, "message", "Payrolls approved successfully.");
+        return Map.of(
+                "success", true,
+                "message", approvedCount.get() > 0
+                        ? approvedCount + " payroll(s) approved successfully."
+                        : "No employees selected for approval."
+        );
     }
+
+
 }

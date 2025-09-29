@@ -84,8 +84,8 @@
                   </a>
 
                   <!-- Checkbox for employee/payroll -->
-                  <input type="checkbox" class="form-check-input employee-checkbox"
-                         th:value="${emp.latestPayrollId != null ? emp.latestPayrollId : emp.employeeId}">
+                  <input type="checkbox" class="form-check-input employee-checkbox" th:value="${emp.employeeId}">
+
                 </div>
               </td>
             </tr>
