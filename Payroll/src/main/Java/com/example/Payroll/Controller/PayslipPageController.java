@@ -288,6 +288,7 @@ public class PayslipPageController {
                     return p;
                 });
 
+        // Set values if provided
         if (basicPay != null) payroll.setBasicPay(basicPay);
         if (otPay != null) payroll.setOtPay(otPay);
         if (leavePay != null) payroll.setLeavePay(leavePay);
@@ -307,6 +308,7 @@ public class PayslipPageController {
         if (insurance != null) payroll.setInsurance(insurance);
         if (utilities != null) payroll.setUtilities(utilities);
 
+        // Calculate totals
         double totalEarnings =
                 (payroll.getBasicPay() != null ? payroll.getBasicPay() : 0) +
                         (payroll.getOtPay() != null ? payroll.getOtPay() : 0) +
@@ -331,12 +333,32 @@ public class PayslipPageController {
         payroll.setSubtotal(totalEarnings);
         payroll.setNetPay(totalEarnings - totalDeductions);
 
-        payroll.setStatus(Payroll.PayrollStatus.APPROVED);
+        // Determine status
+        boolean allEarningsSet = payroll.getBasicPay() != null && payroll.getOtPay() != null &&
+                payroll.getLeavePay() != null && payroll.getRegularHolidayPay() != null &&
+                payroll.getSpecialHolidayPay() != null && payroll.getColaAllowance() != null &&
+                payroll.getAllowance() != null && payroll.getAdjustment() != null;
+
+        boolean allDeductionsSet = payroll.getSavings() != null && payroll.getSss() != null &&
+                payroll.getPhilhealth() != null && payroll.getPagibig() != null &&
+                payroll.getCanteen() != null && payroll.getCashAdvance() != null &&
+                payroll.getMedical() != null && payroll.getInsurance() != null &&
+                payroll.getUtilities() != null;
+
+        // ✅ Role-based approval logic
+        String role = (String) session.getAttribute("role");
+        if ("SUPER_ADMIN".equalsIgnoreCase(role)) {
+            payroll.setStatus(Payroll.PayrollStatus.FULLY_APPROVED);
+        } else {
+            if (allEarningsSet && allDeductionsSet) {
+                payroll.setStatus(Payroll.PayrollStatus.FULLY_APPROVED);
+            } else {
+                payroll.setStatus(Payroll.PayrollStatus.PARTIALLY_APPROVED);
+            }
+        }
 
         payrollRepository.save(payroll);
 
         return "redirect:/admin/payslip/" + employeeId + "?payPeriodId=" + payPeriod.getId();
     }
-
-
 }
