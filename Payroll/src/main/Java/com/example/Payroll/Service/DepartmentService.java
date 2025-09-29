@@ -3,6 +3,8 @@ package com.example.Payroll.Service;
 import com.example.Payroll.Entity.Department;
 import com.example.Payroll.Forms.DepartmentsForm;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
 import java.util.List;
 
 public interface DepartmentService {
@@ -17,6 +19,6 @@ public interface DepartmentService {
     void deleteDepartment(Long id);
 
     Department getDepartmentById(Long id);
-    List<Department> getDepartmentsById(Long departmentId);
+    Page<Department> getDepartmentsPaginated(PageRequest pageable);
 
 }

@@ -130,7 +130,7 @@ public class Payroll {
 
     public enum PayrollStatus {
         PENDING,
-        PARTIALLY_APPROVED,
-        FULLY_APPROVED
+        GENERATED,
+        APPROVED
     }
 }

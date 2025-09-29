@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,7 +44,7 @@ public class PayrollPageController {
         String role = (String) session.getAttribute("role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
-        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE, Sort.by("employeeId").descending());
         Page<Employee> employeesPage;
 
         // Both CLERK and SITE ADMIN should only see their department

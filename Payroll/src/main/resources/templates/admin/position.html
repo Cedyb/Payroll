@@ -15,8 +15,6 @@
         main { margin-left: 240px; }
         .search-row { margin-bottom: 20px; }
         .readonly { pointer-events: none; opacity: 0.6; }
-
-
     </style>
 </head>
 <body>
@@ -69,8 +67,7 @@
                             <tr th:each="position : ${positionList}">
                                 <td th:text="${position.positionId}"></td>
                                 <td th:text="${position.title}"></td>
-                                <td th:text="${position.department.name}"
-                                    th:data-id="${position.department.departmentId}"></td>
+                                <td th:text="${position.department.name}" th:data-id="${position.department.departmentId}"></td>
                                 <td th:text="${position.hourlyRate}"></td>
                                 <td>
                                     <button type="button"
@@ -100,35 +97,26 @@
             <div class="pagination-wrapper">
                 <nav aria-label="Positions pagination">
                     <ul class="pagination justify-content-center">
-                        <!-- Previous button -->
                         <li class="page-item" th:classappend="${currentPage == 0} ? ' disabled'">
-                            <a class="page-link"
-                               th:if="${currentPage > 0}"
+                            <a class="page-link" th:if="${currentPage > 0}"
                                th:href="@{/positions(page=${currentPage - 1}, size=10)}">Previous</a>
                             <span class="page-link" th:if="${currentPage == 0}">Previous</span>
                         </li>
 
-                        <!-- Page numbers -->
                         <li class="page-item"
                             th:each="i : ${#numbers.sequence(0, totalPages-1)}"
                             th:classappend="${i == currentPage} ? ' active'">
-                            <a class="page-link" th:text="${i+1}"
-                               th:href="@{/positions(page=${i}, size=10)}"></a>
+                            <a class="page-link" th:text="${i+1}" th:href="@{/positions(page=${i}, size=10)}"></a>
                         </li>
 
-                        <!-- Next button -->
                         <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? ' disabled'">
-                            <a class="page-link"
-                               th:if="${currentPage + 1 < totalPages}"
+                            <a class="page-link" th:if="${currentPage + 1 < totalPages}"
                                th:href="@{/positions(page=${currentPage + 1}, size=10)}">Next</a>
                             <span class="page-link" th:if="${currentPage + 1 >= totalPages}">Next</span>
                         </li>
                     </ul>
                 </nav>
             </div>
-
-
-
         </main>
     </div>
 </div>

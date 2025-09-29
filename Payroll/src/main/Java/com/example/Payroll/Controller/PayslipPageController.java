@@ -348,12 +348,12 @@ public class PayslipPageController {
         // ✅ Role-based approval logic
         String role = (String) session.getAttribute("role");
         if ("SUPER_ADMIN".equalsIgnoreCase(role)) {
-            payroll.setStatus(Payroll.PayrollStatus.FULLY_APPROVED);
+            payroll.setStatus(Payroll.PayrollStatus.APPROVED);
         } else {
             if (allEarningsSet && allDeductionsSet) {
-                payroll.setStatus(Payroll.PayrollStatus.FULLY_APPROVED);
+                payroll.setStatus(Payroll.PayrollStatus.APPROVED);
             } else {
-                payroll.setStatus(Payroll.PayrollStatus.PARTIALLY_APPROVED);
+                payroll.setStatus(Payroll.PayrollStatus.GENERATED);
             }
         }
 

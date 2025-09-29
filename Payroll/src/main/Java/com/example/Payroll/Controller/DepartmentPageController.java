@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +30,8 @@ public class DepartmentPageController {
         String role = (String) session.getAttribute("role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "departmentId"));
+
         if ("CLERK".equals(role) && departmentId != null) {
             Department dept = departmentService.getDepartmentById(departmentId);
             model.addAttribute("departmentList", List.of(dept));
@@ -36,39 +39,49 @@ public class DepartmentPageController {
             model.addAttribute("totalPages", 1);
             model.addAttribute("totalItems", 1);
         } else if ("SITE_ADMIN".equals(role) && departmentId != null) {
-            // Filter for site admin's department only
             Department dept = departmentService.getDepartmentById(departmentId);
             model.addAttribute("departmentList", List.of(dept));
             model.addAttribute("currentPage", 0);
             model.addAttribute("totalPages", 1);
             model.addAttribute("totalItems", 1);
         } else {
-            Page<Department> departmentPage = departmentService.getDepartmentsPaginated(page, size);
+            Page<Department> departmentPage = departmentService.getDepartmentsPaginated(pageable);
             model.addAttribute("departmentList", departmentPage.getContent());
             model.addAttribute("currentPage", departmentPage.getNumber());
             model.addAttribute("totalPages", departmentPage.getTotalPages());
             model.addAttribute("totalItems", departmentPage.getTotalElements());
         }
 
-
         model.addAttribute("departmentsForm", new DepartmentsForm());
         return "admin/department";
     }
 
     @PostMapping("/create")
-    public String create(@ModelAttribute DepartmentsForm form) {
+    public String create(@ModelAttribute DepartmentsForm form, HttpSession session) {
+        String role = (String) session.getAttribute("role");
+        if ("SITE_ADMIN".equals(role)) {
+            return "redirect:/departments?error=forbidden";
+        }
         departmentService.createDepartment(form);
         return "redirect:/departments";
     }
 
     @PostMapping("/update")
-    public String update(@ModelAttribute DepartmentsForm form) {
+    public String update(@ModelAttribute DepartmentsForm form, HttpSession session) {
+        String role = (String) session.getAttribute("role");
+        if ("SITE_ADMIN".equals(role)) {
+            return "redirect:/departments?error=forbidden";
+        }
         departmentService.updateDepartment(form);
         return "redirect:/departments#updatecomplete";
     }
 
     @GetMapping("/delete/{id}")
-    public String delete(@PathVariable Long id) {
+    public String delete(@PathVariable Long id, HttpSession session) {
+        String role = (String) session.getAttribute("role");
+        if ("SITE_ADMIN".equals(role)) {
+            return "redirect:/departments?error=forbidden";
+        }
         departmentService.deleteDepartment(id);
         return "redirect:/departments";
     }

@@ -173,9 +173,12 @@
                         </tbody>
                     </table>
                 </div>
-                <button type="submit" class="btn btn-success">
-                    <i class="bi bi-save"></i> Generate
+                <button type="submit"
+                        class="btn btn-success"
+                        th:text="${session.role == 'SUPER_ADMIN'} ? 'Approve' : 'Generate'">
+                    <i th:class="${session.role == 'SUPER_ADMIN'} ? 'bi bi-check-circle' : 'bi bi-save'"></i>
                 </button>
+
                 <input type="hidden" name="payPeriodId" th:value="${currentPayPeriod.id}" />
             </form>
         </main>

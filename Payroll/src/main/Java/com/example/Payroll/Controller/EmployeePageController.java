@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -26,22 +27,23 @@ public class EmployeePageController {
     @Autowired
     private DepartmentService departmentService;
 
+    private final int PAGE_SIZE = 10;
+
     @GetMapping
     public String showPage(@RequestParam(defaultValue = "0") int page,
                            HttpSession session,
                            Model model) {
 
-        int pageSize = 10;
-
         String role = (String) session.getAttribute("system_role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
+        PageRequest pageable = PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "employeeId"));
         Page<Employee> employeePage;
 
         if ("SUPER_ADMIN".equals(role)) {
-            employeePage = employeeService.getAllEmployees(PageRequest.of(page, pageSize));
+            employeePage = employeeService.getAllEmployees(pageable);
         } else if ("CLERK".equals(role) || "SITE_ADMIN".equals(role)) {
-            employeePage = employeeService.getEmployeesByDepartment(departmentId, PageRequest.of(page, pageSize));
+            employeePage = employeeService.getEmployeesByDepartment(departmentId, pageable);
         } else {
             return "redirect:/login";
         }
@@ -50,7 +52,6 @@ public class EmployeePageController {
         model.addAttribute("employeeList", employeePage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", employeePage.getTotalPages());
-
         model.addAttribute("employeeForm", new EmployeeForm());
 
         if ("SUPER_ADMIN".equals(role)) {

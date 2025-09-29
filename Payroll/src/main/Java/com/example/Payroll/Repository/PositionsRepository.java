@@ -11,11 +11,10 @@ import java.util.List;
 @Repository
 public interface PositionsRepository extends JpaRepository<Positions, Long> {
 
+    List<Positions> findByIsActiveTrueOrderByPositionIdDesc();
+    List<Positions> findByDepartment_DepartmentIdAndIsActiveTrueOrderByPositionIdDesc(Long departmentId);
 
-    List<Positions> findByIsActiveTrue();
-    List<Positions> findByDepartment_DepartmentIdAndIsActiveTrue(Long departmentId);
+    Page<Positions> findByIsActiveTrueOrderByPositionIdDesc(Pageable pageable);
+    Page<Positions> findByDepartment_DepartmentIdAndIsActiveTrueOrderByPositionIdDesc(Long departmentId, Pageable pageable);
 
-
-    Page<Positions> findByIsActiveTrue(Pageable pageable);
-    Page<Positions> findByDepartment_DepartmentIdAndIsActiveTrue(Long departmentId, Pageable pageable);
 }

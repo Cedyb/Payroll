@@ -7,6 +7,7 @@ import com.example.Payroll.Service.PositionsService;
 import com.example.Payroll.Service.DepartmentService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.ui.Model;
@@ -43,13 +44,23 @@ public class UsermanagementPageController {
         Page<Employee> employeesPage;
         Page<Employee> archivedEmployeesPage;
 
-        // Clerk or Site Admin see only their department
+// Clerk or Site Admin see only their department
         if (("CLERK".equals(role) || "SITE_ADMIN".equals(role)) && departmentId != null) {
-            employeesPage = employeeService.getEmployeesByDepartment(departmentId, PageRequest.of(page, PAGE_SIZE));
-            archivedEmployeesPage = employeeService.getArchivedEmployeesByDepartment(departmentId, PageRequest.of(page, PAGE_SIZE));
+            employeesPage = employeeService.getEmployeesByDepartment(
+                    departmentId,
+                    PageRequest.of(page, PAGE_SIZE, Sort.by("employeeId").descending())
+            );
+            archivedEmployeesPage = employeeService.getArchivedEmployeesByDepartment(
+                    departmentId,
+                    PageRequest.of(page, PAGE_SIZE, Sort.by("employeeId").descending())
+            );
         } else {
-            employeesPage = employeeService.getAllEmployees(PageRequest.of(page, PAGE_SIZE));
-            archivedEmployeesPage = employeeService.getArchivedEmployees(PageRequest.of(page, PAGE_SIZE));
+            employeesPage = employeeService.getAllEmployees(
+                    PageRequest.of(page, PAGE_SIZE, Sort.by("employeeId").descending())
+            );
+            archivedEmployeesPage = employeeService.getArchivedEmployees(
+                    PageRequest.of(page, PAGE_SIZE, Sort.by("employeeId").descending())
+            );
         }
 
         model.addAttribute("employees", employeesPage.getContent());

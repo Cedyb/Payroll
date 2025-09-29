@@ -26,12 +26,12 @@ public class PositionsServiceImpl implements PositionsService {
 
     @Override
     public List<Positions> getAllPositions() {
-        return positionsRepository.findByIsActiveTrue();
+        return positionsRepository.findByIsActiveTrueOrderByPositionIdDesc();
     }
 
     @Override
     public List<Positions> getPositionsByDepartment(Long departmentId) {
-        return positionsRepository.findByDepartment_DepartmentIdAndIsActiveTrue(departmentId);
+        return positionsRepository.findByDepartment_DepartmentIdAndIsActiveTrueOrderByPositionIdDesc(departmentId);
     }
 
     @Override
@@ -78,14 +78,14 @@ public class PositionsServiceImpl implements PositionsService {
                 .orElseThrow(() -> new IllegalArgumentException("Position not found with id: " + id));
     }
 
-    // ✅ New Pagination methods
+    // ✅ Pagination methods with ordering
     @Override
     public Page<Positions> getPaginatedPositions(Pageable pageable) {
-        return positionsRepository.findByIsActiveTrue(pageable);
+        return positionsRepository.findByIsActiveTrueOrderByPositionIdDesc(pageable);
     }
 
     @Override
     public Page<Positions> getPaginatedPositionsByDepartment(Long departmentId, Pageable pageable) {
-        return positionsRepository.findByDepartment_DepartmentIdAndIsActiveTrue(departmentId, pageable);
+        return positionsRepository.findByDepartment_DepartmentIdAndIsActiveTrueOrderByPositionIdDesc(departmentId, pageable);
     }
 }

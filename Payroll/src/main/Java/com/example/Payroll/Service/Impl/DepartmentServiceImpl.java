@@ -23,6 +23,11 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    public Page<Department> getDepartmentsPaginated(PageRequest pageable) {
+        return departmentRepository.findByIsActiveTrue(pageable);
+    }
+
+    @Override
     public Department createDepartment(DepartmentsForm form) {
         Department department = new Department();
         department.setName(form.getName());
@@ -57,10 +62,5 @@ public class DepartmentServiceImpl implements DepartmentService {
     public Department getDepartmentById(Long id) {
         return departmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Department not found with ID: " + id));
-    }
-
-    @Override
-    public List<Department> getDepartmentsById(Long departmentId) {
-        return List.of();
     }
 }
