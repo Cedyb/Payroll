@@ -1,77 +1,91 @@
 .initials {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: #dee2e6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    text-transform: uppercase;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #dee2e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 .employee-email {
-    font-size: 0.875rem;
-    color: #6c757d;
+  font-size: 0.875rem;
+  color: #6c757d;
 }
 .tag {
-    background-color: #f1f3f5;
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 500;
+  background-color: #f1f3f5;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 .ellipsis {
-    cursor: pointer;
-    font-size:30px;
+  cursor: pointer;
+  font-size:30px;
 }
 .dropdown-menu-custom {
-    position: absolute;
-    right: 0;
-    top: 100%;
-    background-color: white;
-    border: 1px solid #ccc;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    padding: 5px 0;
-    display: none;
-    z-index: 999;
-    min-width: 120px;
-    border-radius: 4px;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background-color: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 5px 0;
+  display: none;
+  z-index: 999;
+  min-width: 120px;
+  border-radius: 4px;
 }
 
 .dropdown-menu-custom .dropdown-item {
-    padding: 8px 15px;
-    text-decoration: none;
-    display: block;
-    color: #212529;
+  padding: 8px 15px;
+  text-decoration: none;
+  display: block;
+  color: #212529;
 }
 
 .dropdown-menu-custom .dropdown-item:hover {
-    background-color: #f8f9fa;
+  background-color: #f8f9fa;
 }
 .table-container {
-    margin-top: 20px;
-    padding: 20px;
-    background-color: #f8f9fa ;
-    border: 2px solid #dee2e6;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f8f9fa ;
+  border: 2px solid #dee2e6;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
-
 
 .table-container table {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
-
 
 .pagination-wrapper {
-    position: fixed;
-    bottom: 20px;       /* distance from bottom */
-    left: 50%;          /* center horizontally */
-    transform: translateX(-50%);
-    z-index: 1000;      /* make sure it appears above content */
-    background-color: #fff; /* optional: add background if overlapping content */
-    padding: 10px 0;    /* optional spacing */
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background-color: #fff;
+  padding: 10px 0;
 }
 
-
-
+/* Floating Action Button */
+#actionButton {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1100;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  box-shadow: 0px 4px 6px rgba(0,0,0,0.2);
+}
+/* Disable interaction for read-only buttons */
+    .readonly {
+      pointer-events: none;
+      opacity: 0.6;
+      cursor: not-allowed;
+    }

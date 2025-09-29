@@ -31,11 +31,9 @@ public class Employee {
     @Column(nullable = false, length = 100)
     private String password;
 
-    // existing role field
     @Column(nullable = false, length = 20)
     private String role;
 
-    // system_role field
     @Column(name = "system_role", length = 20, nullable = false)
     private String system_role = "EMPLOYEE";
 
@@ -80,6 +78,7 @@ public class Employee {
         return firstName + " " + lastName;
     }
 
+    // Payroll status (transient)
     @Transient
     private Payroll.PayrollStatus payrollStatus;
 
@@ -89,5 +88,17 @@ public class Employee {
 
     public void setPayrollStatus(Payroll.PayrollStatus payrollStatus) {
         this.payrollStatus = payrollStatus;
+    }
+
+    // Latest payroll ID (transient, used for Thymeleaf & action buttons)
+    @Transient
+    private Long latestPayrollId;
+
+    public Long getLatestPayrollId() {
+        return latestPayrollId;
+    }
+
+    public void setLatestPayrollId(Long latestPayrollId) {
+        this.latestPayrollId = latestPayrollId;
     }
 }

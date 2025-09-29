@@ -4,10 +4,7 @@ import com.example.Payroll.Entity.AttendanceLog;
 import com.example.Payroll.Entity.Employee;
 import com.example.Payroll.Entity.PayPeriod;
 import com.example.Payroll.Entity.Payroll;
-import com.example.Payroll.Repository.AttendanceLogRepository;
-import com.example.Payroll.Repository.EmployeeRepository;
-import com.example.Payroll.Repository.PayrollRepository;
-import com.example.Payroll.Repository.PositionsRepository;
+import com.example.Payroll.Repository.*;
 import com.example.Payroll.Service.PayrollService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +12,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,12 +34,14 @@ public class PayrollServiceImpl implements PayrollService {
     @Autowired
     private PositionsRepository positionsRepository;
 
+    @Autowired
+    private PayPeriodRepository payPeriodRepository;
+
     @Override
     public Payroll generatePayrollForEmployee(Long employeeId, PayPeriod payPeriod) {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
 
-        // Get attendance logs for the pay period
         List<AttendanceLog> logs = attendanceLogRepository.findByEmployeeAndLogDateBetween(
                 employee,
                 payPeriod.getStartDate(),
@@ -52,7 +53,7 @@ public class PayrollServiceImpl implements PayrollService {
 
         double hourlyRate = employee.getPosition().getHourlyRate();
         double basicPay = totalHours * hourlyRate;
-        double otPay = totalOT * hourlyRate * 1.25; // example OT multiplier
+        double otPay = totalOT * hourlyRate * 1.25;
 
         Payroll payroll = new Payroll();
         payroll.setEmployee(employee);
@@ -62,7 +63,7 @@ public class PayrollServiceImpl implements PayrollService {
         payroll.setBasicPay(basicPay);
         payroll.setOtPay(otPay);
         payroll.setSubtotal(basicPay + otPay);
-        payroll.setNetPay(payroll.getSubtotal()); // later deduct SSS, PhilHealth etc.
+        payroll.setNetPay(payroll.getSubtotal());
 
         return payrollRepository.save(payroll);
     }
@@ -91,7 +92,6 @@ public class PayrollServiceImpl implements PayrollService {
         return payrollRepository.save(payroll);
     }
 
-    // Employee-level queries
     @Override
     public Page<Employee> getEmployeesByDepartment(Long departmentId, Pageable pageable) {
         return employeeRepository.findByIsActiveTrueAndPosition_Department_DepartmentId(departmentId, pageable);
@@ -129,5 +129,25 @@ public class PayrollServiceImpl implements PayrollService {
             }
             emp.setPayrollStatus(status);
         }
+    }
+
+    @Override
+    public PayPeriod findOrCreatePayPeriod(LocalDate start, LocalDate end) {
+        return payPeriodRepository.findByStartDateAndEndDate(start, end)
+                .orElseGet(() -> {
+                    PayPeriod newPeriod = new PayPeriod();
+                    newPeriod.setStartDate(start);
+                    newPeriod.setEndDate(end);
+                    return payPeriodRepository.save(newPeriod);
+                });
+    }
+
+    @Override
+    public PayPeriod getOrCreateCurrentWeekPeriod() {
+        LocalDate today = LocalDate.now();
+        LocalDate weekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.WEDNESDAY));
+        LocalDate weekEnd = weekStart.with(TemporalAdjusters.next(DayOfWeek.TUESDAY));
+
+        return findOrCreatePayPeriod(weekStart, weekEnd);
     }
 }

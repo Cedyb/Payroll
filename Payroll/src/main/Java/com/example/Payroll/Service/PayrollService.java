@@ -30,4 +30,8 @@ public interface PayrollService {
     Page<Employee> searchEmployeesByKeyword(String keyword, Pageable pageable);
 
     void attachLatestPayrollStatus(List<Employee> employees, LocalDate today);
+
+    PayPeriod findOrCreatePayPeriod(LocalDate start, LocalDate end);
+
+    PayPeriod getOrCreateCurrentWeekPeriod();
 }

@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public interface EmployeeService {
@@ -33,4 +34,5 @@ public interface EmployeeService {
     Page<Employee> searchEmployeesByKeywordAndDepartment(String keyword, Long departmentId, Pageable pageable);
 
     Page<Employee> getArchivedEmployeesByDepartment(Long departmentId, Pageable pageable);
+    Optional<Employee> findByEmployeeId(Long employeeId);
 }

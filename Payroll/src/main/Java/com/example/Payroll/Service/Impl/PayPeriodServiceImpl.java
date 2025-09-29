@@ -3,10 +3,12 @@ package com.example.Payroll.Service.Impl;
 import com.example.Payroll.Entity.PayPeriod;
 import com.example.Payroll.Repository.PayPeriodRepository;
 import com.example.Payroll.Service.PayPeriodService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 
 @Service
 public class PayPeriodServiceImpl implements PayPeriodService {
@@ -30,8 +32,12 @@ public class PayPeriodServiceImpl implements PayPeriodService {
     @Override
     public PayPeriod getOrCreateCurrentWeekPeriod() {
         LocalDate today = LocalDate.now();
-        LocalDate weekStart = today.with(DayOfWeek.MONDAY);
-        LocalDate weekEnd = today.with(DayOfWeek.SUNDAY);
+
+        // Start = latest Wednesday (previousOrSame)
+        LocalDate weekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.WEDNESDAY));
+
+        // End = next Tuesday after weekStart
+        LocalDate weekEnd = weekStart.with(TemporalAdjusters.next(DayOfWeek.TUESDAY));
 
         return getOrCreatePayPeriod(weekStart, weekEnd);
     }

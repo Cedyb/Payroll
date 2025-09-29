@@ -12,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -111,6 +112,11 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public Page<Employee> getArchivedEmployeesByDepartment(Long departmentId, Pageable pageable) {
         return employeeRepository.findByIsActiveFalseAndPosition_Department_DepartmentId(departmentId, pageable);
+    }
+
+    @Override
+    public Optional<Employee> findByEmployeeId(Long employeeId) {
+        return employeeRepository.findByEmployeeId(employeeId);
     }
 
     private void mapFormToEmployee(EmployeeForm employeeForm, Employee employee, boolean isNew) {
