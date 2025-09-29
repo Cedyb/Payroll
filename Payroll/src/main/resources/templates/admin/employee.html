@@ -94,18 +94,27 @@
 
             <div class="pagination-wrapper mt-3">
                 <ul class="pagination justify-content-start">
+                    <!-- Previous button -->
                     <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
                         <a class="page-link" th:href="@{/employees(page=${currentPage-1})}">Previous</a>
                     </li>
-                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages-1)}"
-                        th:classappend="${i == currentPage} ? 'active'">
-                        <a class="page-link" th:href="@{/employees(page=${i})}" th:text="${i+1}">1</a>
+
+                    <!-- Page numbers -->
+                    <li class="page-item"
+                        th:each="i : ${#numbers.sequence(1, totalPages == 0 ? 1 : totalPages)}"
+                        th:classappend="${i-1 == currentPage} ? 'active'">
+                        <a class="page-link"
+                           th:href="@{/employees(page=${i-1})}"
+                           th:text="${i}">1</a>
                     </li>
+
+                    <!-- Next button -->
                     <li class="page-item" th:classappend="${currentPage == totalPages-1} ? 'disabled'">
                         <a class="page-link" th:href="@{/employees(page=${currentPage+1})}">Next</a>
                     </li>
                 </ul>
             </div>
+
 
             <!-- Add Employee Modal -->
             <div class="modal fade"

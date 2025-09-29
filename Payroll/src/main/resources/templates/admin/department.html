@@ -98,10 +98,11 @@
 
       <!-- Page numbers -->
       <li class="page-item"
-          th:each="i : ${#numbers.sequence(0, totalPages-1)}"
-          th:classappend="${i == currentPage} ? ' active'">
-        <a class="page-link" th:text="${i+1}"
-           th:href="@{/departments(page=${i}, size=10)}"></a>
+          th:each="i : ${#numbers.sequence(1, totalPages == 0 ? 1 : totalPages)}"
+          th:classappend="${i-1 == currentPage} ? ' active'">
+        <a class="page-link"
+           th:text="${i}"
+           th:href="@{/departments(page=${i-1}, size=10)}"></a>
       </li>
 
       <!-- Next button -->
@@ -114,6 +115,7 @@
     </ul>
   </nav>
 </div>
+
 
 <!-- Add Modal: hidden if SITE_ADMIN -->
 <div class="modal fade" id="deptAddModal" tabindex="-1" role="dialog" th:if="${session.role != 'SITE_ADMIN'}">

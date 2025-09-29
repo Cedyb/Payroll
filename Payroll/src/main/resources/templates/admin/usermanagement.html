@@ -146,30 +146,30 @@
           <ul class="pagination justify-content-center">
             <!-- Previous button -->
             <li class="page-item" th:classappend="${currentPage == 0} ? ' disabled'">
-              <a class="page-link"
-                 th:if="${currentPage > 0}"
+              <a class="page-link" th:if="${currentPage > 0}"
                  th:href="@{/usermanagement(page=${currentPage - 1}, size=15)}">Previous</a>
               <span class="page-link" th:if="${currentPage == 0}">Previous</span>
             </li>
 
             <!-- Page numbers -->
             <li class="page-item"
-                th:each="i : ${#numbers.sequence(0, totalPages-1)}"
-                th:classappend="${i == currentPage} ? ' active'">
-              <a class="page-link" th:text="${i+1}"
-                 th:href="@{/usermanagement(page=${i}, size=15)}"></a>
+                th:each="i : ${#numbers.sequence(1, totalPages == 0 ? 1 : totalPages)}"
+                th:classappend="${i-1 == currentPage} ? ' active'">
+              <a class="page-link"
+                 th:text="${i}"
+                 th:href="@{/usermanagement(page=${i-1}, size=15)}"></a>
             </li>
 
             <!-- Next button -->
             <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? ' disabled'">
-              <a class="page-link"
-                 th:if="${currentPage + 1 < totalPages}"
+              <a class="page-link" th:if="${currentPage + 1 < totalPages}"
                  th:href="@{/usermanagement(page=${currentPage + 1}, size=15)}">Next</a>
               <span class="page-link" th:if="${currentPage + 1 >= totalPages}">Next</span>
             </li>
           </ul>
         </nav>
       </div>
+
 
 
       <!-- Archived Modal -->

@@ -97,18 +97,23 @@
             <div class="pagination-wrapper">
                 <nav aria-label="Positions pagination">
                     <ul class="pagination justify-content-center">
+                        <!-- Previous button -->
                         <li class="page-item" th:classappend="${currentPage == 0} ? ' disabled'">
                             <a class="page-link" th:if="${currentPage > 0}"
                                th:href="@{/positions(page=${currentPage - 1}, size=10)}">Previous</a>
                             <span class="page-link" th:if="${currentPage == 0}">Previous</span>
                         </li>
 
+                        <!-- Page numbers -->
                         <li class="page-item"
-                            th:each="i : ${#numbers.sequence(0, totalPages-1)}"
-                            th:classappend="${i == currentPage} ? ' active'">
-                            <a class="page-link" th:text="${i+1}" th:href="@{/positions(page=${i}, size=10)}"></a>
+                            th:each="i : ${#numbers.sequence(1, totalPages == 0 ? 1 : totalPages)}"
+                            th:classappend="${i-1 == currentPage} ? ' active'">
+                            <a class="page-link"
+                               th:text="${i}"
+                               th:href="@{/positions(page=${i-1}, size=10)}"></a>
                         </li>
 
+                        <!-- Next button -->
                         <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? ' disabled'">
                             <a class="page-link" th:if="${currentPage + 1 < totalPages}"
                                th:href="@{/positions(page=${currentPage + 1}, size=10)}">Next</a>
@@ -117,6 +122,7 @@
                     </ul>
                 </nav>
             </div>
+
         </main>
     </div>
 </div>
