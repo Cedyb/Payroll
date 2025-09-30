@@ -63,4 +63,17 @@ public class DepartmentServiceImpl implements DepartmentService {
         return departmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Department not found with ID: " + id));
     }
+
+    @Override
+    public List<Department> getDepartmentsByIds(List<Long> departmentIds) {
+        return departmentRepository.findAllById(departmentIds);
+    }
+
+    @Override
+    public List<Department> getDepartmentsBySite(Long departmentId) {
+        Department dept = departmentRepository.findById(departmentId)
+                .orElseThrow(() -> new RuntimeException("Department not found with ID: " + departmentId));
+        return List.of(dept);
+    }
+
 }

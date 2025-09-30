@@ -20,5 +20,9 @@ public interface DepartmentService {
 
     Department getDepartmentById(Long id);
     Page<Department> getDepartmentsPaginated(PageRequest pageable);
+    List<Department> getDepartmentsByIds(List<Long> departmentIds);
+    List<Department> getDepartmentsBySite(Long departmentId);
+
+
 
 }

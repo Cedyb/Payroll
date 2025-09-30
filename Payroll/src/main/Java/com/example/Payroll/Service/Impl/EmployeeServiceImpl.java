@@ -119,6 +119,11 @@ public class EmployeeServiceImpl implements EmployeeService {
         return employeeRepository.findByEmployeeId(employeeId);
     }
 
+    @Override
+    public List<Employee> getEmployeesByDepartment(Long departmentId) {
+        return employeeRepository.findByDepartmentId(departmentId);
+    }
+
     private void mapFormToEmployee(EmployeeForm employeeForm, Employee employee, boolean isNew) {
         if (isNew && employeeForm.getUsername() != null && !employeeForm.getUsername().isEmpty()) {
             employee.setUsername(employeeForm.getUsername());
@@ -154,5 +159,9 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (isNew) {
             employee.setActive(true);
         }
+    }
+    @Override
+    public List<Employee> getEmployeesByDepartmentId(Long departmentId) {
+        return getEmployeesByDepartment(departmentId);
     }
 }

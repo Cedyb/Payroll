@@ -14,6 +14,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
+
 @Controller
 @RequestMapping("/employees")
 public class EmployeePageController {
@@ -59,8 +61,11 @@ public class EmployeePageController {
             model.addAttribute("departments", departmentService.getAllDepartments());
         } else if ("CLERK".equals(role) || "SITE_ADMIN".equals(role)) {
             model.addAttribute("positionList", positionsService.getPositionsByDepartment(departmentId));
-            model.addAttribute("departments", departmentService.getDepartmentById(departmentId));
+            model.addAttribute("departments",
+                    Collections.singletonList(departmentService.getDepartmentById(departmentId))
+            );
         }
+
 
         return "admin/employee";
     }

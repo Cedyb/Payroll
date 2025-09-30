@@ -73,4 +73,5 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     List<Employee> findByIsActiveTrueAndPosition_Department_DepartmentIdAndSystemRole(@Param("deptId") Long departmentId, @Param("systemRole") String systemRole);
 
     Page<Employee> findByIsActiveFalseAndPosition_Department_DepartmentId(Long departmentId, Pageable pageable);
+    List<Employee> findByDepartmentId(Long departmentId);
 }

@@ -1,0 +1,93 @@
+body {
+    overflow-x: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+}
+
+/* Sidebar Navigation */
+nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 240px;
+    background-color: #fff;
+    border-right: 1px solid #dee2e6;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+}
+
+/* Main Content */
+main {
+    margin-left: 240px;
+    width: calc(100% - 240px);
+    padding: 2rem;
+    min-height: 100vh;
+}
+
+/* Dashboard Cards */
+.dashboard-card {
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+    padding: 1.5rem;
+    background: #fff;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+}
+
+.dashboard-card h5 {
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #343a40;
+}
+
+/* Default icon size */
+.dashboard-card .icon {
+    font-size: 1 rem;
+    color: #0d6efd;
+    margin-bottom: 0.5rem;
+}
+
+/* Inline header: icon + text side by side */
+.card-header-inline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1 rem; /* spacing between icon and text */
+    margin-bottom: 0.75rem;
+}
+
+.card-header-inline .icon {
+    font-size: 1.5rem; /* smaller than default */
+    margin-bottom: 0; /* remove vertical spacing */
+    color: #0d6efd;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    nav {
+        width: 200px;
+        padding: 0.8rem;
+    }
+
+    main {
+        margin-left: 200px;
+        padding: 1rem;
+    }
+
+    .dashboard-card {
+        padding: 1rem;
+    }
+
+    .dashboard-card .icon {
+        font-size: 2rem; /* slightly smaller on mobile */
+    }
+}

@@ -14,9 +14,10 @@ public interface EmployeeService {
 
     List<Employee> getAllEmployees();
     Page<Employee> getAllEmployees(Pageable pageable);
-
+    List<Employee> getEmployeesByDepartment(Long departmentId);
     Employee createEmployee(EmployeeForm form);
     Employee updateEmployee(Long id, EmployeeForm employeeForm);
+
     void deleteEmployee(Long id);
 
     List<Employee> searchEmployeesByKeyword(String keyword);
@@ -35,4 +36,6 @@ public interface EmployeeService {
 
     Page<Employee> getArchivedEmployeesByDepartment(Long departmentId, Pageable pageable);
     Optional<Employee> findByEmployeeId(Long employeeId);
+    List<Employee> getEmployeesByDepartmentId(Long departmentId);
+
 }
