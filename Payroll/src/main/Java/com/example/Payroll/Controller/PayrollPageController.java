@@ -33,7 +33,7 @@ public class PayrollPageController {
     @Autowired
     private PayrollRepository payrollRepository;
 
-    private final int PAGE_SIZE = 10;
+    private final int PAGE_SIZE = 7;
 
     // ==============================
     // Show Payroll Page

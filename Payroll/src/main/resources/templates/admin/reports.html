@@ -48,8 +48,8 @@
         <div class="tab-pane fade" id="audit" role="tabpanel" aria-labelledby="audit-tab">
           <div class="d-flex justify-content-between mb-3">
             <div class="d-flex">
-              <input type="text" class="form-control me-2" placeholder="Search user or action">
-              <input type="date" class="form-control">
+              <input type="text" class="form-control me-2" placeholder="Search user or action" id="auditSearch">
+              <input type="date" class="form-control" id="auditDate">
             </div>
             <div>
               <button class="btn btn-primary btn-sm me-2"><i class="bi bi-file-earmark-pdf"></i> Export PDF</button>
@@ -68,23 +68,11 @@
               </tr>
               </thead>
               <tbody>
-              <tr>
-                <td>2025-09-29 10:32</td>
-                <td>Admin</td>
-                <td>Edited Attendance</td>
-                <td>Changed status for Employee #12</td>
-              </tr>
-              <tr>
-                <td>2025-09-28 15:20</td>
-                <td>Manager</td>
-                <td>Generated Payroll Report</td>
-                <td>Payroll for September 2025</td>
-              </tr>
-              <tr>
-                <td>2025-09-28 08:00</td>
-                <td>User123</td>
-                <td>Login</td>
-                <td>Successful login</td>
+              <tr th:each="log : ${auditLogs}">
+                <td th:text="${#temporals.format(log.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                <td th:text="${log.user.firstName + ' ' + log.user.lastName}"></td>
+                <td th:text="${log.action}"></td>
+                <td th:text="${log.details}"></td>
               </tr>
               </tbody>
             </table>
@@ -95,5 +83,20 @@
     </main>
   </div>
 </div>
+
+<!-- Optional: JS for future client-side filtering -->
+<script>
+  const searchInput = document.getElementById('auditSearch');
+  const dateInput = document.getElementById('auditDate');
+
+  searchInput?.addEventListener('input', () => {
+    // Implement client-side filtering if desired
+  });
+
+  dateInput?.addEventListener('change', () => {
+    // Implement date filtering if desired
+  });
+</script>
+
 </body>
 </html>

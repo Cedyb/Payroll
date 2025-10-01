@@ -2,6 +2,8 @@ package com.example.Payroll.Controller;
 
 import com.example.Payroll.Entity.Employee;
 import com.example.Payroll.Repository.EmployeeRepository;
+import com.example.Payroll.Service.AuditLogService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -18,18 +20,28 @@ public class LoginController {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
+    @Autowired
+    private AuditLogService auditLogService;
+
+    // ==========================
+    // LOGIN PAGE
+    // ==========================
     @GetMapping("/login")
     public String showLoginForm() {
         return "login";
     }
 
+    // ==========================
+    // LOGIN PROCESS
+    // ==========================
     @PostMapping("/login")
     public String processLogin(@RequestParam String email,
                                @RequestParam String password,
                                HttpSession session,
+                               HttpServletRequest request,
                                Model model) {
 
-        // Hardcoded system super admin
+        // Hardcoded system SUPER_ADMIN
         if ("admin".equalsIgnoreCase(email) && "123".equals(password)) {
             Employee admin = new Employee();
             admin.setFirstName("System");
@@ -44,10 +56,11 @@ public class LoginController {
             session.setAttribute("department_id", null);
             session.setAttribute("employeeId", null);
 
-            return "redirect:/dashboard"; // map to DashboardController
+            // Skip audit logging (transient entity)
+            return "redirect:/dashboard";
         }
 
-        // Lookup employee from DB
+        // Normal DB login
         Employee employee = employeeRepository.findByEmail(email);
 
         if (employee != null && passwordEncoder.matches(password, employee.getPassword())) {
@@ -64,11 +77,14 @@ public class LoginController {
             session.setAttribute("employeeId", employee.getEmployeeId());
             session.setAttribute("department_id", departmentId);
 
+            // Audit log: login
+            auditLogService.logAction(employee, "LOGIN", "Successful login", request);
+
             switch (role) {
                 case "CLERK":
                 case "SUPER_ADMIN":
                 case "SITE_ADMIN":
-                    return "redirect:/dashboard"; // redirect to DashboardController
+                    return "redirect:/dashboard";
                 case "EMPLOYEE":
                 default:
                     return "redirect:/userDashboard";
@@ -79,6 +95,9 @@ public class LoginController {
         return "login";
     }
 
+    // ==========================
+    // USER DASHBOARD
+    // ==========================
     @GetMapping("/userDashboard")
     public String showUserDashboard(HttpSession session, Model model) {
         Employee employee = (Employee) session.getAttribute("employee");
@@ -88,13 +107,43 @@ public class LoginController {
             return "redirect:/login";
         }
 
-        model.addAttribute("employee", employee);
+        addEmployeeToModel(session, model);
         return "employee/userDashboard";
     }
 
+    // ==========================
+    // LOGOUT
+    // ==========================
     @GetMapping("/logout")
-    public String logout(HttpSession session) {
+    public String logout(HttpSession session, HttpServletRequest request) {
+        Employee employee = (Employee) session.getAttribute("employee");
+
+        if (employee != null && employee.getEmployeeId() != null) {
+            // Only log DB users
+            auditLogService.logAction(employee, "LOGOUT", "User logged out", request);
+        }
+
         session.invalidate();
         return "redirect:/login?logout";
+    }
+
+    // ==========================
+    // HELPERS
+    // ==========================
+    private void addEmployeeToModel(HttpSession session, Model model) {
+        Employee employee = (Employee) session.getAttribute("employee");
+        if (employee != null) {
+            model.addAttribute("employee", employee);
+        }
+    }
+
+    private String formatRole(String role) {
+        return switch (role) {
+            case "SUPER_ADMIN" -> "Super Admin";
+            case "CLERK" -> "Clerk";
+            case "SITE_ADMIN" -> "Site Admin";
+            case "EMPLOYEE" -> "Employee";
+            default -> role;
+        };
     }
 }
