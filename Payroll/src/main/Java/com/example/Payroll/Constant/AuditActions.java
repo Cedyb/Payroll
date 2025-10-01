@@ -14,5 +14,16 @@ public class AuditActions {
     public static final String UPDATE_DEPARTMENT = "UPDATE_DEPARTMENT";
     public static final String DELETE_DEPARTMENT = "DELETE_DEPARTMENT";
 
-    // Extend with employees, payroll, etc.
+    // CRUD for employees
+    public static final String CREATE_EMPLOYEE = "CREATE_EMPLOYEE";
+    public static final String UPDATE_EMPLOYEE = "UPDATE_EMPLOYEE";
+    public static final String DELETE_EMPLOYEE = "DELETE_EMPLOYEE";
+
+    // Payroll actions
+    public static final String GENERATE_PAYROLL = "GENERATE_PAYROLL";
+    public static final String APPROVE_PAYROLL = "APPROVE_PAYROLL";
+
+    private AuditActions() {
+        // Prevent instantiation
+    }
 }

@@ -30,7 +30,7 @@ public class UsermanagementPageController {
     @Autowired
     private DepartmentService departmentService;
 
-    private static final int PAGE_SIZE = 15; // 15 rows per page
+    private static final int PAGE_SIZE = 10;
 
     @GetMapping("")
     public String showUsermanagementPage(

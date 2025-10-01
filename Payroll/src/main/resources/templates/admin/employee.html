@@ -181,7 +181,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <label>Phone</label>
-                                        <input type="text" th:field="*{phone}" class="form-control">
+                                        <input type="number" th:field="*{phone}" class="form-control" pattern="[0-9]{11}" maxlength="11">
                                     </div>
 
                                     <div class="col-md-12">

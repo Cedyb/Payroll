@@ -1,17 +1,17 @@
 package com.example.Payroll.Controller;
 
+import com.example.Payroll.Constants.AuditActions;
 import com.example.Payroll.Entity.Employee;
 import com.example.Payroll.Entity.PayPeriod;
 import com.example.Payroll.Entity.Payroll;
 import com.example.Payroll.Repository.PayrollRepository;
+import com.example.Payroll.Service.AuditLogService;
 import com.example.Payroll.Service.EmployeeService;
 import com.example.Payroll.Service.PayrollService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +32,9 @@ public class PayrollPageController {
 
     @Autowired
     private PayrollRepository payrollRepository;
+
+    @Autowired
+    private AuditLogService auditLogService;
 
     private final int PAGE_SIZE = 7;
 
@@ -57,12 +60,11 @@ public class PayrollPageController {
 
         List<Employee> employees = employeesPage.getContent();
 
-        // Attach latest payroll info to each employee
         for (Employee emp : employees) {
             Payroll latestPayroll = payrollService.getLatestPayrollByEmployee(emp);
             if (latestPayroll != null) {
-                emp.setPayrollStatus(latestPayroll.getStatus()); // existing field
-                emp.setLatestPayrollId(latestPayroll.getId());   // transient field
+                emp.setPayrollStatus(latestPayroll.getStatus());
+                emp.setLatestPayrollId(latestPayroll.getId());
             }
         }
 
@@ -90,22 +92,17 @@ public class PayrollPageController {
         Page<Employee> employeesPage;
 
         if (("CLERK".equalsIgnoreCase(role) || "SITE_ADMIN".equalsIgnoreCase(role)) && departmentId != null) {
-            if (keyword == null || keyword.trim().isEmpty()) {
-                employeesPage = payrollService.getEmployeesByDepartment(departmentId, pageable);
-            } else {
-                employeesPage = employeeService.searchEmployeesByKeywordAndDepartment(keyword, departmentId, pageable);
-            }
+            employeesPage = (keyword == null || keyword.trim().isEmpty())
+                    ? payrollService.getEmployeesByDepartment(departmentId, pageable)
+                    : employeeService.searchEmployeesByKeywordAndDepartment(keyword, departmentId, pageable);
         } else {
-            if (keyword == null || keyword.trim().isEmpty()) {
-                employeesPage = employeeService.getAllEmployees(pageable);
-            } else {
-                employeesPage = employeeService.searchEmployeesByKeyword(keyword, pageable);
-            }
+            employeesPage = (keyword == null || keyword.trim().isEmpty())
+                    ? employeeService.getAllEmployees(pageable)
+                    : employeeService.searchEmployeesByKeyword(keyword, pageable);
         }
 
         List<Employee> employees = employeesPage.getContent();
 
-        // Attach latest payroll info to each employee
         for (Employee emp : employees) {
             Payroll latestPayroll = payrollService.getLatestPayrollByEmployee(emp);
             if (latestPayroll != null) {
@@ -124,15 +121,17 @@ public class PayrollPageController {
     }
 
     // ==============================
-    // Generate Payrolls (Clerk/Site Admin)
+    // Generate Payrolls
     // ==============================
     @PostMapping("/generate")
     @ResponseBody
     public Map<String, Object> generatePayrolls(@RequestBody Map<String, List<Long>> payload,
-                                                HttpSession session) {
+                                                HttpSession session,
+                                                HttpServletRequest request) {
 
         List<Long> employeeIds = payload.get("employeeIds");
         String role = (String) session.getAttribute("role");
+        Employee currentUser = (Employee) session.getAttribute("employee");
 
         if (!"CLERK".equalsIgnoreCase(role) && !"SITE_ADMIN".equalsIgnoreCase(role)) {
             return Map.of("success", false, "message", "Only Clerk or Site Admin can generate payrolls.");
@@ -143,8 +142,6 @@ public class PayrollPageController {
 
         for (Long empId : employeeIds) {
             employeeService.findByEmployeeId(empId).ifPresent(employee -> {
-
-                // Check if payroll already exists for this period
                 boolean alreadyGenerated = payrollRepository
                         .findByEmployee_EmployeeIdAndPayPeriod(empId, payPeriod)
                         .isPresent();
@@ -159,6 +156,16 @@ public class PayrollPageController {
 
                     payrollRepository.save(payroll);
                     generatedCount.incrementAndGet();
+
+                    // --- AUDIT LOG ---
+                    if (currentUser != null) {
+                        auditLogService.logAction(
+                                currentUser,
+                                AuditActions.GENERATE_PAYROLL,
+                                "Generated payroll for Employee ID: " + empId,
+                                request
+                        );
+                    }
                 }
             });
         }
@@ -172,15 +179,17 @@ public class PayrollPageController {
     }
 
     // ==============================
-    // Approve Payrolls (Super Admin)
+    // Approve Payrolls
     // ==============================
     @PostMapping("/approve")
     @ResponseBody
     public Map<String, Object> approvePayrolls(@RequestBody Map<String, List<Long>> payload,
-                                               HttpSession session) {
+                                               HttpSession session,
+                                               HttpServletRequest request) {
 
         List<Long> employeeIds = payload.get("employeeIds");
         String role = (String) session.getAttribute("role");
+        Employee currentUser = (Employee) session.getAttribute("employee");
 
         if (!"SUPER_ADMIN".equalsIgnoreCase(role)) {
             return Map.of("success", false, "message", "Only Super Admin can approve payrolls.");
@@ -205,6 +214,16 @@ public class PayrollPageController {
                 payroll.setStatus(Payroll.PayrollStatus.APPROVED);
                 payrollRepository.save(payroll);
                 approvedCount.incrementAndGet();
+
+                // --- AUDIT LOG ---
+                if (currentUser != null) {
+                    auditLogService.logAction(
+                            currentUser,
+                            AuditActions.APPROVE_PAYROLL,
+                            "Approved payroll for Employee ID: " + empId,
+                            request
+                    );
+                }
             });
         }
 
@@ -215,6 +234,5 @@ public class PayrollPageController {
                         : "No employees selected for approval."
         );
     }
-
 
 }

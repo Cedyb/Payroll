@@ -1,5 +1,6 @@
 package com.example.Payroll.Controller;
 
+import com.example.Payroll.Constants.AuditActions;
 import com.example.Payroll.Entity.Employee;
 import com.example.Payroll.Forms.EmployeeForm;
 import com.example.Payroll.Service.AuditLogService;
@@ -15,8 +16,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Collections;
 
 @Controller
 @RequestMapping("/employees")
@@ -36,9 +35,6 @@ public class EmployeePageController {
 
     private final int PAGE_SIZE = 10;
 
-    // ===============================
-    // LIST Employees (Paginated)
-    // ===============================
     @GetMapping
     public String showPage(@RequestParam(defaultValue = "0") int page,
                            HttpSession session,
@@ -69,9 +65,7 @@ public class EmployeePageController {
             model.addAttribute("departments", departmentService.getAllDepartments());
         } else if ("CLERK".equals(role) || "SITE_ADMIN".equals(role)) {
             model.addAttribute("positionList", positionsService.getPositionsByDepartment(departmentId));
-            model.addAttribute("departments",
-                    Collections.singletonList(departmentService.getDepartmentById(departmentId))
-            );
+            model.addAttribute("departments", departmentService.getDepartmentById(departmentId));
         }
 
         return "admin/employee";
@@ -103,7 +97,7 @@ public class EmployeePageController {
         if (currentUser != null && ("SUPER_ADMIN".equals(role) || "CLERK".equals(role))) {
             auditLogService.logAction(
                     currentUser,
-                    "CREATE_EMPLOYEE",
+                    AuditActions.CREATE_EMPLOYEE,
                     "Created employee: " + newEmployee.getFirstName() + " " + newEmployee.getLastName(),
                     request
             );
@@ -142,7 +136,7 @@ public class EmployeePageController {
         if (currentUser != null && ("SUPER_ADMIN".equals(role) || "CLERK".equals(role))) {
             auditLogService.logAction(
                     currentUser,
-                    "UPDATE_EMPLOYEE",
+                    AuditActions.UPDATE_EMPLOYEE,
                     "Updated employee: " + updated.getFirstName() + " " + updated.getLastName(),
                     request
             );
@@ -180,7 +174,7 @@ public class EmployeePageController {
         if (currentUser != null && ("SUPER_ADMIN".equals(role) || "CLERK".equals(role))) {
             auditLogService.logAction(
                     currentUser,
-                    "DELETE_EMPLOYEE",
+                    AuditActions.DELETE_EMPLOYEE,
                     "Deleted employee: " + existing.getFirstName() + " " + existing.getLastName(),
                     request
             );
