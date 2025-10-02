@@ -29,14 +29,48 @@
         <h4 class="mb-0">PAYROLL</h4>
       </div>
 
-      <!-- Search -->
-      <form th:action="@{/payroll/search}" method="get" class="mb-3">
-        <div class="input-group w-50">
-          <input type="text" name="keyword" class="form-control"
-                 placeholder="Search by name or ID..." th:value="${keyword}" />
+      <div class="d-flex justify-content-between mb-4 align-items-center">
+
+        <!-- 🔹 Search Form (Left) -->
+        <form th:action="@{/payroll/search}" method="get" class="d-flex gap-2">
+          <input type="text" name="name" class="form-control"
+                 placeholder="Search by Name or ID..." th:value="${name}" />
           <button type="submit" class="btn btn-primary">Search</button>
-        </div>
-      </form>
+        </form>
+
+        <!-- 🔹 Filter Form (Right) -->
+        <form th:action="@{/payroll/filter}" method="get" class="d-flex gap-2 align-items-center">
+
+          <select name="departmentId" class="form-select" style="min-width: 200px;">
+            <option value="">All Departments</option>
+            <option th:each="dept : ${departments}"
+                    th:value="${dept.departmentId}"
+                    th:text="${dept.name}"
+                    th:selected="${dept.departmentId == selectedDepartmentId}">
+            </option>
+          </select>
+
+          <select name="positionId" class="form-select" style="min-width: 200px;">
+            <option value="">All Positions</option>
+            <option th:each="pos : ${positions}"
+                    th:value="${pos.id}"
+                    th:text="${pos.title}"
+                    th:selected="${pos.id == selectedPositionId}">
+            </option>
+          </select>
+
+          <select name="status" class="form-select" style="min-width: 200px;">
+            <option value="">All Status</option>
+            <option value="PENDING" th:selected="${status == 'PENDING'}">Pending</option>
+            <option value="GENERATED" th:selected="${status == 'GENERATED'}">Generated</option>
+            <option value="APPROVED" th:selected="${status == 'APPROVED'}">Approved</option>
+          </select>
+
+          <button type="submit" class="btn btn-success">Filter</button>
+        </form>
+
+
+      </div>
 
       <!-- Table -->
       <div class="table-container mt-4">
