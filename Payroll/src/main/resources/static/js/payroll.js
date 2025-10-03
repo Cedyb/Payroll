@@ -1,4 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
+  // ==========================
+  // Elements
+  // ==========================
   const selectAll = document.getElementById("selectAll");
   const actionButton = document.getElementById("actionButton");
   const role = document.body.getAttribute("data-role");
@@ -10,7 +13,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const statusDropdown = document.querySelector('select[name="status"]');
   const paginationWrapper = document.querySelector(".pagination-wrapper");
 
-  // Set action button text & style based on role
+  let currentPage = 0;
+
+  // ==========================
+  // Set action button text & style
+  // ==========================
   if (role === "CLERK") {
     actionButton.textContent = "Generate Selection";
     actionButton.classList.remove("btn-success");
@@ -23,6 +30,9 @@ document.addEventListener("DOMContentLoaded", function () {
     actionButton.textContent = "Perform Action";
   }
 
+  // ==========================
+  // Utility functions
+  // ==========================
   function getEmployeeCheckboxes() {
     return document.querySelectorAll(".employee-checkbox");
   }
@@ -32,6 +42,18 @@ document.addEventListener("DOMContentLoaded", function () {
     actionButton.style.display = checkedCount > 0 ? "block" : "none";
   }
 
+  function rebindTableEvents() {
+    const checkboxes = getEmployeeCheckboxes();
+    checkboxes.forEach(cb => {
+      cb.addEventListener("change", () => {
+        if (selectAll) {
+          selectAll.checked = Array.from(checkboxes).every(c => c.checked);
+        }
+        updateButtonVisibility();
+      });
+    });
+  }
+
   // ==========================
   // Select All functionality
   // ==========================
@@ -39,14 +61,6 @@ document.addEventListener("DOMContentLoaded", function () {
     selectAll.addEventListener("change", function () {
       getEmployeeCheckboxes().forEach(cb => cb.checked = selectAll.checked);
       updateButtonVisibility();
-    });
-
-    document.addEventListener("change", function (e) {
-      if (e.target.classList.contains("employee-checkbox")) {
-        const checkboxes = getEmployeeCheckboxes();
-        selectAll.checked = Array.from(checkboxes).every(cb => cb.checked);
-        updateButtonVisibility();
-      }
     });
   }
 
@@ -76,7 +90,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(data => {
           if (data.success) {
             alert(data.message);
-            fetchFilteredEmployees(currentPage); // refresh table with current page
+            fetchFilteredEmployees(currentPage); // refresh table
           } else {
             alert(data.message || "Failed to update payrolls.");
           }
@@ -89,37 +103,49 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ==========================
-  // Fetch employees for search/filter/pagination
+  // Fetch employees via AJAX
   // ==========================
-  let currentPage = 0; // track current page
   function fetchFilteredEmployees(page = 0) {
     currentPage = page;
+
+    if (!tableBody) return;
+
+    tableBody.innerHTML = '<tr><td colspan="7">Loading...</td></tr>';
 
     const params = new URLSearchParams({
       keyword: searchInput.value.trim(),
       departmentId: departmentDropdown.value,
       positionId: positionDropdown.value,
-      status: statusDropdown.value.toUpperCase(), // force uppercase
+      status: statusDropdown.value.toUpperCase(),
       page: page
     });
-
 
     fetch(`/payroll/filter?${params.toString()}`, {
       headers: { "X-Requested-With": "XMLHttpRequest" }
     })
       .then(res => res.text())
       .then(html => {
-        if (tableBody) tableBody.innerHTML = html;
+        tableBody.innerHTML = html;
+        rebindTableEvents();
         updateButtonVisibility();
-        updatePagination();
-        highlightCurrentPage(page); // highlight correct page
+        highlightCurrentPage(page);
       })
       .catch(err => console.error("Filter error:", err));
   }
 
   // ==========================
-  // Highlight active pagination page
+  // Pagination - Event Delegation
   // ==========================
+  if (paginationWrapper) {
+    paginationWrapper.addEventListener("click", function (e) {
+      if (e.target.classList.contains("page-link")) {
+        e.preventDefault();
+        const page = parseInt(e.target.dataset.page);
+        if (!isNaN(page)) fetchFilteredEmployees(page);
+      }
+    });
+  }
+
   function highlightCurrentPage(page) {
     if (!paginationWrapper) return;
     const items = paginationWrapper.querySelectorAll(".page-item");
@@ -130,7 +156,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ==========================
-  // Search & Filter Event Listeners
+  // Search & Filter listeners
   // ==========================
   if (searchInput) searchInput.addEventListener("input", () => fetchFilteredEmployees(0));
   if (positionDropdown) positionDropdown.addEventListener("change", () => fetchFilteredEmployees(0));
@@ -158,26 +184,10 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .catch(err => console.error("Position fetch error:", err));
     });
-
-    departmentDropdown.dispatchEvent(new Event("change"));
   }
 
   // ==========================
-  // AJAX Pagination
+  // Initial fetch
   // ==========================
-  function updatePagination() {
-    if (!paginationWrapper) return;
-
-    const links = paginationWrapper.querySelectorAll(".page-link");
-    links.forEach(link => {
-      const page = parseInt(link.getAttribute("data-page"));
-      link.addEventListener("click", function (e) {
-        e.preventDefault();
-        if (!isNaN(page)) fetchFilteredEmployees(page);
-      });
-    });
-  }
-
-  // Trigger initial fetch
   fetchFilteredEmployees(0);
 });

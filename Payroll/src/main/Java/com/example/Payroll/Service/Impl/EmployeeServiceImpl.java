@@ -193,7 +193,9 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .filter(emp -> positionId == null || (emp.getPosition() != null && emp.getPosition().getPositionId().equals(positionId)))
                 .filter(emp -> status == null || status.isBlank() ||
                         (emp.getPayrollStatus() != null && emp.getPayrollStatus().name().equalsIgnoreCase(status)))
+                .sorted((e1, e2) -> e2.getEmployeeId().compareTo(e1.getEmployeeId())) // ✅ descending
                 .toList();
+
 
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), filtered.size());
