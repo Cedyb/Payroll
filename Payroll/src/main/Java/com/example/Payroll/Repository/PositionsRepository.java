@@ -16,5 +16,6 @@ public interface PositionsRepository extends JpaRepository<Positions, Long> {
 
     Page<Positions> findByIsActiveTrueOrderByPositionIdDesc(Pageable pageable);
     Page<Positions> findByDepartment_DepartmentIdAndIsActiveTrueOrderByPositionIdDesc(Long departmentId, Pageable pageable);
+    List<Positions> findByDepartment_DepartmentId(Long departmentId);
 
 }

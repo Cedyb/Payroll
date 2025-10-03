@@ -1,18 +1,23 @@
 package com.example.Payroll.Service.Impl;
 
+import com.example.Payroll.Entity.Department;
 import com.example.Payroll.Entity.Employee;
+import com.example.Payroll.Entity.Positions;
 import com.example.Payroll.Forms.EmployeeForm;
+import com.example.Payroll.Repository.DepartmentRepository;
 import com.example.Payroll.Repository.EmployeeRepository;
 import com.example.Payroll.Repository.PositionsRepository;
 import com.example.Payroll.Service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -22,6 +27,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Autowired
     private PositionsRepository positionsRepository;
+
+    @Autowired
+    private DepartmentRepository departmentRepository;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -64,7 +72,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         });
     }
 
-    // ✅ Search only by Name + EmployeeId
+    // Search by name or ID
     @Override
     public List<Employee> searchEmployeesByKeyword(String keyword) {
         return employeeRepository.searchByNameOrId(keyword);
@@ -130,7 +138,61 @@ public class EmployeeServiceImpl implements EmployeeService {
         return getEmployeesByDepartment(departmentId);
     }
 
-    // ✅ Helper method for mapping form data to entity
+    // ==============================
+    // New methods for PayrollPageController
+    // ==============================
+    @Override
+    public List<Department> getAllDepartments() {
+        return departmentRepository.findAll();
+    }
+
+    @Override
+    public List<Positions> getAllPositions() {
+        return positionsRepository.findAll();
+    }
+
+    @Override
+    public List<Positions> getPositionsByDepartment(Long departmentId) {
+        if (departmentId == null) return positionsRepository.findAll();
+        return positionsRepository.findByDepartment_DepartmentId(departmentId);
+    }
+
+    @Override
+    public Page<Employee> filterEmployees(String keyword, Long departmentId, Long positionId, String status, String role, Long sessionDeptId, Pageable pageable) {
+
+        // Restrict department if role is CLERK or SITE_ADMIN
+        if (("CLERK".equalsIgnoreCase(role) || "SITE_ADMIN".equalsIgnoreCase(role)) && sessionDeptId != null) {
+            departmentId = sessionDeptId;
+        }
+
+        // Fetch all active employees
+        List<Employee> allActive = employeeRepository.findByIsActiveTrue();
+
+        // Apply filters
+        Long finalDepartmentId = departmentId;
+        List<Employee> filtered = allActive.stream()
+                .filter(emp -> keyword == null || keyword.isBlank() ||
+                        emp.getFullName().toLowerCase().contains(keyword.toLowerCase()) ||
+                        emp.getEmployeeId().toString().contains(keyword))
+                .filter(emp -> finalDepartmentId == null || (emp.getDepartmentId() != null && emp.getDepartmentId().equals(finalDepartmentId)))
+                .filter(emp -> positionId == null || (emp.getPosition() != null && emp.getPosition().getPositionId().equals(positionId)))
+                .filter(emp -> status == null || status.isBlank() ||
+                        (emp.getPayrollStatus() != null && emp.getPayrollStatus().name().equalsIgnoreCase(status)))
+                .toList();
+
+        // Handle pagination
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), filtered.size());
+        List<Employee> pageContent = start <= end ? filtered.subList(start, end) : List.of();
+
+        return new PageImpl<>(pageContent, pageable, filtered.size());
+    }
+
+
+
+    // ==============================
+    // Helper method for mapping form data
+    // ==============================
     private void mapFormToEmployee(EmployeeForm employeeForm, Employee employee, boolean isNew) {
         if (isNew && employeeForm.getUsername() != null && !employeeForm.getUsername().isEmpty()) {
             employee.setUsername(employeeForm.getUsername());

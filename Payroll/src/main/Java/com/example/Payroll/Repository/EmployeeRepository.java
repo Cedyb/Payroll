@@ -64,4 +64,5 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     Page<Employee> findByIsActiveFalseAndPosition_Department_DepartmentId(Long departmentId, Pageable pageable);
 
     List<Employee> findByDepartmentId(Long departmentId);
+
 }

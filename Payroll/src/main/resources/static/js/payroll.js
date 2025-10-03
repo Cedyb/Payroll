@@ -1,36 +1,14 @@
-// ========================
-// Dropdown Toggle Function
-// ========================
-function toggleDropdown(elem) {
-  document.querySelectorAll('.dropdown-menu-custom').forEach(menu => {
-    if (menu !== elem.nextElementSibling) {
-      menu.style.display = 'none';
-    }
-  });
-
-  const menu = elem.nextElementSibling;
-  menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-}
-
-// Close dropdown when clicking outside
-document.addEventListener('click', function (event) {
-  const isEllipsis = event.target.classList.contains('ellipsis');
-  if (!isEllipsis) {
-    document.querySelectorAll('.dropdown-menu-custom').forEach(menu => {
-      menu.style.display = 'none';
-    });
-  }
-});
-
-// ========================
-// Init after DOM is loaded
-// ========================
 document.addEventListener("DOMContentLoaded", function () {
   const selectAll = document.getElementById("selectAll");
   const actionButton = document.getElementById("actionButton");
   const role = document.body.getAttribute("data-role");
   const searchInput = document.getElementById("searchInput");
-  const tableBody = document.querySelector("tbody");
+  const tableBody = document.getElementById("employeeTableBody");
+
+  const departmentDropdown = document.querySelector('select[name="departmentId"]');
+  const positionDropdown = document.querySelector('select[name="positionId"]');
+  const statusDropdown = document.querySelector('select[name="status"]');
+  const paginationWrapper = document.querySelector(".pagination-wrapper");
 
   // Set action button text & style based on role
   if (role === "CLERK") {
@@ -54,9 +32,9 @@ document.addEventListener("DOMContentLoaded", function () {
     actionButton.style.display = checkedCount > 0 ? "block" : "none";
   }
 
-  // ========================
+  // ==========================
   // Select All functionality
-  // ========================
+  // ==========================
   if (selectAll) {
     selectAll.addEventListener("change", function () {
       getEmployeeCheckboxes().forEach(cb => cb.checked = selectAll.checked);
@@ -72,9 +50,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // ========================
+  // ==========================
   // Action Button Click Handler
-  // ========================
+  // ==========================
   if (actionButton) {
     actionButton.addEventListener("click", function () {
       const selectedIds = Array.from(getEmployeeCheckboxes())
@@ -98,7 +76,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(data => {
           if (data.success) {
             alert(data.message);
-            window.location.reload(); // refresh payroll table
+            fetchFilteredEmployees(currentPage); // refresh table with current page
           } else {
             alert(data.message || "Failed to update payrolls.");
           }
@@ -110,24 +88,95 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // ========================
-  // Real-time Search
-  // ========================
-  if (searchInput) {
-    searchInput.addEventListener("input", function () {
-      const keyword = searchInput.value.trim();
+  // ==========================
+  // Fetch employees for search/filter/pagination
+  // ==========================
+  let currentPage = 0; // track current page
+  function fetchFilteredEmployees(page = 0) {
+    currentPage = page;
 
-      fetch(`/payroll/search?keyword=${encodeURIComponent(keyword)}`, {
-        headers: { "X-Requested-With": "XMLHttpRequest" }
+    const params = new URLSearchParams({
+      keyword: searchInput.value.trim(),
+      departmentId: departmentDropdown.value,
+      positionId: positionDropdown.value,
+      status: statusDropdown.value,
+      page: page
+    });
+
+    fetch(`/payroll/filter?${params.toString()}`, {
+      headers: { "X-Requested-With": "XMLHttpRequest" }
+    })
+      .then(res => res.text())
+      .then(html => {
+        if (tableBody) tableBody.innerHTML = html;
+        updateButtonVisibility();
+        updatePagination();
+        highlightCurrentPage(page); // highlight correct page
       })
-        .then(res => res.text())
-        .then(html => {
-          if (tableBody) {
-            tableBody.innerHTML = html;
-          }
-          updateButtonVisibility(); // update checkbox visibility after search
+      .catch(err => console.error("Filter error:", err));
+  }
+
+  // ==========================
+  // Highlight active pagination page
+  // ==========================
+  function highlightCurrentPage(page) {
+    if (!paginationWrapper) return;
+    const items = paginationWrapper.querySelectorAll(".page-item");
+    items.forEach(item => item.classList.remove("active"));
+
+    const activeLink = paginationWrapper.querySelector(`.page-link[data-page='${page}']`);
+    if (activeLink) activeLink.parentElement.classList.add("active");
+  }
+
+  // ==========================
+  // Search & Filter Event Listeners
+  // ==========================
+  if (searchInput) searchInput.addEventListener("input", () => fetchFilteredEmployees(0));
+  if (positionDropdown) positionDropdown.addEventListener("change", () => fetchFilteredEmployees(0));
+  if (statusDropdown) statusDropdown.addEventListener("change", () => fetchFilteredEmployees(0));
+
+  // ==========================
+  // Department -> Position dependent dropdown
+  // ==========================
+  if (departmentDropdown) {
+    departmentDropdown.addEventListener("change", function () {
+      const deptId = departmentDropdown.value;
+      positionDropdown.innerHTML = '<option value="">All Positions</option>';
+
+      const url = deptId ? `/payroll/positions?departmentId=${deptId}` : `/payroll/positions`;
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          data.forEach(pos => {
+            const option = document.createElement("option");
+            option.value = pos.id;
+            option.textContent = pos.title;
+            positionDropdown.appendChild(option);
+          });
+          fetchFilteredEmployees(0); // refresh table
         })
-        .catch(err => console.error("Search error:", err));
+        .catch(err => console.error("Position fetch error:", err));
+    });
+
+    departmentDropdown.dispatchEvent(new Event("change"));
+  }
+
+  // ==========================
+  // AJAX Pagination
+  // ==========================
+  function updatePagination() {
+    if (!paginationWrapper) return;
+
+    const links = paginationWrapper.querySelectorAll(".page-link");
+    links.forEach(link => {
+      const page = parseInt(link.getAttribute("data-page"));
+      link.addEventListener("click", function (e) {
+        e.preventDefault();
+        if (!isNaN(page)) fetchFilteredEmployees(page);
+      });
     });
   }
+
+  // Trigger initial fetch
+  fetchFilteredEmployees(0);
 });

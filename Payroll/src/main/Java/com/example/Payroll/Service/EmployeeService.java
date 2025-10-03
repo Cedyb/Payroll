@@ -43,4 +43,15 @@ public interface EmployeeService {
     Page<Employee> getArchivedEmployees(Pageable pageable);
     Page<Employee> getArchivedEmployeesByDepartment(Long departmentId, Pageable pageable);
     void restoreEmployee(Long id);
+
+    // Add at the bottom of your interface
+    List<com.example.Payroll.Entity.Department> getAllDepartments();
+    List<com.example.Payroll.Entity.Positions> getAllPositions();
+    List<com.example.Payroll.Entity.Positions> getPositionsByDepartment(Long departmentId);
+
+    // Filter employees by keyword, department, position, and status
+    Page<Employee> filterEmployees(String keyword, Long departmentId, Long positionId, String status, String role, Long sessionDeptId, Pageable pageable);
+
+
+
 }

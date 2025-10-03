@@ -11,7 +11,6 @@
   <script th:src="@{/js/payroll.js}" defer></script>
 
   <style>
-    /* Disable interaction for read-only buttons */
     .readonly {
       pointer-events: none;
       opacity: 0.6;
@@ -37,11 +36,10 @@
                  placeholder="Search by Name or ID..." autocomplete="off" />
         </div>
 
-
         <!-- 🔹 Filter Form (Right) -->
-        <form th:action="@{/payroll/filter}" method="get" class="d-flex gap-2 align-items-center">
+        <div class="d-flex gap-2 align-items-center">
 
-          <select name="departmentId" class="form-select" style="min-width: 200px;">
+          <select id="departmentDropdown" name="departmentId" class="form-select" style="min-width: 200px;">
             <option value="">All Departments</option>
             <option th:each="dept : ${departments}"
                     th:value="${dept.departmentId}"
@@ -50,29 +48,26 @@
             </option>
           </select>
 
-          <select name="positionId" class="form-select" style="min-width: 200px;">
+          <select id="positionDropdown" name="positionId" class="form-select" style="min-width: 200px;">
             <option value="">All Positions</option>
             <option th:each="pos : ${positions}"
-                    th:value="${pos.id}"
+                    th:value="${pos.positionId}"
                     th:text="${pos.title}"
-                    th:selected="${pos.id == selectedPositionId}">
+                    th:selected="${pos.positionId == selectedPositionId}">
             </option>
           </select>
 
-          <select name="status" class="form-select" style="min-width: 200px;">
+          <select id="statusDropdown" name="status" class="form-select" style="min-width: 200px;">
             <option value="">All Status</option>
             <option value="PENDING" th:selected="${status == 'PENDING'}">Pending</option>
             <option value="GENERATED" th:selected="${status == 'GENERATED'}">Generated</option>
             <option value="APPROVED" th:selected="${status == 'APPROVED'}">Approved</option>
           </select>
 
-          <button type="submit" class="btn btn-success">Filter</button>
-        </form>
-
-
+        </div>
       </div>
 
-      <!-- Table -->
+        <!-- Table -->
       <div class="table-container mt-4">
         <div class="table-responsive">
           <table class="table align-middle table-hover">
@@ -92,7 +87,6 @@
               </th>
             </tr>
             </thead>
-            <!-- ✅ Wrap tbody in a Thymeleaf fragment for AJAX updates -->
             <tbody id="employeeTableBody" th:fragment="employeeRows">
             <tr th:each="emp : ${employees}">
               <td class="d-flex align-items-center gap-3">
@@ -110,13 +104,13 @@
               <td th:text="${emp.email}">email@example.com</td>
 
               <td>
-            <span class="badge"
-                  th:text="${emp.payrollStatus != null ? emp.payrollStatus.name() : 'PENDING'}"
-                  th:classappend="
-                    ${emp.payrollStatus == T(com.example.Payroll.Entity.Payroll.PayrollStatus).APPROVED} ? ' bg-success' :
-                    (${emp.payrollStatus == T(com.example.Payroll.Entity.Payroll.PayrollStatus).GENERATED} ? ' bg-warning' : ' bg-secondary')">
-              Status
-            </span>
+                <span class="badge"
+                      th:text="${emp.payrollStatus != null ? emp.payrollStatus.name() : 'PENDING'}"
+                      th:classappend="
+                        ${emp.payrollStatus == T(com.example.Payroll.Entity.Payroll.PayrollStatus).APPROVED} ? ' bg-success' :
+                        (${emp.payrollStatus == T(com.example.Payroll.Entity.Payroll.PayrollStatus).GENERATED} ? ' bg-warning' : ' bg-secondary')">
+                  Status
+                </span>
               </td>
 
               <td class="text-center">
@@ -135,7 +129,6 @@
         </div>
       </div>
 
-
       <!-- Pagination -->
       <div class="pagination-wrapper">
         <nav aria-label="Page navigation example">
@@ -149,10 +142,9 @@
             <li class="page-item"
                 th:each="i : ${#numbers.sequence(1, totalPages == 0 ? 1 : totalPages)}"
                 th:classappend="${i-1 == currentPage} ? ' active'">
-              <a class="page-link"
-                 th:href="@{/payroll(page=${i-1}, keyword=${keyword})}"
-                 th:text="${i}"></a>
+              <a href="#" class="page-link" th:attr="data-page=${i-1}" th:text="${i}"></a>
             </li>
+
 
             <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? ' disabled'">
               <a class="page-link" th:if="${currentPage + 1 < totalPages}"

@@ -2,8 +2,9 @@ package com.example.Payroll.Controller;
 
 import com.example.Payroll.Constants.AuditActions;
 import com.example.Payroll.Entity.Employee;
-import com.example.Payroll.Entity.PayPeriod;
 import com.example.Payroll.Entity.Payroll;
+import com.example.Payroll.Entity.PayPeriod;
+import com.example.Payroll.Entity.Positions;
 import com.example.Payroll.Repository.PayrollRepository;
 import com.example.Payroll.Service.AuditLogService;
 import com.example.Payroll.Service.EmployeeService;
@@ -16,8 +17,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Controller
@@ -46,38 +46,80 @@ public class PayrollPageController {
                                   Model model,
                                   HttpSession session) {
 
-        String role = (String) session.getAttribute("role");
-        Long departmentId = (Long) session.getAttribute("department_id");
+        Page<Employee> employeesPage = getEmployeesPage(page, "", null, null, null, session);
 
-        Pageable pageable = PageRequest.of(page, PAGE_SIZE, Sort.by("employeeId").descending());
-        Page<Employee> employeesPage;
-
-        if (("CLERK".equalsIgnoreCase(role) || "SITE_ADMIN".equalsIgnoreCase(role)) && departmentId != null) {
-            employeesPage = payrollService.getEmployeesByDepartment(departmentId, pageable);
-        } else {
-            employeesPage = employeeService.getAllEmployees(pageable);
-        }
-
-        List<Employee> employees = employeesPage.getContent();
-
-        for (Employee emp : employees) {
-            Payroll latestPayroll = payrollService.getLatestPayrollByEmployee(emp);
-            if (latestPayroll != null) {
-                emp.setPayrollStatus(latestPayroll.getStatus());
-                emp.setLatestPayrollId(latestPayroll.getId());
-            }
-        }
-
-        model.addAttribute("employees", employees);
+        model.addAttribute("employees", employeesPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", employeesPage.getTotalPages());
-        model.addAttribute("role", role);
+        model.addAttribute("role", session.getAttribute("role"));
+        model.addAttribute("departments", employeeService.getAllDepartments());
+        model.addAttribute("positions", employeeService.getAllPositions());
 
         return "admin/payroll";
     }
 
     // ==============================
-    // Search Employees (real-time)
+    // AJAX: Get Positions by Department
+    // ==============================
+    @GetMapping("/positions")
+    @ResponseBody
+    public List<Map<String, Object>> getPositionsByDepartment(@RequestParam(required = false) Long departmentId) {
+        List<Positions> positions;
+
+        if (departmentId == null) {
+            positions = employeeService.getAllPositions();
+            Map<String, Positions> uniquePositions = new LinkedHashMap<>();
+            for (Positions pos : positions) {
+                uniquePositions.putIfAbsent(pos.getTitle(), pos);
+            }
+            positions = new ArrayList<>(uniquePositions.values());
+        } else {
+            positions = employeeService.getPositionsByDepartment(departmentId);
+        }
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Positions pos : positions) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", pos.getPositionId());
+            map.put("title", pos.getTitle());
+            result.add(map);
+        }
+
+        return result;
+    }
+
+    // ==============================
+    // AJAX: Filter Employees
+    // ==============================
+    @GetMapping("/filter")
+    public String filterEmployees(@RequestParam(required = false) Long departmentId,
+                                  @RequestParam(required = false) Long positionId,
+                                  @RequestParam(required = false) String status,
+                                  @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
+                                  @RequestParam(defaultValue = "0") int page,
+                                  Model model,
+                                  HttpServletRequest request,
+                                  HttpSession session) {
+
+        Page<Employee> employeesPage = getEmployeesPage(page, keyword, departmentId, positionId, status, session);
+
+        model.addAttribute("employees", employeesPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", employeesPage.getTotalPages());
+        model.addAttribute("departmentId", departmentId);
+        model.addAttribute("positionId", positionId);
+        model.addAttribute("status", status);
+        model.addAttribute("keyword", keyword);
+
+        if ("XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"))) {
+            return "admin/payroll :: employeeRows";
+        }
+
+        return "admin/payroll";
+    }
+
+    // ==============================
+    // Real-time search
     // ==============================
     @GetMapping("/search")
     public String searchEmployees(@RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
@@ -86,24 +128,51 @@ public class PayrollPageController {
                                   HttpSession session,
                                   HttpServletRequest request) {
 
+        Page<Employee> employeesPage = getEmployeesPage(page, keyword, null, null, null, session);
+
+        model.addAttribute("employees", employeesPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", employeesPage.getTotalPages());
+        model.addAttribute("keyword", keyword);
+
+        if ("XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"))) {
+            return "admin/payroll :: employeeRows";
+        }
+
+        return "admin/payroll";
+    }
+
+    // ==============================
+    // Helper method to get paginated employees
+    // ==============================
+    private Page<Employee> getEmployeesPage(int page, String keyword,
+                                            Long departmentId, Long positionId, String status,
+                                            HttpSession session) {
+
         String role = (String) session.getAttribute("role");
-        Long departmentId = (Long) session.getAttribute("department_id");
+        Long sessionDeptId = (Long) session.getAttribute("department_id");
 
         Pageable pageable = PageRequest.of(page, PAGE_SIZE, Sort.by("employeeId").descending());
         Page<Employee> employeesPage;
 
-        if (("CLERK".equalsIgnoreCase(role) || "SITE_ADMIN".equalsIgnoreCase(role)) && departmentId != null) {
-            employeesPage = keyword.isBlank()
-                    ? payrollService.getEmployeesByDepartment(departmentId, pageable)
-                    : employeeService.searchEmployeesByKeywordAndDepartment(keyword, departmentId, pageable);
+        if (keyword != null && !keyword.isBlank()) {
+            if (("CLERK".equalsIgnoreCase(role) || "SITE_ADMIN".equalsIgnoreCase(role)) && sessionDeptId != null) {
+                employeesPage = employeeService.searchEmployeesByKeywordAndDepartment(keyword, sessionDeptId, pageable);
+            } else {
+                employeesPage = employeeService.searchEmployeesByKeyword(keyword, pageable);
+            }
+        } else if (departmentId != null || positionId != null || status != null) {
+            employeesPage = employeeService.filterEmployees(keyword, departmentId, positionId, status, role, sessionDeptId, pageable);
         } else {
-            employeesPage = keyword.isBlank()
-                    ? employeeService.getAllEmployees(pageable)
-                    : employeeService.searchEmployeesByKeyword(keyword, pageable);
+            if (("CLERK".equalsIgnoreCase(role) || "SITE_ADMIN".equalsIgnoreCase(role)) && sessionDeptId != null) {
+                employeesPage = employeeService.getEmployeesByDepartment(sessionDeptId, pageable);
+            } else {
+                employeesPage = employeeService.getAllEmployees(pageable);
+            }
         }
 
-        List<Employee> employees = employeesPage.getContent();
-        employees.forEach(emp -> {
+        // Attach payroll status
+        employeesPage.forEach(emp -> {
             Payroll latestPayroll = payrollService.getLatestPayrollByEmployee(emp);
             if (latestPayroll != null) {
                 emp.setPayrollStatus(latestPayroll.getStatus());
@@ -111,20 +180,9 @@ public class PayrollPageController {
             }
         });
 
-        model.addAttribute("employees", employees);
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", employeesPage.getTotalPages());
-        model.addAttribute("keyword", keyword);
-        model.addAttribute("role", role);
-
-        // Check if it’s an AJAX request for real-time search
-        String requestedWith = request.getHeader("X-Requested-With");
-        if ("XMLHttpRequest".equalsIgnoreCase(requestedWith)) {
-            return "admin/payroll :: tbody"; // Return only the table body fragment
-        }
-
-        return "admin/payroll";
+        return employeesPage;
     }
+
 
     // ==============================
     // Generate Payrolls
@@ -163,14 +221,9 @@ public class PayrollPageController {
                     payrollRepository.save(payroll);
                     generatedCount.incrementAndGet();
 
-                    // --- AUDIT LOG ---
                     if (currentUser != null) {
-                        auditLogService.logAction(
-                                currentUser,
-                                AuditActions.GENERATE_PAYROLL,
-                                "Generated payroll for Employee ID: " + empId,
-                                request
-                        );
+                        auditLogService.logAction(currentUser, AuditActions.GENERATE_PAYROLL,
+                                "Generated payroll for Employee ID: " + empId, request);
                     }
                 }
             });
@@ -221,14 +274,9 @@ public class PayrollPageController {
                 payrollRepository.save(payroll);
                 approvedCount.incrementAndGet();
 
-                // --- AUDIT LOG ---
                 if (currentUser != null) {
-                    auditLogService.logAction(
-                            currentUser,
-                            AuditActions.APPROVE_PAYROLL,
-                            "Approved payroll for Employee ID: " + empId,
-                            request
-                    );
+                    auditLogService.logAction(currentUser, AuditActions.APPROVE_PAYROLL,
+                            "Approved payroll for Employee ID: " + empId, request);
                 }
             });
         }
@@ -240,5 +288,4 @@ public class PayrollPageController {
                         : "No employees selected for approval."
         );
     }
-
 }
