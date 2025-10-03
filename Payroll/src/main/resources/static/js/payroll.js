@@ -29,6 +29,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const selectAll = document.getElementById("selectAll");
   const actionButton = document.getElementById("actionButton");
   const role = document.body.getAttribute("data-role");
+  const searchInput = document.getElementById("searchInput");
+  const tableBody = document.querySelector("tbody");
 
   // Set action button text & style based on role
   if (role === "CLERK") {
@@ -75,7 +77,6 @@ document.addEventListener("DOMContentLoaded", function () {
   // ========================
   if (actionButton) {
     actionButton.addEventListener("click", function () {
-      // Always use employeeId for Super Admin
       const selectedIds = Array.from(getEmployeeCheckboxes())
         .filter(cb => cb.checked)
         .map(cb => parseInt(cb.dataset.employeeId || cb.value));
@@ -85,9 +86,8 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      // Determine endpoint and payload based on role
       const url = role === "SUPER_ADMIN" ? "/payroll/approve" : "/payroll/generate";
-      const payload = { employeeIds: selectedIds }; // Always send employeeIds
+      const payload = { employeeIds: selectedIds };
 
       fetch(url, {
         method: "POST",
@@ -107,6 +107,27 @@ document.addEventListener("DOMContentLoaded", function () {
           console.error("Error:", err);
           alert("Something went wrong!");
         });
+    });
+  }
+
+  // ========================
+  // Real-time Search
+  // ========================
+  if (searchInput) {
+    searchInput.addEventListener("input", function () {
+      const keyword = searchInput.value.trim();
+
+      fetch(`/payroll/search?keyword=${encodeURIComponent(keyword)}`, {
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+      })
+        .then(res => res.text())
+        .then(html => {
+          if (tableBody) {
+            tableBody.innerHTML = html;
+          }
+          updateButtonVisibility(); // update checkbox visibility after search
+        })
+        .catch(err => console.error("Search error:", err));
     });
   }
 });

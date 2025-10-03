@@ -32,11 +32,11 @@
       <div class="d-flex justify-content-between mb-4 align-items-center">
 
         <!-- 🔹 Search Form (Left) -->
-        <form th:action="@{/payroll/search}" method="get" class="d-flex gap-2">
-          <input type="text" name="name" class="form-control"
-                 placeholder="Search by Name or ID..." th:value="${name}" />
-          <button type="submit" class="btn btn-primary">Search</button>
-        </form>
+        <div class="d-flex gap-2">
+          <input type="text" id="searchInput" class="form-control"
+                 placeholder="Search by Name or ID..." autocomplete="off" />
+        </div>
+
 
         <!-- 🔹 Filter Form (Right) -->
         <form th:action="@{/payroll/filter}" method="get" class="d-flex gap-2 align-items-center">
@@ -92,7 +92,8 @@
               </th>
             </tr>
             </thead>
-            <tbody>
+            <!-- ✅ Wrap tbody in a Thymeleaf fragment for AJAX updates -->
+            <tbody id="employeeTableBody" th:fragment="employeeRows">
             <tr th:each="emp : ${employees}">
               <td class="d-flex align-items-center gap-3">
                 <div class="initials"
@@ -104,32 +105,27 @@
               </td>
 
               <td><span class="tag" th:text="'#' + ${emp.employeeId}">#000001</span></td>
-
-              <!-- Safe checks for position and department -->
               <td th:text="${emp.position != null ? emp.position.title : 'N/A'}">Position</td>
               <td th:text="${emp.position != null && emp.position.department != null ? emp.position.department.name : 'N/A'}">Department</td>
               <td th:text="${emp.email}">email@example.com</td>
 
               <td>
-                <span class="badge"
-                      th:text="${emp.payrollStatus != null ? emp.payrollStatus.name() : 'PENDING'}"
-                      th:classappend="
-                        ${emp.payrollStatus == T(com.example.Payroll.Entity.Payroll.PayrollStatus).APPROVED} ? ' bg-success' :
-                        (${emp.payrollStatus == T(com.example.Payroll.Entity.Payroll.PayrollStatus).GENERATED} ? ' bg-warning' : ' bg-secondary')">
-                  Status
-                </span>
+            <span class="badge"
+                  th:text="${emp.payrollStatus != null ? emp.payrollStatus.name() : 'PENDING'}"
+                  th:classappend="
+                    ${emp.payrollStatus == T(com.example.Payroll.Entity.Payroll.PayrollStatus).APPROVED} ? ' bg-success' :
+                    (${emp.payrollStatus == T(com.example.Payroll.Entity.Payroll.PayrollStatus).GENERATED} ? ' bg-warning' : ' bg-secondary')">
+              Status
+            </span>
               </td>
 
               <td class="text-center">
                 <div class="d-flex justify-content-center align-items-center gap-2">
-                  <!-- Payslip button: disabled if SITE_ADMIN -->
                   <a th:href="@{/admin/payslip/{id}(id=${emp.employeeId})}"
                      class="btn btn-primary btn-sm"
                      th:classappend="${session.role == 'SITE_ADMIN'} ? ' readonly'">
                     Payslip
                   </a>
-
-                  <!-- Checkbox for employee/payroll -->
                   <input type="checkbox" class="form-check-input employee-checkbox" th:value="${emp.employeeId}">
                 </div>
               </td>
@@ -138,6 +134,7 @@
           </table>
         </div>
       </div>
+
 
       <!-- Pagination -->
       <div class="pagination-wrapper">

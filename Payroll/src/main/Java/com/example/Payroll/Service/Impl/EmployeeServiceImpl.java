@@ -64,6 +64,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         });
     }
 
+    // ✅ Search only by Name + EmployeeId
     @Override
     public List<Employee> searchEmployeesByKeyword(String keyword) {
         return employeeRepository.searchByNameOrId(keyword);
@@ -72,6 +73,11 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public Page<Employee> searchEmployeesByKeyword(String keyword, Pageable pageable) {
         return employeeRepository.searchByNameOrId(keyword, pageable);
+    }
+
+    @Override
+    public Page<Employee> searchEmployeesByKeywordAndDepartment(String keyword, Long departmentId, Pageable pageable) {
+        return employeeRepository.searchByNameOrIdAndDepartment(keyword, departmentId, pageable);
     }
 
     @Override
@@ -105,11 +111,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public Page<Employee> searchEmployeesByKeywordAndDepartment(String keyword, Long departmentId, Pageable pageable) {
-        return employeeRepository.searchByNameOrIdAndDepartment(keyword, departmentId, pageable);
-    }
-
-    @Override
     public Page<Employee> getArchivedEmployeesByDepartment(Long departmentId, Pageable pageable) {
         return employeeRepository.findByIsActiveFalseAndPosition_Department_DepartmentId(departmentId, pageable);
     }
@@ -124,6 +125,12 @@ public class EmployeeServiceImpl implements EmployeeService {
         return employeeRepository.findByDepartmentId(departmentId);
     }
 
+    @Override
+    public List<Employee> getEmployeesByDepartmentId(Long departmentId) {
+        return getEmployeesByDepartment(departmentId);
+    }
+
+    // ✅ Helper method for mapping form data to entity
     private void mapFormToEmployee(EmployeeForm employeeForm, Employee employee, boolean isNew) {
         if (isNew && employeeForm.getUsername() != null && !employeeForm.getUsername().isEmpty()) {
             employee.setUsername(employeeForm.getUsername());
@@ -159,9 +166,5 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (isNew) {
             employee.setActive(true);
         }
-    }
-    @Override
-    public List<Employee> getEmployeesByDepartmentId(Long departmentId) {
-        return getEmployeesByDepartment(departmentId);
     }
 }

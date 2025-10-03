@@ -77,45 +77,51 @@ public class PayrollPageController {
     }
 
     // ==============================
-    // Search Employees
+    // Search Employees (real-time)
     // ==============================
     @GetMapping("/search")
-    public String searchEmployees(@RequestParam("keyword") String keyword,
+    public String searchEmployees(@RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
                                   @RequestParam(defaultValue = "0") int page,
                                   Model model,
-                                  HttpSession session) {
+                                  HttpSession session,
+                                  HttpServletRequest request) {
 
         String role = (String) session.getAttribute("role");
         Long departmentId = (Long) session.getAttribute("department_id");
 
-        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE, Sort.by("employeeId").descending());
         Page<Employee> employeesPage;
 
         if (("CLERK".equalsIgnoreCase(role) || "SITE_ADMIN".equalsIgnoreCase(role)) && departmentId != null) {
-            employeesPage = (keyword == null || keyword.trim().isEmpty())
+            employeesPage = keyword.isBlank()
                     ? payrollService.getEmployeesByDepartment(departmentId, pageable)
                     : employeeService.searchEmployeesByKeywordAndDepartment(keyword, departmentId, pageable);
         } else {
-            employeesPage = (keyword == null || keyword.trim().isEmpty())
+            employeesPage = keyword.isBlank()
                     ? employeeService.getAllEmployees(pageable)
                     : employeeService.searchEmployeesByKeyword(keyword, pageable);
         }
 
         List<Employee> employees = employeesPage.getContent();
-
-        for (Employee emp : employees) {
+        employees.forEach(emp -> {
             Payroll latestPayroll = payrollService.getLatestPayrollByEmployee(emp);
             if (latestPayroll != null) {
                 emp.setPayrollStatus(latestPayroll.getStatus());
                 emp.setLatestPayrollId(latestPayroll.getId());
             }
-        }
+        });
 
         model.addAttribute("employees", employees);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", employeesPage.getTotalPages());
         model.addAttribute("keyword", keyword);
         model.addAttribute("role", role);
+
+        // Check if it’s an AJAX request for real-time search
+        String requestedWith = request.getHeader("X-Requested-With");
+        if ("XMLHttpRequest".equalsIgnoreCase(requestedWith)) {
+            return "admin/payroll :: tbody"; // Return only the table body fragment
+        }
 
         return "admin/payroll";
     }
