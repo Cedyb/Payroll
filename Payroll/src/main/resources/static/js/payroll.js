@@ -99,9 +99,10 @@ document.addEventListener("DOMContentLoaded", function () {
       keyword: searchInput.value.trim(),
       departmentId: departmentDropdown.value,
       positionId: positionDropdown.value,
-      status: statusDropdown.value,
+      status: statusDropdown.value.toUpperCase(), // force uppercase
       page: page
     });
+
 
     fetch(`/payroll/filter?${params.toString()}`, {
       headers: { "X-Requested-With": "XMLHttpRequest" }
