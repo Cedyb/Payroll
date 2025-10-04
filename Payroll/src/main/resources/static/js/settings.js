@@ -1,79 +1,121 @@
-  document.addEventListener("DOMContentLoaded", function() {
-    // Add Earning
-    const addEarningForm = document.querySelector("#addEarningModal form");
-    addEarningForm.addEventListener("submit", function(e) {
-      e.preventDefault();
-      const name = addEarningForm.querySelector('input[name="name"]').value;
-      if(name) {
-        const container = document.getElementById("earningsContainer");
+document.addEventListener("DOMContentLoaded", function () {
 
-        const div = document.createElement("div");
-        div.classList.add("form-check", "d-flex", "align-items-center", "mb-1");
+  // ==========================
+  // Function to create checkbox with remove button
+  // ==========================
+  function createCheckbox(containerId, type, id, name) {
+    const container = document.getElementById(containerId);
+    const div = document.createElement("div");
+    div.classList.add("form-check", "d-flex", "align-items-center", "mb-1", "justify-content-between");
 
-        const input = document.createElement("input");
-        input.type = "checkbox";
-        input.classList.add("form-check-input");
-        input.name = "earnings";
-        input.id = "earning_" + name;
-        input.value = name;
+    const leftDiv = document.createElement("div");
+    leftDiv.classList.add("d-flex", "align-items-center");
 
-        const label = document.createElement("label");
-        label.classList.add("form-check-label", "ms-2");
-        label.htmlFor = "earning_" + name;
-        label.textContent = name;
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.classList.add("form-check-input");
+    input.name = type;
+    input.id = `${type}_${id}`;
+    input.value = id;
+
+    const label = document.createElement("label");
+    label.classList.add("form-check-label", "ms-2");
+    label.htmlFor = input.id;
+    label.textContent = name;
+
+    leftDiv.appendChild(input);
+    leftDiv.appendChild(label);
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.classList.add("btn", "btn-sm", "btn-danger", "remove-btn");
+    removeBtn.textContent = "X";
+    removeBtn.addEventListener("click", () => div.remove());
+
+    div.appendChild(leftDiv);
+    div.appendChild(removeBtn);
+    container.appendChild(div);
+  }
+
+  // ==========================
+  // Add remove buttons to existing checkboxes on page load
+  // ==========================
+  function addRemoveButtons(containerId) {
+    const container = document.getElementById(containerId);
+    container.querySelectorAll(".form-check").forEach(div => {
+      if (!div.querySelector(".remove-btn")) {
+        const leftDiv = document.createElement("div");
+        leftDiv.classList.add("d-flex", "align-items-center");
+
+        const input = div.querySelector("input");
+        const label = div.querySelector("label");
+
+        leftDiv.appendChild(input);
+        leftDiv.appendChild(label);
 
         const removeBtn = document.createElement("button");
         removeBtn.type = "button";
-        removeBtn.classList.add("btn", "btn-sm", "btn-danger", "ms-auto");
+        removeBtn.classList.add("btn", "btn-sm", "btn-danger", "remove-btn");
         removeBtn.textContent = "X";
         removeBtn.addEventListener("click", () => div.remove());
 
-        div.appendChild(input);
-        div.appendChild(label);
+        div.innerHTML = ""; // clear div
+        div.classList.add("d-flex", "align-items-center", "justify-content-between");
+        div.appendChild(leftDiv);
         div.appendChild(removeBtn);
-        container.appendChild(div);
+      }
+    });
+  }
 
+  addRemoveButtons("earningsContainer");
+  addRemoveButtons("deductionsContainer");
+
+  // ==========================
+  // Add Earning via AJAX
+  // ==========================
+  const addEarningForm = document.querySelector("#addEarningModal form");
+  addEarningForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const name = this.querySelector('input[name="name"]').value.trim();
+    const description = this.querySelector('input[name="description"]').value.trim();
+    if (!name) return;
+
+    fetch("/settings/add-earning-ajax", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, description }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        createCheckbox("earningsContainer", "earnings", data.id, data.name);
+        bootstrap.Modal.getInstance(document.getElementById("addEarningModal")).hide();
         addEarningForm.reset();
-        bootstrap.Modal.getInstance(document.getElementById('addEarningModal')).hide();
-      }
-    });
-
-    // Add Deduction
-    const addDeductionForm = document.querySelector("#addDeductionModal form");
-    addDeductionForm.addEventListener("submit", function(e) {
-      e.preventDefault();
-      const name = addDeductionForm.querySelector('input[name="name"]').value;
-      if(name) {
-        const container = document.getElementById("deductionsContainer");
-
-        const div = document.createElement("div");
-        div.classList.add("form-check", "d-flex", "align-items-center", "mb-1");
-
-        const input = document.createElement("input");
-        input.type = "checkbox";
-        input.classList.add("form-check-input");
-        input.name = "deductions";
-        input.id = "deduction_" + name;
-        input.value = name;
-
-        const label = document.createElement("label");
-        label.classList.add("form-check-label", "ms-2");
-        label.htmlFor = "deduction_" + name;
-        label.textContent = name;
-
-        const removeBtn = document.createElement("button");
-        removeBtn.type = "button";
-        removeBtn.classList.add("btn", "btn-sm", "btn-danger", "ms-auto");
-        removeBtn.textContent = "X";
-        removeBtn.addEventListener("click", () => div.remove());
-
-        div.appendChild(input);
-        div.appendChild(label);
-        div.appendChild(removeBtn);
-        container.appendChild(div);
-
-        addDeductionForm.reset();
-        bootstrap.Modal.getInstance(document.getElementById('addDeductionModal')).hide();
-      }
-    });
+      })
+      .catch(err => console.error(err));
   });
+
+  // ==========================
+  // Add Deduction via AJAX
+  // ==========================
+  const addDeductionForm = document.querySelector("#addDeductionModal form");
+  addDeductionForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const name = this.querySelector('input[name="name"]').value.trim();
+    const description = this.querySelector('textarea[name="description"]').value.trim();
+    if (!name) return;
+
+    fetch("/settings/add-deduction-ajax", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, description }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        createCheckbox("deductionsContainer", "deductions", data.id, data.name);
+        bootstrap.Modal.getInstance(document.getElementById("addDeductionModal")).hide();
+        addDeductionForm.reset();
+      })
+      .catch(err => console.error(err));
+  });
+
+});
