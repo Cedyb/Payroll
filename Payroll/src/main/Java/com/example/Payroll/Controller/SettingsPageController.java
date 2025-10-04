@@ -83,4 +83,25 @@ public class SettingsPageController {
         return response;
     }
 
+    @PostMapping("/deactivate/{type}/{id}")
+    @ResponseBody
+    public Map<String, Object> deactivateSetting(@PathVariable String type, @PathVariable Long id, @RequestBody Map<String, Object> payload) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            boolean active = (boolean) payload.get("active"); // should be false
+            Settings setting = settingsService.getSettingById(id);
+            if(setting != null && setting.getType().equalsIgnoreCase(type)) {
+                setting.setIsActive(active);
+                settingsService.saveSetting(setting);
+                response.put("success", true);
+            } else {
+                response.put("success", false);
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+        }
+        return response;
+    }
+
+
 }

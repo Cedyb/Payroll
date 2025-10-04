@@ -12,4 +12,6 @@ public interface SettingsService {
     Settings saveSetting(Settings setting);
     List<Settings> getActiveEarnings();
     List<Settings> getActiveDeductions();
+
+    Settings getSettingById(Long id);
 }

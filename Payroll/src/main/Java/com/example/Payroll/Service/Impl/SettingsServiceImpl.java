@@ -45,4 +45,10 @@ public class SettingsServiceImpl implements SettingsService {
     public List<Settings> getActiveDeductions() {
         return settingsRepository.findByTypeAndIsActiveTrue("DEDUCTION");
     }
+
+    @Override
+    public Settings getSettingById(Long id) {
+        return settingsRepository.findById(id).orElse(null);
+    }
+
 }

@@ -30,7 +30,19 @@ document.addEventListener("DOMContentLoaded", function () {
     removeBtn.type = "button";
     removeBtn.classList.add("btn", "btn-sm", "btn-danger", "remove-btn");
     removeBtn.textContent = "X";
-    removeBtn.addEventListener("click", () => div.remove());
+    removeBtn.addEventListener("click", () => {
+      fetch(`/settings/deactivate/${type}/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: false })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) div.remove();
+        else console.error("Failed to deactivate " + type);
+      })
+      .catch(err => console.error(err));
+    });
 
     div.appendChild(leftDiv);
     div.appendChild(removeBtn);
@@ -40,26 +52,37 @@ document.addEventListener("DOMContentLoaded", function () {
   // ==========================
   // Add remove buttons to existing checkboxes on page load
   // ==========================
-  function addRemoveButtons(containerId) {
+  function addRemoveButtons(containerId, type) {
     const container = document.getElementById(containerId);
     container.querySelectorAll(".form-check").forEach(div => {
       if (!div.querySelector(".remove-btn")) {
-        const leftDiv = document.createElement("div");
-        leftDiv.classList.add("d-flex", "align-items-center");
-
         const input = div.querySelector("input");
         const label = div.querySelector("label");
 
+        const leftDiv = document.createElement("div");
+        leftDiv.classList.add("d-flex", "align-items-center");
         leftDiv.appendChild(input);
         leftDiv.appendChild(label);
 
+        const id = input.value;
         const removeBtn = document.createElement("button");
         removeBtn.type = "button";
         removeBtn.classList.add("btn", "btn-sm", "btn-danger", "remove-btn");
         removeBtn.textContent = "X";
-        removeBtn.addEventListener("click", () => div.remove());
+        removeBtn.addEventListener("click", () => {
+          fetch(`/settings/deactivate/${type}/${id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ active: false })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) div.remove();
+          })
+          .catch(err => console.error(err));
+        });
 
-        div.innerHTML = ""; // clear div
+        div.innerHTML = "";
         div.classList.add("d-flex", "align-items-center", "justify-content-between");
         div.appendChild(leftDiv);
         div.appendChild(removeBtn);
@@ -67,8 +90,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  addRemoveButtons("earningsContainer");
-  addRemoveButtons("deductionsContainer");
+  addRemoveButtons("earningsContainer", "EARNING");
+  addRemoveButtons("deductionsContainer", "DEDUCTION");
 
   // ==========================
   // Add Earning via AJAX
@@ -85,13 +108,13 @@ document.addEventListener("DOMContentLoaded", function () {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, description }),
     })
-      .then(res => res.json())
-      .then(data => {
-        createCheckbox("earningsContainer", "earnings", data.id, data.name);
-        bootstrap.Modal.getInstance(document.getElementById("addEarningModal")).hide();
-        addEarningForm.reset();
-      })
-      .catch(err => console.error(err));
+    .then(res => res.json())
+    .then(data => {
+      createCheckbox("earningsContainer", "EARNING", data.id, data.name);
+      bootstrap.Modal.getInstance(document.getElementById("addEarningModal")).hide();
+      addEarningForm.reset();
+    })
+    .catch(err => console.error(err));
   });
 
   // ==========================
@@ -109,13 +132,13 @@ document.addEventListener("DOMContentLoaded", function () {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, description }),
     })
-      .then(res => res.json())
-      .then(data => {
-        createCheckbox("deductionsContainer", "deductions", data.id, data.name);
-        bootstrap.Modal.getInstance(document.getElementById("addDeductionModal")).hide();
-        addDeductionForm.reset();
-      })
-      .catch(err => console.error(err));
+    .then(res => res.json())
+    .then(data => {
+      createCheckbox("deductionsContainer", "DEDUCTION", data.id, data.name);
+      bootstrap.Modal.getInstance(document.getElementById("addDeductionModal")).hide();
+      addDeductionForm.reset();
+    })
+    .catch(err => console.error(err));
   });
 
 });
