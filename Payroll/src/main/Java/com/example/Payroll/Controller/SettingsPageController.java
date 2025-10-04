@@ -1,13 +1,18 @@
 package com.example.Payroll.Controller;
 
+import com.example.Payroll.Entity.PayslipConfig;
+import com.example.Payroll.Entity.Positions;
 import com.example.Payroll.Entity.Settings;
+import com.example.Payroll.Service.PayslipConfigService;
 import com.example.Payroll.Service.SettingsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -15,9 +20,12 @@ import java.util.Map;
 public class SettingsPageController {
 
     private final SettingsService settingsService;
+    private final PayslipConfigService payslipConfigService;
 
-    public SettingsPageController(SettingsService settingsService) {
+    public SettingsPageController(SettingsService settingsService,
+    PayslipConfigService payslipConfigService) {
         this.settingsService = settingsService;
+        this.payslipConfigService = payslipConfigService;
     }
 
     @RequestMapping("")
@@ -26,14 +34,26 @@ public class SettingsPageController {
         model.addAttribute("positions", settingsService.getDistinctPositions());
 
         // Add Config modal only shows distinct active positions
-        model.addAttribute("activePositions", settingsService.getDistinctActivePositions());
+        List<Positions> activePositions = settingsService.getDistinctActivePositions();
+        model.addAttribute("activePositions", activePositions);
+
+        // Get list of positions that already have a payslip configuration
+        List<Long> configuredPositionIds = payslipConfigService.getAllConfigurations()
+                .stream()
+                .map(conf -> conf.getPosition().getPositionId())
+                .toList();
+        model.addAttribute("configuredPositionIds", configuredPositionIds);
 
         // Earnings & Deductions lists for display in modal
         model.addAttribute("earningsList", settingsService.getActiveEarnings());
         model.addAttribute("deductionsList", settingsService.getActiveDeductions());
 
+        // Add saved payslip configurations
+        model.addAttribute("payslipConfigs", payslipConfigService.getAllConfigurations());
+
         return "admin/settings";
     }
+
 
     @GetMapping("/add-config")
     public String showAddConfigModal(Model model) {
@@ -101,6 +121,36 @@ public class SettingsPageController {
             response.put("success", false);
         }
         return response;
+    }
+
+    @PostMapping("/config/add")
+    public String addPayslipConfig(
+            @RequestParam(required = false) List<Long> positions,
+            @RequestParam(required = false) List<Long> earnings,
+            @RequestParam(required = false) List<Long> deductions,
+            RedirectAttributes redirectAttributes) {
+
+        // Initialize empty lists if null
+        if (positions == null) positions = new ArrayList<>();
+        if (earnings == null) earnings = new ArrayList<>();
+        if (deductions == null) deductions = new ArrayList<>();
+
+        payslipConfigService.saveConfiguration(positions, earnings, deductions);
+        redirectAttributes.addFlashAttribute("success", "Configuration saved successfully!");
+        return "redirect:/settings";
+    }
+
+    @GetMapping("/config/get/{id}")
+    @ResponseBody
+    public Map<String, Object> getConfig(@PathVariable Long id) {
+        PayslipConfig config = payslipConfigService.getById(id);
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", config.getId());
+        map.put("positionId", config.getPosition().getPositionId());
+        map.put("positionTitle", config.getPosition().getTitle());
+        map.put("earnings", config.getEarnings().stream().map(Settings::getId).toList());
+        map.put("deductions", config.getDeductions().stream().map(Settings::getId).toList());
+        return map;
     }
 
 
