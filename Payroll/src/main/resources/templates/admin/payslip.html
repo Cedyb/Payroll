@@ -106,60 +106,30 @@
                         </tr>
                         </thead>
                         <tbody>
+                        <!-- Basic Pay - Laging visible -->
                         <tr>
                             <td>Basic Pay</td>
                             <td><input type="number" name="basicPay" class="form-control" th:value="${payroll.basicPay}" readonly></td>
-                            <td>Savings</td>
-                            <td><input type="number" name="savings" class="form-control editable-input" th:value="${payroll.savings}" disabled></td>
-                        </tr>
-                        <tr>
-                            <td>Regular OT</td>
-                            <td><input type="number" name="otPay" class="form-control editable-input" th:value="${payroll.otPay}" disabled></td>
-                            <td>SSS</td>
-                            <td><input type="number" name="sss" class="form-control editable-input" th:value="${payroll.sss}" disabled></td>
-                        </tr>
-                        <tr>
-                            <td>Leave</td>
-                            <td><input type="number" name="leavePay" class="form-control editable-input" th:value="${payroll.leavePay}" disabled></td>
-                            <td>PhilHealth</td>
-                            <td><input type="number" name="philhealth" class="form-control editable-input" th:value="${payroll.philhealth}" disabled></td>
-                        </tr>
-                        <tr>
-                            <td>Regular Holiday</td>
-                            <td><input type="number" name="regularHolidayPay" class="form-control editable-input" th:value="${payroll.regularHolidayPay}" disabled></td>
-                            <td>Pag-IBIG</td>
-                            <td><input type="number" name="pagibig" class="form-control editable-input" th:value="${payroll.pagibig}" disabled></td>
-                        </tr>
-                        <tr>
-                            <td>Special Holiday</td>
-                            <td><input type="number" name="specialHolidayPay" class="form-control editable-input" th:value="${payroll.specialHolidayPay}" disabled></td>
-                            <td>Canteen</td>
-                            <td><input type="number" name="canteen" class="form-control editable-input" th:value="${payroll.canteen}" disabled></td>
-                        </tr>
-                        <tr>
-                            <td>COLA</td>
-                            <td><input type="number" name="colaAllowance" class="form-control editable-input" th:value="${payroll.colaAllowance}" disabled></td>
-                            <td>Cash Advance</td>
-                            <td><input type="number" name="cashAdvance" class="form-control editable-input" th:value="${payroll.cashAdvance}" disabled></td>
-                        </tr>
-                        <tr>
-                            <td>Allowance</td>
-                            <td><input type="number" name="allowance" class="form-control editable-input" th:value="${payroll.allowance}" disabled></td>
-                            <td>Medical</td>
-                            <td><input type="number" name="medical" class="form-control editable-input" th:value="${payroll.medical}" disabled></td>
-                        </tr>
-                        <tr>
-                            <td>Adjustment</td>
-                            <td><input type="number" name="adjustment" class="form-control editable-input" th:value="${payroll.adjustment}" disabled></td>
-                            <td>Insurance</td>
-                            <td><input type="number" name="insurance" class="form-control editable-input" th:value="${payroll.insurance}" disabled></td>
-                        </tr>
-                        <tr>
                             <td></td>
                             <td></td>
-                            <td>Utilities</td>
-                            <td><input type="number" name="utilities" class="form-control editable-input" th:value="${payroll.utilities}" disabled></td>
                         </tr>
+
+                        <!-- Earnings Dynamic -->
+                        <tr th:each="field : ${visibleFields}">
+                            <!-- Earnings column -->
+                            <td th:if="${#lists.contains(earningFields, field)}" th:text="${payrollLabels[field]}"></td>
+                            <td th:if="${#lists.contains(earningFields, field)}">
+                                <input type="number" th:name="${field}" class="form-control editable-input" th:value="${payroll[field]}">
+                            </td>
+
+                            <!-- Deductions column -->
+                            <td th:if="${#lists.contains(deductionFields, field)}" th:text="${payrollLabels[field]}"></td>
+                            <td th:if="${#lists.contains(deductionFields, field)}">
+                                <input type="number" th:name="${field}" class="form-control editable-input" th:value="${payroll[field]}">
+                            </td>
+                        </tr>
+
+                        <!-- Totals -->
                         <tr class="fw-bold">
                             <td>Gross Pay</td>
                             <td><input type="number" name="subtotal" class="form-control" readonly></td>
@@ -172,6 +142,7 @@
                         </tr>
                         </tbody>
                     </table>
+
                 </div>
                 <button type="submit"
                         class="btn btn-success"

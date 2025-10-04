@@ -17,8 +17,16 @@ public class AuditLogServiceImpl implements AuditLogService {
 
     @Override
     public void logAction(Employee user, String action, String details, HttpServletRequest request) {
+        // Skip logging if no DB-backed user
+        if (user == null || user.getEmployeeId() == null) {
+            // Optionally: log to console instead of DB
+            System.out.printf("[AUDIT][SYSTEM] Action=%s, Details=%s, IP=%s%n",
+                    action, details, request.getRemoteAddr());
+            return;
+        }
+
         AuditLog log = AuditLog.builder()
-                .user(user)
+                .user(user)  // safe, because user is from DB
                 .action(action)
                 .details(details)
                 .ipAddress(request.getRemoteAddr())

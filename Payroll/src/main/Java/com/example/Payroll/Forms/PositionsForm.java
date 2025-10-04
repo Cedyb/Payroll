@@ -39,9 +39,7 @@ public class PositionsForm {
         this.hourlyRate = hourlyRate;
     }
 
-    public Boolean isActive() {
-        return active;
-    }
+    public Boolean isActive() {return active;}
 
     public void setActive(Boolean active) {
         this.active = active;
