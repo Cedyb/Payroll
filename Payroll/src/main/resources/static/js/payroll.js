@@ -163,7 +163,7 @@ document.addEventListener("DOMContentLoaded", function () {
   if (statusDropdown) statusDropdown.addEventListener("change", () => fetchFilteredEmployees(0));
 
   // ==========================
-  // Department -> Position dependent dropdown
+  // Department -> Position dependent dropdown + filter
   // ==========================
   function loadPositions(deptId) {
     positionDropdown.innerHTML = '<option value="">All Positions</option>';
@@ -191,7 +191,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
   if (departmentDropdown) {
     departmentDropdown.addEventListener("change", function () {
-      loadPositions(departmentDropdown.value);
+      const deptId = this.value;
+
+      // Load positions for this department
+      loadPositions(deptId);
+
+      // Reset position to "All Positions"
+      positionDropdown.value = "";
+
+      // Fetch filtered employees for new department
       fetchFilteredEmployees(0);
     });
   }

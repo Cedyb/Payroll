@@ -35,9 +35,8 @@ public class Positions {
     private Integer hourlyRate;
 
     @Column(name = "is_active")
-    private boolean isActive;
+    public boolean isActive;
 
-    public Boolean getIsActive() {
-        return isActive;
+    public Object isActive() {return isActive;
     }
 }

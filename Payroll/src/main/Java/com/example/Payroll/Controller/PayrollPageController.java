@@ -78,11 +78,13 @@ public class PayrollPageController {
             Map<String, Object> map = new HashMap<>();
             map.put("id", pos.getPositionId());
             map.put("title", pos.getTitle());
+            map.put("active", pos.isActive()); // <-- added active field
             result.add(map);
         }
 
         return result;
     }
+
 
 
     // ==============================
