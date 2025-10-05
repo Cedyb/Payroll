@@ -164,6 +164,16 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
+    public List<Positions> getDistinctActivePositions() {
+        return positionsRepository.findDistinctActivePositions();
+    }
+
+    @Override
+    public List<Positions> getActivePositionsByDepartment(Long departmentId) {
+        return positionsRepository.findDistinctActivePositionsByDepartment(departmentId);
+    }
+
+    @Override
     public Page<Employee> filterEmployees(String keyword, Long departmentId, Long positionId, String status,
                                           String role, Long sessionDeptId, Pageable pageable) {
 

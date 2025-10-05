@@ -53,7 +53,7 @@ public class PayrollPageController {
         model.addAttribute("totalPages", employeesPage.getTotalPages());
         model.addAttribute("role", session.getAttribute("role"));
         model.addAttribute("departments", employeeService.getAllDepartments());
-        model.addAttribute("positions", employeeService.getAllPositions());
+        model.addAttribute("positions", employeeService.getDistinctActivePositions());
 
         return "admin/payroll";
     }
@@ -67,16 +67,12 @@ public class PayrollPageController {
         List<Positions> positions;
 
         if (departmentId == null) {
-            positions = employeeService.getAllPositions();
-            Map<String, Positions> uniquePositions = new LinkedHashMap<>();
-            for (Positions pos : positions) {
-                uniquePositions.putIfAbsent(pos.getTitle(), pos);
-            }
-            positions = new ArrayList<>(uniquePositions.values());
+            positions = employeeService.getDistinctActivePositions();
         } else {
-            positions = employeeService.getPositionsByDepartment(departmentId);
+            positions = employeeService.getActivePositionsByDepartment(departmentId);
         }
 
+        // Convert to JSON
         List<Map<String, Object>> result = new ArrayList<>();
         for (Positions pos : positions) {
             Map<String, Object> map = new HashMap<>();
@@ -87,6 +83,7 @@ public class PayrollPageController {
 
         return result;
     }
+
 
     // ==============================
     // AJAX: Filter Employees

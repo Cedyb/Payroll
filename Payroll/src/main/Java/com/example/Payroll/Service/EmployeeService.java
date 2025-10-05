@@ -1,6 +1,7 @@
 package com.example.Payroll.Service;
 
 import com.example.Payroll.Entity.Employee;
+import com.example.Payroll.Entity.Positions;
 import com.example.Payroll.Forms.EmployeeForm;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -52,6 +53,7 @@ public interface EmployeeService {
     // Filter employees by keyword, department, position, and status
     Page<Employee> filterEmployees(String keyword, Long departmentId, Long positionId, String status, String role, Long sessionDeptId, Pageable pageable);
 
-
+    List<Positions> getDistinctActivePositions();
+    List<Positions> getActivePositionsByDepartment(Long departmentId);
 
 }

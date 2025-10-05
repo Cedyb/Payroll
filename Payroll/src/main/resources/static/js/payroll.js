@@ -165,29 +165,40 @@ document.addEventListener("DOMContentLoaded", function () {
   // ==========================
   // Department -> Position dependent dropdown
   // ==========================
+  function loadPositions(deptId) {
+    positionDropdown.innerHTML = '<option value="">All Positions</option>';
+
+    const url = deptId ? `/payroll/positions?departmentId=${deptId}` : `/payroll/positions`;
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        const uniquePositions = new Map();
+        data.forEach(pos => {
+          if (pos.active && !uniquePositions.has(pos.title)) {
+            uniquePositions.set(pos.title, pos.id);
+          }
+        });
+
+        uniquePositions.forEach((id, title) => {
+          const option = document.createElement("option");
+          option.value = id;
+          option.textContent = title;
+          positionDropdown.appendChild(option);
+        });
+      })
+      .catch(err => console.error("Position fetch error:", err));
+  }
+
   if (departmentDropdown) {
     departmentDropdown.addEventListener("change", function () {
-      const deptId = departmentDropdown.value;
-      positionDropdown.innerHTML = '<option value="">All Positions</option>';
-
-      const url = deptId ? `/payroll/positions?departmentId=${deptId}` : `/payroll/positions`;
-      fetch(url)
-        .then(res => res.json())
-        .then(data => {
-          data.forEach(pos => {
-            const option = document.createElement("option");
-            option.value = pos.id;
-            option.textContent = pos.title;
-            positionDropdown.appendChild(option);
-          });
-          fetchFilteredEmployees(0); // refresh table
-        })
-        .catch(err => console.error("Position fetch error:", err));
+      loadPositions(departmentDropdown.value);
+      fetchFilteredEmployees(0);
     });
   }
 
   // ==========================
   // Initial fetch
   // ==========================
+  loadPositions(departmentDropdown ? departmentDropdown.value : "");
   fetchFilteredEmployees(0);
 });

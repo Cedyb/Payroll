@@ -36,4 +36,8 @@ public class Positions {
 
     @Column(name = "is_active")
     private boolean isActive;
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
 }

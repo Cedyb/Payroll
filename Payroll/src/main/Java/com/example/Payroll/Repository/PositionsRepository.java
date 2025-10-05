@@ -31,4 +31,17 @@ public interface PositionsRepository extends JpaRepository<Positions, Long> {
             "   SELECT MIN(p2.positionId) FROM Positions p2 WHERE p2.isActive = true GROUP BY p2.title" +
             ") ORDER BY p.title ASC")
     List<Positions> findDistinctActivePositions();
+
+    @Query("SELECT p FROM Positions p " +
+            "WHERE p.isActive = true AND p.department.departmentId = :departmentId AND p.positionId IN (" +
+            "   SELECT MIN(p2.positionId) FROM Positions p2 WHERE p2.isActive = true AND p2.department.departmentId = :departmentId GROUP BY p2.title" +
+            ") ORDER BY p.title ASC")
+    List<Positions> findActivePositionsByDepartment(Long departmentId);
+
+    @Query("SELECT p FROM Positions p " +
+            "WHERE p.isActive = true AND p.department.departmentId = :departmentId AND p.positionId IN (" +
+            "   SELECT MIN(p2.positionId) FROM Positions p2 WHERE p2.isActive = true AND p2.department.departmentId = :departmentId GROUP BY p2.title" +
+            ") ORDER BY p.title ASC")
+    List<Positions> findDistinctActivePositionsByDepartment(Long departmentId);
+
 }
