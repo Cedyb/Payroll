@@ -33,26 +33,33 @@ public class SettingsPageController {
         // Positions table shows distinct positions (active/inactive)
         model.addAttribute("positions", settingsService.getDistinctPositions());
 
-        // Add Config modal only shows distinct active positions
+        // Active positions for modal
         List<Positions> activePositions = settingsService.getDistinctActivePositions();
         model.addAttribute("activePositions", activePositions);
 
-        // Get list of positions that already have a payslip configuration
+        // Already configured positions
         List<Long> configuredPositionIds = payslipConfigService.getAllConfigurations()
                 .stream()
                 .map(conf -> conf.getPosition().getPositionId())
                 .toList();
         model.addAttribute("configuredPositionIds", configuredPositionIds);
 
-        // Earnings & Deductions lists for display in modal
+        // Earnings & Deductions lists
         model.addAttribute("earningsList", settingsService.getActiveEarnings());
         model.addAttribute("deductionsList", settingsService.getActiveDeductions());
 
-        // Add saved payslip configurations
-        model.addAttribute("payslipConfigs", payslipConfigService.getAllConfigurations());
+        // --- Group by position title for table display ---
+        List<PayslipConfig> allConfigs = payslipConfigService.getAllConfigurations();
+        Map<String, PayslipConfig> uniqueConfigs = new HashMap<>();
+        for (PayslipConfig conf : allConfigs) {
+            String title = conf.getPosition().getTitle();
+            uniqueConfigs.putIfAbsent(title, conf); // keep only the first config per title
+        }
+        model.addAttribute("payslipConfigs", uniqueConfigs.values());
 
         return "admin/settings";
     }
+
 
 
     @GetMapping("/add-config")

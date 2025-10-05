@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface PayslipConfigRepository extends JpaRepository<PayslipConfig, Long> {
     List<PayslipConfig> findByPosition(Positions position);
+    boolean existsByPosition(Positions position);
 }

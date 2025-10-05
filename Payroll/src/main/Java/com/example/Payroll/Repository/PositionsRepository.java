@@ -44,4 +44,5 @@ public interface PositionsRepository extends JpaRepository<Positions, Long> {
             ") ORDER BY p.title ASC")
     List<Positions> findDistinctActivePositionsByDepartment(Long departmentId);
 
+    List<Positions> findByTitle(String title);
 }
