@@ -16,46 +16,31 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 th:text="${dashboardTitle}">Admin Dashboard</h2>
         <span class="text-muted">
-            Welcome, <span th:text="${employee.fullName}">User</span>
+            Welcome, <span th:text="${employee != null ? employee.fullName : 'User'}">User</span>
         </span>
     </div>
 
     <!-- Top Cards -->
     <div class="row g-4 mb-4">
-        <!-- Total Employees -->
-        <div class="col-md-3">
+        <!-- Total Employees (Analytics Card) -->
+        <div class="col-md-6">
             <div class="dashboard-card text-center">
-                <!-- Header -->
                 <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
                     <i class="bi bi-people-fill fs-3"></i>
                     <h5 class="mb-0">Total Employees</h5>
-                    <p class="fs-4 fw-bold" th:text="${employeeCount}">0</p>
                 </div>
-
-                <!-- Total count -->
-
-
-                <!-- Scrollable Breakdown -->
-                <div class="mt-2" style="max-height: 6rem; overflow-y: auto;">
-                    <ul class="list-unstyled small mb-0">
-                        <li th:each="entry : ${departmentBreakdown.entrySet()}"
-                            th:text="${entry.key + ' - ' + entry.value}">
-                        </li>
-                    </ul>
-                </div>
+                <p class="fs-4 fw-bold" th:text="${employeeCount}">0</p>
+                <canvas id="employeeBarChart" style="max-height: 200px;"></canvas>
             </div>
         </div>
-
 
         <!-- Departments -->
         <div class="col-md-3">
             <div class="dashboard-card text-center">
-                <!-- Header -->
                 <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
                     <i class="bi bi-building fs-3"></i>
                     <h5 class="mb-0">Departments</h5>
                 </div>
-                <!-- Scrollable List (max 3 items visible) -->
                 <div class="mt-2" style="max-height: 4.8rem; overflow-y: auto;">
                     <ul class="list-unstyled mb-0">
                         <li th:each="dept : ${departments}" th:text="${dept.name}"></li>
@@ -63,6 +48,7 @@
                 </div>
             </div>
         </div>
+
         <!-- Attendance Today -->
         <div class="col-md-3">
             <div class="dashboard-card text-center">
@@ -73,18 +59,137 @@
                 <p class="fs-4 fw-bold">0</p>
             </div>
         </div>
+    </div>
 
-        <!-- Overtime -->
-        <div class="col-md-3">
+    <!-- Compensation Status -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
             <div class="dashboard-card text-center">
-                <div class="d-flex align-items-center justify-content-center gap-2">
-                    <i class="bi bi-clock-history fs-3"></i>
-                    <h5 class="mb-0">Overtime Hours</h5>
+                <div class="d-flex justify-content-between align-items-center mb-2 px-3">
+                    <h5 class="mb-0">Compensation Status</h5>
+                    <select id="departmentSelect" class="form-select w-50">
+                        <option th:each="dept : ${departments}" th:value="${dept.departmentId}" th:text="${dept.name}"></option>
+                    </select>
                 </div>
-                <p class="fs-4 fw-bold">0</p>
+                <canvas id="compensationChart" style="max-height: 250px;"></canvas>
             </div>
         </div>
     </div>
+
 </main>
+
+<!-- JS Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Employee Bar Chart -->
+<script th:inline="javascript">
+    /* <![CDATA[ */
+    const departmentData = /*[[${departmentBreakdown}]]*/ {};
+    const labels = Object.keys(departmentData);
+    const counts = Object.values(departmentData);
+
+    const ctx = document.getElementById('employeeBarChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Employees per Department',
+                data: counts,
+                backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                borderColor: 'rgba(13, 110, 253, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.parsed.y + ' employees';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: { beginAtZero: true, precision: 0 }
+            }
+        }
+    });
+    /* ]]> */
+</script>
+
+<!-- Compensation Status Donut Chart -->
+<script th:inline="javascript">
+    /* <![CDATA[ */
+    let ctxComp = document.getElementById('compensationChart').getContext('2d');
+    let compensationChart;
+
+    // Always show all statuses (even when count is 0)
+    const statusLabels = ['Pending', 'Generated', 'Approved'];
+    const statusColors = {
+        'Pending': '#808080',
+        'Generated': '#ffff00',
+        'Approved': '#00ff00'
+    };
+
+    function loadCompensationChart(deptId) {
+        $.ajax({
+            url: '/dashboard/compensation-status',
+            type: 'GET',
+            data: { departmentId: deptId },
+            success: function(data) {
+                // Fill missing statuses with 0
+                const values = statusLabels.map(label => data[label] || 0);
+                const colors = statusLabels.map(label => statusColors[label]);
+
+                if (compensationChart) compensationChart.destroy();
+
+                compensationChart = new Chart(ctxComp, {
+                    type: 'doughnut',
+                    data: {
+                        labels: statusLabels,
+                        datasets: [{
+                            data: values,
+                            backgroundColor: colors,
+                            borderColor: colors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.raw || 0;
+                                        const total = context.chart._metasets[0].total || 1;
+                                        const percentage = ((value / total) * 100).toFixed(1);
+                                        return ${label}: ${value} (${percentage}%);
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '50%'
+                    }
+                });
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        loadCompensationChart($('#departmentSelect').val());
+        $('#departmentSelect').change(function() {
+            loadCompensationChart($(this).val());
+        });
+    });
+    /* ]]> */
+</script>
+
 </body>
 </html>

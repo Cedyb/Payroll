@@ -1,5 +1,8 @@
 $(document).ready(function () {
+
+    // ==========================
     // Update button
+    // ==========================
     $('.js-positions-update').on('click', function (e) {
         if ($(this).hasClass('readonly')) return; // block readonly
         e.preventDefault();
@@ -18,7 +21,9 @@ $(document).ready(function () {
         updateModal.show();
     });
 
+    // ==========================
     // Delete button
+    // ==========================
     $('.js-positions-delete').on('click', function () {
         if ($(this).hasClass('readonly')) return; // block readonly
 
@@ -28,11 +33,44 @@ $(document).ready(function () {
         }
     });
 
+    // ==========================
     // Add Position button
+    // ==========================
     $('#openModalBtn').on('click', function (e) {
         if ($(this).hasClass('readonly')) {
             e.preventDefault(); // block modal opening
             return;
         }
     });
+
+    // ==========================
+    // Filtering function
+    // ==========================
+    function filterPositions() {
+        const title = $('#searchTitle').val().toLowerCase().trim();
+        const deptId = $('#searchDepartment').val();
+
+        $('table tbody tr').each(function () {
+            const row = $(this);
+
+            const rowTitle = row.find('td:nth-child(2)').text().toLowerCase().trim(); // title column
+            const rowDept = row.find('td:nth-child(3)').attr('data-id') || '';           // department data-id
+
+            const matchesTitle = title === '' || rowTitle.includes(title);
+            const matchesDept = deptId === '' || rowDept === deptId;
+
+            if (matchesTitle && matchesDept) {
+                row.show();
+            } else {
+                row.hide();
+            }
+        });
+    }
+
+    // ==========================
+    // Live filtering events
+    // ==========================
+    $('#searchTitle').on('input', filterPositions);
+    $('#searchDepartment').on('change', filterPositions);
+
 });

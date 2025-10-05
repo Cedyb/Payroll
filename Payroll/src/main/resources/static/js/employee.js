@@ -1,16 +1,19 @@
 $(document).ready(function () {
 
-
+    // ==========================
+    // Open Add Employee Modal
+    // ==========================
     $('#openModalBtn').on('click', function () {
         const myModal = new bootstrap.Modal(document.getElementById('myModal'));
         myModal.show();
     });
 
-
+    // ==========================
+    // Retrieve positions based on department
+    // ==========================
     function getPositions(departmentId, dropdownSelector, selectedPositionId = null, includeAll = false) {
         const dropdown = $(dropdownSelector);
         dropdown.empty();
-
 
         if (includeAll) {
             dropdown.append('<option value="">All Positions</option>');
@@ -38,23 +41,40 @@ $(document).ready(function () {
                     }
                 });
 
-
                 if (selectedPositionId) dropdown.val(String(selectedPositionId));
             }
         });
     }
 
-
+    // ==========================
+    // Cascading dropdowns
+    // ==========================
     $('#departmentAddDropdown').on('change', function () {
         getPositions($(this).val(), '#positionAddDropdown');
     });
-
 
     $('#departmentUpdateDropdown').on('change', function () {
         getPositions($(this).val(), '#positionUpdateDropdown');
     });
 
+    $('#searchDepartment').on('change', function () {
+        const deptId = $(this).val();
+        getPositions(deptId, '#searchPosition', null, true); // include "All Positions"
+        if (!deptId) $('#searchPosition').val(''); // reset position if no department selected
+        filterEmployees(); // live filter
+    });
 
+    $('#searchPosition').on('change', function () {
+        filterEmployees(); // live filter
+    });
+
+    $('#searchName').on('input', function () {
+        filterEmployees(); // live filter
+    });
+
+    // ==========================
+    // Open Update Employee Modal
+    // ==========================
     $(document).on('click', '.js-employee-update', function () {
         const row = $(this).closest('tr');
 
@@ -68,8 +88,8 @@ $(document).ready(function () {
         $('#phoneUpdate').val(row.find('.emp-phone').text().trim());
         $('#hireDateUpdate').val(row.find('.emp-hiredate').text().trim());
 
-        const departmentId = row.find('.emp-departmentid').data('id')?.toString() || '';
-        const positionId = row.find('.emp-positionid').data('id')?.toString() || '';
+        const departmentId = row.find('.emp-departmentid').attr('data-id') || '';
+        const positionId = row.find('.emp-positionid').attr('data-id') || '';
         const systemRole = row.find('.emp-system-role').text().trim();
 
         $('#departmentUpdateDropdown').val(departmentId);
@@ -80,7 +100,9 @@ $(document).ready(function () {
         modal.show();
     });
 
-
+    // ==========================
+    // Delete Employee
+    // ==========================
     $(document).on('click', '.js-employee-delete', function () {
         const id = $(this).data('id');
         if (confirm('Are you sure you want to delete this employee?')) {
@@ -88,40 +110,30 @@ $(document).ready(function () {
         }
     });
 
-
-    $('#searchDepartment').on('change', function () {
-        const deptId = $(this).val();
-        getPositions(deptId, '#searchPosition', null, true); // include "All Positions"
-    });
-
-
-    $('#searchBtn').on('click', function () {
+    // ==========================
+    // Employee Filtering Function
+    // ==========================
+    function filterEmployees() {
         const name = $('#searchName').val().toLowerCase().trim();
         const deptId = $('#searchDepartment').val();
         const posId = $('#searchPosition').val();
 
         $('table tbody tr').each(function () {
             const row = $(this);
-            const rowName = (row.find('.emp-firstname').text() + " " + row.find('.emp-lastname').text()).toLowerCase().trim();
-            const rowDept = row.find('.emp-departmentid').data('id')?.toString() || '';
-            const rowPos = row.find('.emp-positionid').data('id')?.toString() || '';
 
-            if ((rowName.includes(name) || name === '') &&
-                (rowDept === deptId || deptId === '') &&
-                (rowPos === posId || posId === '')) {
+            const rowName = (row.find('.emp-firstname').text() + " " + row.find('.emp-lastname').text()).toLowerCase().trim();
+            const rowDept = row.find('.emp-departmentid').attr('data-id') || '';
+            const rowPos = row.find('.emp-positionid').attr('data-id') || '';
+
+            const matchesName = name === '' || rowName.includes(name);
+            const matchesDept = deptId === '' || rowDept === deptId;
+            const matchesPos = posId === '' || rowPos === posId;
+
+            if (matchesName && matchesDept && matchesPos) {
                 row.show();
             } else {
                 row.hide();
             }
         });
-    });
-
-
-    $('#searchName, #searchDepartment, #searchPosition').on('input change', function () {
-        if ($('#searchName').val() === '' &&
-            $('#searchDepartment').val() === '' &&
-            $('#searchPosition').val() === '') {
-            $('table tbody tr').show();
-        }
-    });
+    }
 });

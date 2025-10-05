@@ -1,13 +1,7 @@
 package com.example.Payroll.Controller;
 
-import com.example.Payroll.Entity.AttendanceLog;
-import com.example.Payroll.Entity.Employee;
-import com.example.Payroll.Entity.PayPeriod;
-import com.example.Payroll.Entity.Payroll;
-import com.example.Payroll.Repository.AttendanceLogRepository;
-import com.example.Payroll.Repository.EmployeeRepository;
-import com.example.Payroll.Repository.PayPeriodRepository;
-import com.example.Payroll.Repository.PayrollRepository;
+import com.example.Payroll.Entity.*;
+import com.example.Payroll.Repository.*;
 import com.example.Payroll.dto.AttendanceSummaryDTO;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +25,10 @@ public class PayslipPageController {
     private EmployeeRepository employeeRepository;
 
     @Autowired
+    private PayslipConfigRepository payslipConfigRepository; // add this
+
+
+    @Autowired
     private PayPeriodRepository payPeriodRepository;
 
     @Autowired
@@ -52,7 +50,24 @@ public class PayslipPageController {
         Employee employee = employeeRepository.findByEmployeeId(employeeId)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
 
+        PayslipConfig config = payslipConfigRepository.findByPosition(employee.getPosition())
+                .stream()
+                .findFirst()
+                .orElse(null);
+
         List<AttendanceLog> logs = attendanceLogRepository.findByEmployeeOrderByLogDateAsc(employee);
+        List<Settings> earnings = (config != null) ? config.getEarnings() : List.of();
+        List<Settings> deductions = (config != null) ? config.getDeductions() : List.of();
+
+        model.addAttribute("earningFields", earnings);
+        model.addAttribute("deductionFields", deductions);
+
+        // map for label display (optional)
+        Map<String, String> payrollLabels = new HashMap<>();
+        earnings.forEach(e -> payrollLabels.put("earning_" + e.getId(), e.getName()));
+        deductions.forEach(d -> payrollLabels.put("deduction_" + d.getId(), d.getName()));
+        model.addAttribute("payrollLabels", payrollLabels);
+
 
         // Default to current year/month if not provided
         LocalDate today = LocalDate.now();

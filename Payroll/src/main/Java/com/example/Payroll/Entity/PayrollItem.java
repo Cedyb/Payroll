@@ -1,0 +1,44 @@
+package com.example.Payroll.Entity;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "payroll_item")
+public class PayrollItem {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "payroll_item_id")
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "payroll_id", nullable = false)
+    private Payroll payroll;
+
+    @Column(name = "name", nullable = false)
+    private String name; // e.g., "OT Pay", "SSS", "Cola"
+
+    @Column(name = "type", nullable = false)
+    private String type; // "earning" or "deduction"
+
+    @Column(name = "amount", nullable = false)
+    private Double amount = 0.0;
+
+    public PayrollItem() {}
+
+    // ================= Getters and Setters =================
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Payroll getPayroll() { return payroll; }
+    public void setPayroll(Payroll payroll) { this.payroll = payroll; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
+
+    public Double getAmount() { return amount; }
+    public void setAmount(Double amount) { this.amount = amount; }
+}
