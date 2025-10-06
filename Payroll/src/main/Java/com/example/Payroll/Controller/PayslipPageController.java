@@ -37,6 +37,12 @@ public class PayslipPageController {
     @Autowired
     private AttendanceLogRepository attendanceLogRepository;
 
+    @Autowired
+    private SettingsRepository settingsRepository;
+
+    @Autowired
+    private PayrollItemRepository payrollItemRepository;
+
     @GetMapping("/payslip/{employeeId}")
     public String getPayslipPage(
             @PathVariable Long employeeId,
@@ -258,30 +264,14 @@ public class PayslipPageController {
     public String savePayroll(
             @PathVariable Long employeeId,
             HttpSession session,
-            @RequestParam(required = false) Double basicPay,
-            @RequestParam(required = false) Double otPay,
-            @RequestParam(required = false) Double leavePay,
-            @RequestParam(required = false) Double regularHolidayPay,
-            @RequestParam(required = false) Double specialHolidayPay,
-            @RequestParam(required = false) Double colaAllowance,
-            @RequestParam(required = false) Double allowance,
-            @RequestParam(required = false) Double adjustment,
-            @RequestParam(required = false) Double savings,
-            @RequestParam(required = false) Double sss,
-            @RequestParam(required = false) Double philhealth,
-            @RequestParam(required = false) Double pagibig,
-            @RequestParam(required = false) Double canteen,
-            @RequestParam(required = false) Double cashAdvance,
-            @RequestParam(required = false) Double medical,
-            @RequestParam(required = false) Double insurance,
-            @RequestParam(required = false) Double utilities
+            @RequestParam Map<String, String> allParams
     ) {
         LocalDate weekStart = (LocalDate) session.getAttribute("weekStart");
         LocalDate weekEnd = (LocalDate) session.getAttribute("weekEnd");
-        if (weekStart == null || weekEnd == null) {
+        if (weekStart == null || weekEnd == null)
             throw new RuntimeException("Week range not found in session");
-        }
 
+        // Get or create current pay period
         PayPeriod payPeriod = payPeriodRepository.findByStartDateAndEndDate(weekStart, weekEnd)
                 .orElseGet(() -> {
                     PayPeriod newPeriod = new PayPeriod();
@@ -290,6 +280,7 @@ public class PayslipPageController {
                     return payPeriodRepository.save(newPeriod);
                 });
 
+        // Get or create payroll for employee
         Payroll payroll = payrollRepository
                 .findByEmployee_EmployeeIdAndPayPeriod(employeeId, payPeriod)
                 .orElseGet(() -> {
@@ -303,77 +294,82 @@ public class PayslipPageController {
                     return p;
                 });
 
-        // Set values if provided
-        if (basicPay != null) payroll.setBasicPay(basicPay);
-        if (otPay != null) payroll.setOtPay(otPay);
-        if (leavePay != null) payroll.setLeavePay(leavePay);
-        if (regularHolidayPay != null) payroll.setRegularHolidayPay(regularHolidayPay);
-        if (specialHolidayPay != null) payroll.setSpecialHolidayPay(specialHolidayPay);
-        if (colaAllowance != null) payroll.setColaAllowance(colaAllowance);
-        if (allowance != null) payroll.setAllowance(allowance);
-        if (adjustment != null) payroll.setAdjustment(adjustment);
+        // Clear previous items (so hindi madoble pag re-save)
+        payroll.getItems().clear();
 
-        if (savings != null) payroll.setSavings(savings);
-        if (sss != null) payroll.setSss(sss);
-        if (philhealth != null) payroll.setPhilhealth(philhealth);
-        if (pagibig != null) payroll.setPagibig(pagibig);
-        if (canteen != null) payroll.setCanteen(canteen);
-        if (cashAdvance != null) payroll.setCashAdvance(cashAdvance);
-        if (medical != null) payroll.setMedical(medical);
-        if (insurance != null) payroll.setInsurance(insurance);
-        if (utilities != null) payroll.setUtilities(utilities);
+        double totalEarnings = 0.0;
+        double totalDeductions = 0.0;
 
-        // Calculate totals
-        double totalEarnings =
-                (payroll.getBasicPay() != null ? payroll.getBasicPay() : 0) +
-                        (payroll.getOtPay() != null ? payroll.getOtPay() : 0) +
-                        (payroll.getLeavePay() != null ? payroll.getLeavePay() : 0) +
-                        (payroll.getRegularHolidayPay() != null ? payroll.getRegularHolidayPay() : 0) +
-                        (payroll.getSpecialHolidayPay() != null ? payroll.getSpecialHolidayPay() : 0) +
-                        (payroll.getColaAllowance() != null ? payroll.getColaAllowance() : 0) +
-                        (payroll.getAllowance() != null ? payroll.getAllowance() : 0) +
-                        (payroll.getAdjustment() != null ? payroll.getAdjustment() : 0);
+        for (Map.Entry<String, String> entry : allParams.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
 
-        double totalDeductions =
-                (payroll.getSavings() != null ? payroll.getSavings() : 0) +
-                        (payroll.getSss() != null ? payroll.getSss() : 0) +
-                        (payroll.getPhilhealth() != null ? payroll.getPhilhealth() : 0) +
-                        (payroll.getPagibig() != null ? payroll.getPagibig() : 0) +
-                        (payroll.getCanteen() != null ? payroll.getCanteen() : 0) +
-                        (payroll.getCashAdvance() != null ? payroll.getCashAdvance() : 0) +
-                        (payroll.getMedical() != null ? payroll.getMedical() : 0) +
-                        (payroll.getInsurance() != null ? payroll.getInsurance() : 0) +
-                        (payroll.getUtilities() != null ? payroll.getUtilities() : 0);
+            // Skip system/calculated fields
+            if (List.of("basicPay", "subtotal", "totalDeductions", "netPay", "payPeriodId").contains(key)) {
+                continue;
+            }
+            if (value == null || value.trim().isEmpty()) continue;
 
-        payroll.setSubtotal(totalEarnings);
-        payroll.setNetPay(totalEarnings - totalDeductions);
+            double amount;
+            try {
+                amount = Double.parseDouble(value.trim());
+            } catch (NumberFormatException e) {
+                continue;
+            }
+            if (amount == 0.0) continue;
 
-        // Determine status
-        boolean allEarningsSet = payroll.getBasicPay() != null && payroll.getOtPay() != null &&
-                payroll.getLeavePay() != null && payroll.getRegularHolidayPay() != null &&
-                payroll.getSpecialHolidayPay() != null && payroll.getColaAllowance() != null &&
-                payroll.getAllowance() != null && payroll.getAdjustment() != null;
+            Settings setting = null;
+            if (key.startsWith("earning_")) {
+                Long settingId = Long.parseLong(key.replace("earning_", ""));
+                setting = settingsRepository.findById(settingId).orElse(null);
+            } else if (key.startsWith("deduction_")) {
+                Long settingId = Long.parseLong(key.replace("deduction_", ""));
+                setting = settingsRepository.findById(settingId).orElse(null);
+            }
 
-        boolean allDeductionsSet = payroll.getSavings() != null && payroll.getSss() != null &&
-                payroll.getPhilhealth() != null && payroll.getPagibig() != null &&
-                payroll.getCanteen() != null && payroll.getCashAdvance() != null &&
-                payroll.getMedical() != null && payroll.getInsurance() != null &&
-                payroll.getUtilities() != null;
+            if (setting != null) {
+                PayrollItem item = new PayrollItem();
+                item.setPayroll(payroll);
+                item.setName(setting.getName());   // ✅ Use human-readable name from Settings
+                item.setAmount(amount);
 
-        // ✅ Role-based approval logic
-        String role = (String) session.getAttribute("role");
-        if ("SUPER_ADMIN".equalsIgnoreCase(role)) {
-            payroll.setStatus(Payroll.PayrollStatus.APPROVED);
-        } else {
-            if (allEarningsSet && allDeductionsSet) {
-                payroll.setStatus(Payroll.PayrollStatus.APPROVED);
-            } else {
-                payroll.setStatus(Payroll.PayrollStatus.GENERATED);
+                if ("EARNING".equalsIgnoreCase(setting.getType())) {
+                    item.setType(PayrollItem.ItemType.EARNING);
+                    totalEarnings += amount;
+                } else if ("DEDUCTION".equalsIgnoreCase(setting.getType())) {
+                    item.setType(PayrollItem.ItemType.DEDUCTION);
+                    totalDeductions += amount;
+                }
+
+                payroll.getItems().add(item);
             }
         }
+
+        // ✅ Compute totals correctly
+        payroll.setBasicPay(allParams.containsKey("basicPay") ? parseSafeDouble(allParams.get("basicPay")) : 0.0);
+        payroll.setSubtotal(totalEarnings);
+        payroll.setTotalDeductions(totalDeductions);
+        payroll.setNetPay(totalEarnings - totalDeductions);
+
+        // Status depends on role
+        String role = (String) session.getAttribute("role");
+        payroll.setStatus("SUPER_ADMIN".equalsIgnoreCase(role)
+                ? Payroll.PayrollStatus.APPROVED
+                : Payroll.PayrollStatus.GENERATED);
 
         payrollRepository.save(payroll);
 
         return "redirect:/admin/payslip/" + employeeId + "?payPeriodId=" + payPeriod.getId();
     }
+
+    // Helper for safe parsing
+    private double parseSafeDouble(String value) {
+        if (value == null || value.trim().isEmpty()) return 0.0;
+        try {
+            return Double.parseDouble(value.trim());
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
+    }
+
 }

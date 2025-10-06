@@ -2,6 +2,8 @@ package com.example.Payroll.Entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "payroll")
@@ -26,29 +28,25 @@ public class Payroll {
     @Column(name = "week_end")
     private LocalDate weekEnd;
 
-
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private PayrollStatus status = PayrollStatus.PENDING;
 
+    // Payroll items (earnings and deductions)
+    @OneToMany(mappedBy = "payroll", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PayrollItem> items = new ArrayList<>();
+
+    // Summary fields for payslip
+    @Column(name = "basic_pay")
     private Double basicPay = 0.0;
-    private Double otPay;
-    private Double leavePay;
-    private Double regularHolidayPay;
-    private Double specialHolidayPay;
-    private Double colaAllowance;
-    private Double allowance;
-    private Double adjustment;
-    private Double savings;
-    private Double sss;
-    private Double philhealth;
-    private Double pagibig;
-    private Double canteen;
-    private Double cashAdvance;
-    private Double medical;
-    private Double insurance;
-    private Double utilities;
-    private Double subtotal = 0.0;
+
+    @Column(name = "subtotal")
+    private Double subtotal = 0.0; // sum of all earnings
+
+    @Column(name = "total_deductions")
+    private Double totalDeductions = 0.0;
+
+    @Column(name = "net_pay")
     private Double netPay = 0.0;
 
     public Payroll() {}
@@ -71,59 +69,17 @@ public class Payroll {
     public PayrollStatus getStatus() { return status; }
     public void setStatus(PayrollStatus status) { this.status = status; }
 
+    public List<PayrollItem> getItems() { return items; }
+    public void setItems(List<PayrollItem> items) { this.items = items; }
+
     public Double getBasicPay() { return basicPay; }
     public void setBasicPay(Double basicPay) { this.basicPay = basicPay; }
 
-    public Double getOtPay() { return otPay; }
-    public void setOtPay(Double otPay) { this.otPay = otPay; }
-
-    public Double getLeavePay() { return leavePay; }
-    public void setLeavePay(Double leavePay) { this.leavePay = leavePay; }
-
-    public Double getRegularHolidayPay() { return regularHolidayPay; }
-    public void setRegularHolidayPay(Double regularHolidayPay) { this.regularHolidayPay = regularHolidayPay; }
-
-    public Double getSpecialHolidayPay() { return specialHolidayPay; }
-    public void setSpecialHolidayPay(Double specialHolidayPay) { this.specialHolidayPay = specialHolidayPay; }
-
-    public Double getColaAllowance() { return colaAllowance; }
-    public void setColaAllowance(Double colaAllowance) { this.colaAllowance = colaAllowance; }
-
-    public Double getAllowance() { return allowance; }
-    public void setAllowance(Double allowance) { this.allowance = allowance; }
-
-    public Double getAdjustment() { return adjustment; }
-    public void setAdjustment(Double adjustment) { this.adjustment = adjustment; }
-
-    public Double getSavings() { return savings; }
-    public void setSavings(Double savings) { this.savings = savings; }
-
-    public Double getSss() { return sss; }
-    public void setSss(Double sss) { this.sss = sss; }
-
-    public Double getPhilhealth() { return philhealth; }
-    public void setPhilhealth(Double philhealth) { this.philhealth = philhealth; }
-
-    public Double getPagibig() { return pagibig; }
-    public void setPagibig(Double pagibig) { this.pagibig = pagibig; }
-
-    public Double getCanteen() { return canteen; }
-    public void setCanteen(Double canteen) { this.canteen = canteen; }
-
-    public Double getCashAdvance() { return cashAdvance; }
-    public void setCashAdvance(Double cashAdvance) { this.cashAdvance = cashAdvance; }
-
-    public Double getMedical() { return medical; }
-    public void setMedical(Double medical) { this.medical = medical; }
-
-    public Double getInsurance() { return insurance; }
-    public void setInsurance(Double insurance) { this.insurance = insurance; }
-
-    public Double getUtilities() { return utilities; }
-    public void setUtilities(Double utilities) { this.utilities = utilities; }
-
     public Double getSubtotal() { return subtotal; }
     public void setSubtotal(Double subtotal) { this.subtotal = subtotal; }
+
+    public Double getTotalDeductions() { return totalDeductions; }
+    public void setTotalDeductions(Double totalDeductions) { this.totalDeductions = totalDeductions; }
 
     public Double getNetPay() { return netPay; }
     public void setNetPay(Double netPay) { this.netPay = netPay; }
@@ -132,5 +88,25 @@ public class Payroll {
         PENDING,
         GENERATED,
         APPROVED
+    }
+
+    // Convenience method to recalculate totals from items
+    public void calculateTotals() {
+        basicPay = items.stream()
+                .filter(i -> i.getType() == PayrollItem.ItemType.EARNING && i.getName().equalsIgnoreCase("Basic Pay"))
+                .mapToDouble(PayrollItem::getAmount)
+                .sum();
+
+        subtotal = items.stream()
+                .filter(i -> i.getType() == PayrollItem.ItemType.EARNING)
+                .mapToDouble(PayrollItem::getAmount)
+                .sum();
+
+        totalDeductions = items.stream()
+                .filter(i -> i.getType() == PayrollItem.ItemType.DEDUCTION)
+                .mapToDouble(PayrollItem::getAmount)
+                .sum();
+
+        netPay = subtotal - totalDeductions;
     }
 }

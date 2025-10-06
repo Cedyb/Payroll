@@ -61,7 +61,6 @@ public class PayrollServiceImpl implements PayrollService {
         payroll.setWeekStart(payPeriod.getStartDate());
         payroll.setWeekEnd(payPeriod.getEndDate());
         payroll.setBasicPay(basicPay);
-        payroll.setOtPay(otPay);
         payroll.setSubtotal(basicPay + otPay);
         payroll.setNetPay(payroll.getSubtotal());
 

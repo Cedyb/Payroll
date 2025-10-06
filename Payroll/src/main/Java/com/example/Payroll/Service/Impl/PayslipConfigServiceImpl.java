@@ -31,50 +31,42 @@ public class PayslipConfigServiceImpl implements PayslipConfigService {
     public void saveConfiguration(List<Long> positionIds, List<Long> earningIds, List<Long> deductionIds) {
         if (positionIds == null || positionIds.isEmpty()) return;
 
-        List<Settings> earnings = settingsRepository.findAllById(earningIds != null ? earningIds : List.of());
-        List<Settings> deductions = settingsRepository.findAllById(deductionIds != null ? deductionIds : List.of());
+        // Fetch settings with type validation
+        List<Settings> earnings = settingsRepository.findAllById(
+                        earningIds != null ? earningIds : List.of()
+                ).stream()
+                .filter(s -> "EARNING".equalsIgnoreCase(s.getType()))
+                .toList();
+
+        List<Settings> deductions = settingsRepository.findAllById(
+                        deductionIds != null ? deductionIds : List.of()
+                ).stream()
+                .filter(s -> "DEDUCTION".equalsIgnoreCase(s.getType()))
+                .toList();
 
         for (Long posId : positionIds) {
             Positions pos = positionsRepository.findById(posId).orElse(null);
             if (pos != null) {
-                // Get all positions with the same title
+                // apply config to all positions with the same title
                 List<Positions> sameTitlePositions = positionsRepository.findByTitle(pos.getTitle());
 
                 for (Positions position : sameTitlePositions) {
-                    // Check if a configuration already exists
-                    List<PayslipConfig> existingConfigs = configRepository.findByPosition(position);
-                    PayslipConfig config;
+                    PayslipConfig config = configRepository.findByPosition(position)
+                            .stream()
+                            .findFirst()
+                            .orElse(new PayslipConfig());
 
-                    if (existingConfigs.isEmpty()) {
-                        // No existing config → create new
-                        config = new PayslipConfig();
-                        config.setPosition(position);
-                        config.setEarnings(new ArrayList<>(earnings));
-                        config.setDeductions(new ArrayList<>(deductions));
-                    } else {
-                        // Merge with existing config
-                        config = existingConfigs.get(0); // assuming 1 config per position
-                        // Merge earnings
-                        for (Settings e : earnings) {
-                            if (!config.getEarnings().contains(e)) {
-                                config.getEarnings().add(e);
-                            }
-                        }
-                        // Merge deductions
-                        for (Settings d : deductions) {
-                            if (!config.getDeductions().contains(d)) {
-                                config.getDeductions().add(d);
-                            }
-                        }
-                    }
+                    config.setPosition(position);
 
-                    // Save the updated/new configuration
+                    // Instead of clear() + addAll(), just assign fresh lists
+                    config.setEarnings(new ArrayList<>(earnings));
+                    config.setDeductions(new ArrayList<>(deductions));
+
                     configRepository.save(config);
                 }
             }
         }
     }
-
 
     @Override
     public List<PayslipConfig> getAllConfigurations() {
@@ -86,4 +78,3 @@ public class PayslipConfigServiceImpl implements PayslipConfigService {
         return configRepository.findById(id).orElse(null);
     }
 }
-

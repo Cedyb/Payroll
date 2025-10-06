@@ -18,8 +18,9 @@ public class PayrollItem {
     @Column(name = "name", nullable = false)
     private String name; // e.g., "OT Pay", "SSS", "Cola"
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
-    private String type; // "earning" or "deduction"
+    private ItemType type; // EARNING or DEDUCTION
 
     @Column(name = "amount", nullable = false)
     private Double amount = 0.0;
@@ -36,9 +37,15 @@ public class PayrollItem {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+    public ItemType getType() { return type; }
+    public void setType(ItemType type) { this.type = type; }
 
     public Double getAmount() { return amount; }
     public void setAmount(Double amount) { this.amount = amount; }
+
+    // ================= Enum =================
+    public enum ItemType {
+        EARNING,
+        DEDUCTION
+    }
 }

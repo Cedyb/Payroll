@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface SettingsRepository extends JpaRepository<Settings, Long> {
     List<Settings> findByTypeAndIsActiveTrue(String type);
+
+    Settings findByName(String key);
 }
