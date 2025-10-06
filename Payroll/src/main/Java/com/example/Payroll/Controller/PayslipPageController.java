@@ -2,6 +2,7 @@ package com.example.Payroll.Controller;
 
 import com.example.Payroll.Entity.*;
 import com.example.Payroll.Repository.*;
+import com.example.Payroll.Service.PayslipConfigService;
 import com.example.Payroll.dto.AttendanceSummaryDTO;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,10 @@ public class PayslipPageController {
 
     @Autowired
     private EmployeeRepository employeeRepository;
+
+    @Autowired
+    private PayslipConfigService payslipConfigService;
+
 
     @Autowired
     private PayslipConfigRepository payslipConfigRepository;
@@ -54,14 +59,30 @@ public class PayslipPageController {
         Employee employee = employeeRepository.findByEmployeeId(employeeId)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
 
-        PayslipConfig config = payslipConfigRepository.findByPosition(employee.getPosition())
+        // Always fetch the latest config for the employee's position
+        PayslipConfig config = payslipConfigService.getAllConfigurations()
                 .stream()
+                .filter(c -> c.getPosition().getPositionId().equals(employee.getPosition().getPositionId()))
                 .findFirst()
-                .orElse(null);
+                .orElseGet(() -> {
+                    PayslipConfig defaultConfig = new PayslipConfig();
+                    defaultConfig.setPosition(employee.getPosition());
+                    defaultConfig.setEarnings(new ArrayList<>());
+                    defaultConfig.setDeductions(new ArrayList<>());
+                    return defaultConfig;
+                });
+
+
+        List<Settings> earnings = (config != null && config.getEarnings() != null)
+                ? new ArrayList<>(config.getEarnings())
+                : new ArrayList<>();
+
+        List<Settings> deductions = (config != null && config.getDeductions() != null)
+                ? new ArrayList<>(config.getDeductions())
+                : new ArrayList<>();
+
 
         List<AttendanceLog> logs = attendanceLogRepository.findByEmployeeOrderByLogDateAsc(employee);
-        List<Settings> earnings = (config != null) ? config.getEarnings() : List.of();
-        List<Settings> deductions = (config != null) ? config.getDeductions() : List.of();
 
         // ---------- FETCH CURRENT PAYROLL ----------
         LocalDate today = LocalDate.now();
@@ -111,12 +132,13 @@ public class PayslipPageController {
 
         // Set default values for Thymeleaf display
         for (Settings e : earnings) {
-            e.setDefaultValue(savedEarnings.get(e.getId())); // returns null if not found
+            Double value = savedEarnings.get(e.getId()); // get value from map
+            e.setDefaultValue(value); // if value is null, input will be empty
         }
         for (Settings d : deductions) {
-            d.setDefaultValue(savedDeductions.get(d.getId())); // returns null if not found
+            Double value = savedDeductions.get(d.getId());
+            d.setDefaultValue(value); // null -> empty input
         }
-
 
         model.addAttribute("earningFields", earnings);
         model.addAttribute("deductionFields", deductions);
@@ -296,7 +318,9 @@ public class PayslipPageController {
                     return p;
                 });
 
-        payroll.getItems().clear();
+        // Clear previous items before saving
+        if (payroll.getItems() == null) payroll.setItems(new ArrayList<>());
+        else payroll.getItems().clear();
 
         double totalEarnings = 0.0;
         double totalDeductions = 0.0;
@@ -305,7 +329,8 @@ public class PayslipPageController {
             String key = entry.getKey();
             String value = entry.getValue();
 
-            if (List.of("basicPay", "subtotal", "totalDeductions", "netPay", "payPeriodId").contains(key)) continue;
+            if (List.of("basicPay", "subtotal", "totalDeductions", "netPay", "payPeriodId").contains(key))
+                continue;
             if (value == null || value.trim().isEmpty()) continue;
 
             double amount;
@@ -317,12 +342,16 @@ public class PayslipPageController {
             if (amount == 0.0) continue;
 
             Settings setting = null;
+            PayrollItem.ItemType type = null;
+
             if (key.startsWith("earning_")) {
                 Long settingId = Long.parseLong(key.replace("earning_", ""));
                 setting = settingsRepository.findById(settingId).orElse(null);
+                type = PayrollItem.ItemType.EARNING;
             } else if (key.startsWith("deduction_")) {
                 Long settingId = Long.parseLong(key.replace("deduction_", ""));
                 setting = settingsRepository.findById(settingId).orElse(null);
+                type = PayrollItem.ItemType.DEDUCTION;
             }
 
             if (setting != null) {
@@ -331,14 +360,10 @@ public class PayslipPageController {
                 item.setName(setting.getName());
                 item.setAmount(amount);
                 item.setSetting(setting);
+                item.setType(type);
 
-                if ("EARNING".equalsIgnoreCase(setting.getType())) {
-                    item.setType(PayrollItem.ItemType.EARNING);
-                    totalEarnings += amount;
-                } else if ("DEDUCTION".equalsIgnoreCase(setting.getType())) {
-                    item.setType(PayrollItem.ItemType.DEDUCTION);
-                    totalDeductions += amount;
-                }
+                if (type == PayrollItem.ItemType.EARNING) totalEarnings += amount;
+                else if (type == PayrollItem.ItemType.DEDUCTION) totalDeductions += amount;
 
                 payroll.getItems().add(item);
             }
@@ -348,8 +373,6 @@ public class PayslipPageController {
         payroll.setBasicPay(basicPay);
         payroll.setGrossPay(totalEarnings);
         payroll.setTotalDeductions(totalDeductions);
-
-// Net pay includes basic pay
         payroll.setNetPay(basicPay + totalEarnings - totalDeductions);
 
         String role = (String) session.getAttribute("role");

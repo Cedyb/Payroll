@@ -8,6 +8,7 @@ import com.example.Payroll.Repository.PositionsRepository;
 import com.example.Payroll.Repository.SettingsRepository;
 import com.example.Payroll.Service.PayslipConfigService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,51 +29,48 @@ public class PayslipConfigServiceImpl implements PayslipConfigService {
     }
 
     @Override
+    @Transactional
     public void saveConfiguration(List<Long> positionIds, List<Long> earningIds, List<Long> deductionIds) {
         if (positionIds == null || positionIds.isEmpty()) return;
 
-        // 1️⃣ Fetch the settings from DB
-        List<Settings> earnings = earningIds != null
-                ? settingsRepository.findAllById(earningIds).stream()
-                .filter(s -> "EARNING".equalsIgnoreCase(s.getType()))
-                .toList()
-                : List.of();
+        // Fetch earnings and deductions as mutable lists
+        List<Settings> earnings = (earningIds != null && !earningIds.isEmpty())
+                ? new ArrayList<>(settingsRepository.findAllById(earningIds))
+                : new ArrayList<>();
 
-        List<Settings> deductions = deductionIds != null
-                ? settingsRepository.findAllById(deductionIds).stream()
-                .filter(s -> "DEDUCTION".equalsIgnoreCase(s.getType()))
-                .toList()
-                : List.of();
+        List<Settings> deductions = (deductionIds != null && !deductionIds.isEmpty())
+                ? new ArrayList<>(settingsRepository.findAllById(deductionIds))
+                : new ArrayList<>();
 
-        // 2️⃣ Process each position ID
         for (Long posId : positionIds) {
-            Positions pos = positionsRepository.findById(posId).orElse(null);
-            if (pos == null) continue;
+            Positions position = positionsRepository.findById(posId).orElse(null);
+            if (position == null) continue;
 
-            // 3️⃣ Apply configuration to all positions with the same title
-            List<Positions> sameTitlePositions = positionsRepository.findByTitle(pos.getTitle());
+            // Update all positions with the same title
+            List<Positions> sameTitlePositions = positionsRepository.findByTitle(position.getTitle());
 
-            for (Positions position : sameTitlePositions) {
-                // 4️⃣ Check if config already exists for this position
-                PayslipConfig config = configRepository.findByPosition(position)
+            for (Positions pos : sameTitlePositions) {
+                PayslipConfig config = configRepository.findByPosition(pos)
                         .stream()
                         .findFirst()
                         .orElseGet(() -> {
+                            // Create a new config if missing
                             PayslipConfig newConfig = new PayslipConfig();
-                            newConfig.setPosition(position);
+                            newConfig.setPosition(pos);
                             return newConfig;
                         });
 
-                // 5️⃣ Update earnings and deductions
-                config.setEarnings(new ArrayList<>(earnings));
-                config.setDeductions(new ArrayList<>(deductions));
+                // Always clear first to prevent duplicates
+                config.getEarnings().clear();
+                config.getDeductions().clear();
 
-                // 6️⃣ Save and flush to update join tables immediately
-                configRepository.saveAndFlush(config);
+                config.getEarnings().addAll(earnings);
+                config.getDeductions().addAll(deductions);
+
+                configRepository.save(config);
             }
         }
     }
-
 
     @Override
     public List<PayslipConfig> getAllConfigurations() {
@@ -82,5 +80,57 @@ public class PayslipConfigServiceImpl implements PayslipConfigService {
     @Override
     public PayslipConfig getById(Long id) {
         return configRepository.findById(id).orElse(null);
+    }
+
+
+
+    @Override
+    public PayslipConfig save(PayslipConfig config) {
+        // Ensure earnings and deductions are mutable
+        if (config.getEarnings() == null) {
+            config.setEarnings(new ArrayList<>());
+        } else if (!(config.getEarnings() instanceof ArrayList)) {
+            config.setEarnings(new ArrayList<>(config.getEarnings()));
+        }
+
+        if (config.getDeductions() == null) {
+            config.setDeductions(new ArrayList<>());
+        } else if (!(config.getDeductions() instanceof ArrayList)) {
+            config.setDeductions(new ArrayList<>(config.getDeductions()));
+        }
+
+        return configRepository.save(config);
+    }
+
+    /**
+     * Helper method to fetch config or return a default one to prevent white label
+     */
+    // Remove @Override
+    public PayslipConfig getOrCreateByPosition(Positions position) {
+        return configRepository.findByPosition(position)
+                .stream()
+                .findFirst()
+                .orElseGet(() -> {
+                    PayslipConfig defaultConfig = new PayslipConfig();
+                    defaultConfig.setPosition(position);
+                    defaultConfig.setEarnings(new ArrayList<>());
+                    defaultConfig.setDeductions(new ArrayList<>());
+                    return defaultConfig;
+                });
+    }
+
+    @Override
+    @Transactional
+    public void deleteById(Long id) {
+        PayslipConfig config = configRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Payslip config not found"));
+
+        // Clear join tables manually
+        config.getEarnings().clear();
+        config.getDeductions().clear();
+        configRepository.save(config);  // commit clearing
+
+        // Now delete config
+        configRepository.delete(config);
     }
 }

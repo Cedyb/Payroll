@@ -117,7 +117,7 @@
                                 <input type="number" name="basicPay" class="form-control" th:value="${payroll.basicPay}" disabled readonly>
                             </td>
 
-                            <td th:text="${#lists.isEmpty(deductionFields) ? '-' : deductionFields[0].name}"></td>
+                            <td th:text="${!#lists.isEmpty(deductionFields) ? deductionFields[0].name : '-'}"></td>
                             <td>
                                 <input type="number"
                                        th:if="${!#lists.isEmpty(deductionFields)}"
@@ -128,8 +128,10 @@
                         </tr>
 
                         <!-- Remaining earnings and deductions -->
-                        <tr th:each="i : ${#numbers.sequence(0, T(java.lang.Math).max(#lists.size(earningFields)-1, #lists.size(deductionFields)-2))}">
-                            <!-- Earnings (skip Basic Pay if it’s part of earningFields) -->
+                        <tr th:each="i : ${#numbers.sequence(0, T(java.lang.Math).max(
+                                      #lists.size(earningFields)-1,
+                                      #lists.size(deductionFields) > 1 ? #lists.size(deductionFields)-2 : 0))}">
+                            <!-- Earnings -->
                             <td th:text="${i < #lists.size(earningFields) ? earningFields[i].name : '-'}"></td>
                             <td>
                                 <input type="number"
@@ -140,20 +142,16 @@
                             </td>
 
                             <!-- Deductions (skip first, already in Basic Pay row) -->
-                            <td th:text="${i+1 < #lists.size(deductionFields) ? deductionFields[i+1].name : '-'}"></td>
+                            <td th:text="${!#lists.isEmpty(deductionFields) && i+1 < #lists.size(deductionFields) ? deductionFields[i+1].name : '-'}"></td>
                             <td>
                                 <input type="number"
-                                       th:if="${i+1 < #lists.size(deductionFields)}"
+                                       th:if="${!#lists.isEmpty(deductionFields) && i+1 < #lists.size(deductionFields)}"
                                        th:name="${'deduction_' + deductionFields[i+1].id}"
                                        class="form-control editable-input"
                                        th:value="${deductionFields[i+1].defaultValue}"
                                        disabled>
-
                             </td>
                         </tr>
-
-
-
 
                         <!-- Totals -->
                         <tr class="fw-bold">
@@ -167,6 +165,7 @@
                             <td colspan="2"><input type="number" name="netPay" class="form-control" disabled readonly></td>
                         </tr>
                         </tbody>
+
                     </table>
                 </div>
 

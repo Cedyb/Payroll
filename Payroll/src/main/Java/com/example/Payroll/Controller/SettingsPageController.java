@@ -152,13 +152,80 @@ public class SettingsPageController {
     public Map<String, Object> getConfig(@PathVariable Long id) {
         PayslipConfig config = payslipConfigService.getById(id);
         Map<String, Object> map = new HashMap<>();
+
         map.put("id", config.getId());
         map.put("positionId", config.getPosition().getPositionId());
         map.put("positionTitle", config.getPosition().getTitle());
         map.put("earnings", config.getEarnings().stream().map(Settings::getId).toList());
         map.put("deductions", config.getDeductions().stream().map(Settings::getId).toList());
+
+        // --- Add all active earnings/deductions for checkboxes ---
+        map.put("allEarnings", settingsService.getActiveEarnings().stream()
+                .map(e -> Map.of("id", e.getId(), "name", e.getName()))
+                .toList());
+
+        map.put("allDeductions", settingsService.getActiveDeductions().stream()
+                .map(d -> Map.of("id", d.getId(), "name", d.getName()))
+                .toList());
+
         return map;
     }
+
+    @PostMapping("/config/update/{id}")
+    @ResponseBody
+    public Map<String, Object> updateConfig(@PathVariable Long id,
+                                            @RequestBody Map<String, List<Long>> payload) {
+
+        PayslipConfig config = payslipConfigService.getById(id);
+        if(config == null) return Map.of("success", false);
+
+        List<Long> earningsIds = payload.get("earnings");
+        List<Long> deductionsIds = payload.get("deductions");
+
+        List<Settings> earnings = settingsService.getActiveEarnings()
+                .stream().filter(e -> earningsIds.contains(e.getId())).toList();
+        List<Settings> deductions = settingsService.getActiveDeductions()
+                .stream().filter(d -> deductionsIds.contains(d.getId())).toList();
+
+        // Update all positions with same title
+        List<PayslipConfig> configsToUpdate = payslipConfigService.getAllConfigurations().stream()
+                .filter(c -> c.getPosition().getTitle().equals(config.getPosition().getTitle()))
+                .toList();
+
+        for(PayslipConfig c : configsToUpdate){
+            c.setEarnings(earnings);
+            c.setDeductions(deductions);
+            payslipConfigService.save(c);
+        }
+
+        return Map.of("success", true);
+    }
+
+    @PostMapping("/config/delete/{id}")
+    public String deleteConfig(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            PayslipConfig config = payslipConfigService.getById(id);
+            if (config != null) {
+                // Kunin yung title ng position ng config
+                String title = config.getPosition().getTitle();
+
+                // Hanapin lahat ng configs na may parehong title
+                List<PayslipConfig> configsToDelete = payslipConfigService.getAllConfigurations()
+                        .stream()
+                        .filter(c -> c.getPosition().getTitle().equals(title))
+                        .toList();
+
+                // Delete lahat ng nahanap
+                configsToDelete.forEach(c -> payslipConfigService.deleteById(c.getId()));
+            }
+            redirectAttributes.addFlashAttribute("success", "Configuration deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to delete configuration.");
+        }
+        return "redirect:/settings";
+    }
+
+
 
 
 }
