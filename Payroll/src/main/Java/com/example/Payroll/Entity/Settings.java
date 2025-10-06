@@ -29,4 +29,11 @@ public class Settings {
     // If you want active/inactive toggle
     @Column(nullable = false)
     private Boolean isActive = true;
+
+    @Transient
+    private Double defaultValue = 0.0;
+
+    public Double getDefaultValue() { return defaultValue; }
+    public void setDefaultValue(Double defaultValue) { this.defaultValue = defaultValue; }
+
 }

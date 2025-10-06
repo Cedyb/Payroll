@@ -5,7 +5,6 @@ import com.example.Payroll.Repository.*;
 import com.example.Payroll.dto.AttendanceSummaryDTO;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -25,8 +24,7 @@ public class PayslipPageController {
     private EmployeeRepository employeeRepository;
 
     @Autowired
-    private PayslipConfigRepository payslipConfigRepository; // add this
-
+    private PayslipConfigRepository payslipConfigRepository;
 
     @Autowired
     private PayPeriodRepository payPeriodRepository;
@@ -65,6 +63,61 @@ public class PayslipPageController {
         List<Settings> earnings = (config != null) ? config.getEarnings() : List.of();
         List<Settings> deductions = (config != null) ? config.getDeductions() : List.of();
 
+        // ---------- FETCH CURRENT PAYROLL ----------
+        LocalDate today = LocalDate.now();
+        int selectedYear = (year != null) ? year : today.getYear();
+        int selectedMonth = (month != null) ? month : today.getMonthValue();
+
+        LocalDate monthStart = LocalDate.of(selectedYear, selectedMonth, 1);
+        LocalDate endOfMonth = monthStart.withDayOfMonth(monthStart.lengthOfMonth());
+        LocalDate baseDate = monthStart.with(TemporalAdjusters.nextOrSame(DayOfWeek.WEDNESDAY));
+
+        int weekOffset = resolveWeekOffset(week, today, selectedYear, selectedMonth, baseDate);
+        LocalDate weekStart = (weekOffset == 0) ? baseDate : baseDate.plusWeeks(weekOffset - 1);
+        LocalDate weekEnd = (weekOffset == 0) ? endOfMonth : weekStart.plusDays(6);
+
+        session.setAttribute("weekStart", weekStart);
+        session.setAttribute("weekEnd", weekEnd);
+
+        PayPeriod currentPayPeriod = (payPeriodId != null)
+                ? payPeriodRepository.findById(payPeriodId)
+                .orElseThrow(() -> new RuntimeException("PayPeriod not found"))
+                : payPeriodRepository.findByStartDateAndEndDate(weekStart, weekEnd)
+                .orElseGet(() -> {
+                    PayPeriod p = new PayPeriod();
+                    p.setStartDate(weekStart);
+                    p.setEndDate(weekEnd);
+                    return payPeriodRepository.save(p);
+                });
+
+        Payroll payroll = payrollRepository
+                .findByEmployee_EmployeeIdAndPayPeriod(employeeId, currentPayPeriod)
+                .orElseGet(() -> calculatePayroll(employee, buildAttendanceSummary(employee, logs, weekStart, weekEnd)));
+
+        // ---------- MAP SAVED AMOUNTS TO SETTINGS ----------
+        Map<Long, Double> savedEarnings = new HashMap<>();
+        Map<Long, Double> savedDeductions = new HashMap<>();
+
+        if (payroll.getItems() != null) {
+            for (PayrollItem item : payroll.getItems()) {
+                if (item.getSetting() == null) continue;
+                if (item.getType() == PayrollItem.ItemType.EARNING) {
+                    savedEarnings.put(item.getSetting().getId(), item.getAmount());
+                } else if (item.getType() == PayrollItem.ItemType.DEDUCTION) {
+                    savedDeductions.put(item.getSetting().getId(), item.getAmount());
+                }
+            }
+        }
+
+        // Set default values for Thymeleaf display
+        for (Settings e : earnings) {
+            e.setDefaultValue(savedEarnings.get(e.getId())); // returns null if not found
+        }
+        for (Settings d : deductions) {
+            d.setDefaultValue(savedDeductions.get(d.getId())); // returns null if not found
+        }
+
+
         model.addAttribute("earningFields", earnings);
         model.addAttribute("deductionFields", deductions);
 
@@ -74,52 +127,6 @@ public class PayslipPageController {
         deductions.forEach(d -> payrollLabels.put("deduction_" + d.getId(), d.getName()));
         model.addAttribute("payrollLabels", payrollLabels);
 
-
-        // Default to current year/month if not provided
-        LocalDate today = LocalDate.now();
-        int selectedYear = (year != null) ? year : today.getYear();
-        int selectedMonth = (month != null) ? month : today.getMonthValue();
-
-        LocalDate monthStart = LocalDate.of(selectedYear, selectedMonth, 1);
-        LocalDate endOfMonth = monthStart.withDayOfMonth(monthStart.lengthOfMonth());
-
-        // First Wednesday of the month
-        LocalDate baseDate = monthStart.with(TemporalAdjusters.nextOrSame(DayOfWeek.WEDNESDAY));
-
-        // Determine week selection
-        int weekOffset = resolveWeekOffset(week, today, selectedYear, selectedMonth, baseDate);
-
-        // Compute date range for the selected week
-        LocalDate weekStart = (weekOffset == 0) ? baseDate : baseDate.plusWeeks(weekOffset - 1);
-        LocalDate weekEnd = (weekOffset == 0) ? endOfMonth : weekStart.plusDays(6);
-
-        // Save week range to session
-        session.setAttribute("weekStart", weekStart);
-        session.setAttribute("weekEnd", weekEnd);
-
-        // Build attendance summary
-        List<AttendanceSummaryDTO> dtoList = buildAttendanceSummary(employee, logs, weekStart, weekEnd);
-
-        // Get current pay period (handle empty table)
-        PayPeriod currentPayPeriod;
-        if (payPeriodId != null) {
-            currentPayPeriod = payPeriodRepository.findById(payPeriodId)
-                    .orElseThrow(() -> new RuntimeException("PayPeriod not found"));
-        } else {
-            currentPayPeriod = payPeriodRepository.findByStartDateAndEndDate(weekStart, weekEnd)
-                    .orElseGet(() -> {
-                        PayPeriod p = new PayPeriod();
-                        p.setStartDate(weekStart);
-                        p.setEndDate(weekEnd);
-                        return payPeriodRepository.save(p);
-                    });
-        }
-
-        // ✅ Fetch existing payroll for this employee + current pay period
-        Payroll payroll = payrollRepository
-                .findByEmployee_EmployeeIdAndPayPeriod(employeeId, currentPayPeriod)
-                .orElseGet(() -> calculatePayroll(employee, dtoList));
-
         // Dropdowns
         model.addAttribute("years", generateYears(today.getYear()));
         model.addAttribute("months", generateMonths());
@@ -127,7 +134,7 @@ public class PayslipPageController {
 
         // Data
         model.addAttribute("employee", employee);
-        model.addAttribute("attendanceList", dtoList);
+        model.addAttribute("attendanceList", buildAttendanceSummary(employee, logs, weekStart, weekEnd));
         model.addAttribute("payroll", payroll);
         model.addAttribute("weekStart", weekStart);
         model.addAttribute("weekEnd", weekEnd);
@@ -139,9 +146,6 @@ public class PayslipPageController {
 
         return "admin/payslip";
     }
-
-
-
 
     // ---------- HELPER METHODS ----------
 
@@ -271,7 +275,6 @@ public class PayslipPageController {
         if (weekStart == null || weekEnd == null)
             throw new RuntimeException("Week range not found in session");
 
-        // Get or create current pay period
         PayPeriod payPeriod = payPeriodRepository.findByStartDateAndEndDate(weekStart, weekEnd)
                 .orElseGet(() -> {
                     PayPeriod newPeriod = new PayPeriod();
@@ -280,7 +283,6 @@ public class PayslipPageController {
                     return payPeriodRepository.save(newPeriod);
                 });
 
-        // Get or create payroll for employee
         Payroll payroll = payrollRepository
                 .findByEmployee_EmployeeIdAndPayPeriod(employeeId, payPeriod)
                 .orElseGet(() -> {
@@ -294,7 +296,6 @@ public class PayslipPageController {
                     return p;
                 });
 
-        // Clear previous items (so hindi madoble pag re-save)
         payroll.getItems().clear();
 
         double totalEarnings = 0.0;
@@ -304,10 +305,7 @@ public class PayslipPageController {
             String key = entry.getKey();
             String value = entry.getValue();
 
-            // Skip system/calculated fields
-            if (List.of("basicPay", "subtotal", "totalDeductions", "netPay", "payPeriodId").contains(key)) {
-                continue;
-            }
+            if (List.of("basicPay", "subtotal", "totalDeductions", "netPay", "payPeriodId").contains(key)) continue;
             if (value == null || value.trim().isEmpty()) continue;
 
             double amount;
@@ -330,8 +328,9 @@ public class PayslipPageController {
             if (setting != null) {
                 PayrollItem item = new PayrollItem();
                 item.setPayroll(payroll);
-                item.setName(setting.getName());   // ✅ Use human-readable name from Settings
+                item.setName(setting.getName());
                 item.setAmount(amount);
+                item.setSetting(setting);
 
                 if ("EARNING".equalsIgnoreCase(setting.getType())) {
                     item.setType(PayrollItem.ItemType.EARNING);
@@ -345,13 +344,14 @@ public class PayslipPageController {
             }
         }
 
-        // ✅ Compute totals correctly
-        payroll.setBasicPay(allParams.containsKey("basicPay") ? parseSafeDouble(allParams.get("basicPay")) : 0.0);
-        payroll.setSubtotal(totalEarnings);
+        double basicPay = allParams.containsKey("basicPay") ? parseSafeDouble(allParams.get("basicPay")) : 0.0;
+        payroll.setBasicPay(basicPay);
+        payroll.setGrossPay(totalEarnings);
         payroll.setTotalDeductions(totalDeductions);
-        payroll.setNetPay(totalEarnings - totalDeductions);
 
-        // Status depends on role
+// Net pay includes basic pay
+        payroll.setNetPay(basicPay + totalEarnings - totalDeductions);
+
         String role = (String) session.getAttribute("role");
         payroll.setStatus("SUPER_ADMIN".equalsIgnoreCase(role)
                 ? Payroll.PayrollStatus.APPROVED
@@ -362,7 +362,6 @@ public class PayslipPageController {
         return "redirect:/admin/payslip/" + employeeId + "?payPeriodId=" + payPeriod.getId();
     }
 
-    // Helper for safe parsing
     private double parseSafeDouble(String value) {
         if (value == null || value.trim().isEmpty()) return 0.0;
         try {
@@ -371,5 +370,4 @@ public class PayslipPageController {
             return 0.0;
         }
     }
-
 }

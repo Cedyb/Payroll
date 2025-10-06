@@ -23,7 +23,21 @@ public class PayrollItem {
     private ItemType type; // EARNING or DEDUCTION
 
     @Column(name = "amount", nullable = false)
-    private Double amount = 0.0;
+    private Double amount ;
+
+
+    @ManyToOne
+    @JoinColumn(name = "setting_id") // column to reference settings table
+    private Settings setting;
+
+    public Settings getSetting() {
+        return setting;
+    }
+
+    public void setSetting(Settings setting) {
+        this.setting = setting;
+    }
+
 
     public PayrollItem() {}
 

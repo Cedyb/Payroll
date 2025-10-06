@@ -110,52 +110,61 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <!-- Basic Pay -->
+                        <!-- First Row: Basic Pay + First Deduction -->
                         <tr>
                             <td>Basic Pay</td>
-                            <td><input type="number" name="basicPay" class="form-control editable-input" th:value="${payroll.basicPay}" readonly></td>
-                            <td>-</td>
-                            <td>-</td>
-                        </tr>
+                            <td>
+                                <input type="number" name="basicPay" class="form-control" th:value="${payroll.basicPay}" disabled readonly>
+                            </td>
 
-                        <!-- Dynamic Earnings -->
-                        <tr th:each="earning : ${earningFields}">
-                            <td th:text="${earning.name}"></td>
+                            <td th:text="${#lists.isEmpty(deductionFields) ? '-' : deductionFields[0].name}"></td>
                             <td>
                                 <input type="number"
-                                       th:name="${'earning_' + earning.id}"
+                                       th:if="${!#lists.isEmpty(deductionFields)}"
+                                       th:name="${'deduction_' + deductionFields[0].id}"
                                        class="form-control editable-input"
-                                       th:value="${0}"
-                                       disabled>
+                                       th:value="${deductionFields[0].defaultValue}">
                             </td>
-                            <td>-</td>
-                            <td>-</td>
                         </tr>
 
-                        <!-- Dynamic Deductions -->
-                        <tr th:each="deduction : ${deductionFields}">
-                            <td>-</td>
-                            <td>-</td>
-                            <td th:text="${deduction.name}"></td>
+                        <!-- Remaining earnings and deductions -->
+                        <tr th:each="i : ${#numbers.sequence(0, T(java.lang.Math).max(#lists.size(earningFields)-1, #lists.size(deductionFields)-2))}">
+                            <!-- Earnings (skip Basic Pay if it’s part of earningFields) -->
+                            <td th:text="${i < #lists.size(earningFields) ? earningFields[i].name : '-'}"></td>
                             <td>
                                 <input type="number"
-                                       th:name="${'deduction_' + deduction.id}"
+                                       th:if="${i < #lists.size(earningFields)}"
+                                       th:name="${'earning_' + earningFields[i].id}"
                                        class="form-control editable-input"
-                                       th:value="${0}"
+                                       th:value="${earningFields[i].defaultValue}">
+                            </td>
+
+                            <!-- Deductions (skip first, already in Basic Pay row) -->
+                            <td th:text="${i+1 < #lists.size(deductionFields) ? deductionFields[i+1].name : '-'}"></td>
+                            <td>
+                                <input type="number"
+                                       th:if="${i+1 < #lists.size(deductionFields)}"
+                                       th:name="${'deduction_' + deductionFields[i+1].id}"
+                                       class="form-control editable-input"
+                                       th:value="${deductionFields[i+1].defaultValue}"
                                        disabled>
+
                             </td>
                         </tr>
+
+
+
 
                         <!-- Totals -->
                         <tr class="fw-bold">
                             <td>Gross Pay</td>
-                            <td><input type="number" name="subtotal" class="form-control" readonly></td>
+                            <td><input type="number" name="subtotal" class="form-control" disabled readonly></td>
                             <td>Total Deductions</td>
-                            <td><input type="number" name="totalDeductions" class="form-control" readonly></td>
+                            <td><input type="number" name="totalDeductions" class="form-control" disabled readonly></td>
                         </tr>
                         <tr class="fw-bold table-success">
                             <td colspan="2">Net Pay</td>
-                            <td colspan="2"><input type="number" name="netPay" class="form-control" readonly></td>
+                            <td colspan="2"><input type="number" name="netPay" class="form-control" disabled readonly></td>
                         </tr>
                         </tbody>
                     </table>

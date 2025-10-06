@@ -40,8 +40,8 @@ public class Payroll {
     @Column(name = "basic_pay")
     private Double basicPay = 0.0;
 
-    @Column(name = "subtotal")
-    private Double subtotal = 0.0; // sum of all earnings
+    @Column(name = "gross_pay")
+    private Double gross_pay = 0.0; // sum of all earnings
 
     @Column(name = "total_deductions")
     private Double totalDeductions = 0.0;
@@ -75,8 +75,8 @@ public class Payroll {
     public Double getBasicPay() { return basicPay; }
     public void setBasicPay(Double basicPay) { this.basicPay = basicPay; }
 
-    public Double getSubtotal() { return subtotal; }
-    public void setSubtotal(Double subtotal) { this.subtotal = subtotal; }
+    public Double getGrossPay() { return gross_pay; }
+    public void setGrossPay(Double grossPay) { this.gross_pay = grossPay; }
 
     public Double getTotalDeductions() { return totalDeductions; }
     public void setTotalDeductions(Double totalDeductions) { this.totalDeductions = totalDeductions; }
@@ -97,7 +97,7 @@ public class Payroll {
                 .mapToDouble(PayrollItem::getAmount)
                 .sum();
 
-        subtotal = items.stream()
+        gross_pay = items.stream()
                 .filter(i -> i.getType() == PayrollItem.ItemType.EARNING)
                 .mapToDouble(PayrollItem::getAmount)
                 .sum();
@@ -107,6 +107,6 @@ public class Payroll {
                 .mapToDouble(PayrollItem::getAmount)
                 .sum();
 
-        netPay = subtotal - totalDeductions;
+        netPay = gross_pay - totalDeductions;
     }
 }

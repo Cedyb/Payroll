@@ -31,42 +31,48 @@ public class PayslipConfigServiceImpl implements PayslipConfigService {
     public void saveConfiguration(List<Long> positionIds, List<Long> earningIds, List<Long> deductionIds) {
         if (positionIds == null || positionIds.isEmpty()) return;
 
-        // Fetch settings with type validation
-        List<Settings> earnings = settingsRepository.findAllById(
-                        earningIds != null ? earningIds : List.of()
-                ).stream()
+        // 1️⃣ Fetch the settings from DB
+        List<Settings> earnings = earningIds != null
+                ? settingsRepository.findAllById(earningIds).stream()
                 .filter(s -> "EARNING".equalsIgnoreCase(s.getType()))
-                .toList();
+                .toList()
+                : List.of();
 
-        List<Settings> deductions = settingsRepository.findAllById(
-                        deductionIds != null ? deductionIds : List.of()
-                ).stream()
+        List<Settings> deductions = deductionIds != null
+                ? settingsRepository.findAllById(deductionIds).stream()
                 .filter(s -> "DEDUCTION".equalsIgnoreCase(s.getType()))
-                .toList();
+                .toList()
+                : List.of();
 
+        // 2️⃣ Process each position ID
         for (Long posId : positionIds) {
             Positions pos = positionsRepository.findById(posId).orElse(null);
-            if (pos != null) {
-                // apply config to all positions with the same title
-                List<Positions> sameTitlePositions = positionsRepository.findByTitle(pos.getTitle());
+            if (pos == null) continue;
 
-                for (Positions position : sameTitlePositions) {
-                    PayslipConfig config = configRepository.findByPosition(position)
-                            .stream()
-                            .findFirst()
-                            .orElse(new PayslipConfig());
+            // 3️⃣ Apply configuration to all positions with the same title
+            List<Positions> sameTitlePositions = positionsRepository.findByTitle(pos.getTitle());
 
-                    config.setPosition(position);
+            for (Positions position : sameTitlePositions) {
+                // 4️⃣ Check if config already exists for this position
+                PayslipConfig config = configRepository.findByPosition(position)
+                        .stream()
+                        .findFirst()
+                        .orElseGet(() -> {
+                            PayslipConfig newConfig = new PayslipConfig();
+                            newConfig.setPosition(position);
+                            return newConfig;
+                        });
 
-                    // Instead of clear() + addAll(), just assign fresh lists
-                    config.setEarnings(new ArrayList<>(earnings));
-                    config.setDeductions(new ArrayList<>(deductions));
+                // 5️⃣ Update earnings and deductions
+                config.setEarnings(new ArrayList<>(earnings));
+                config.setDeductions(new ArrayList<>(deductions));
 
-                    configRepository.save(config);
-                }
+                // 6️⃣ Save and flush to update join tables immediately
+                configRepository.saveAndFlush(config);
             }
         }
     }
+
 
     @Override
     public List<PayslipConfig> getAllConfigurations() {

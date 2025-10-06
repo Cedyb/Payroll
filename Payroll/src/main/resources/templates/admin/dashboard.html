@@ -20,9 +20,63 @@
         </span>
     </div>
 
-    <!-- Top Cards -->
+    <!-- Top Cards: Weekly Attendance, Employees Present, Employees Absent -->
     <div class="row g-4 mb-4">
-        <!-- Total Employees (Analytics Card) -->
+        <div class="col-md-6">
+            <div class="dashboard-card text-center">
+                <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
+                    <i class="bi bi-calendar-week fs-3 text-primary"></i>
+                    <h5 class="mb-0">Weekly Attendance</h5>
+                </div>
+                <div class="d-flex flex-column align-items-center">
+                    <canvas id="weeklyAttendanceChart" style="max-height: 250px; width: 100%;"></canvas>
+                    <p class="fs-4 fw-bold mt-3">Total: <span th:text="${weeklyAttendanceTotal}">0</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Employees Present -->
+        <div class="col-md-3">
+            <div class="dashboard-card text-center">
+                <div class="d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-person-check-fill fs-3 text-success"></i>
+                    <h5 class="mb-0">Employees Present</h5>
+                </div>
+                <p class="fs-4 fw-bold text-success" th:text="${presentCount}">0</p>
+            </div>
+        </div>
+
+        <!-- Employees Absent -->
+        <div class="col-md-3">
+            <div class="dashboard-card text-center">
+                <div class="d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-person-x-fill fs-3 text-danger"></i>
+                    <h5 class="mb-0">Employees Absent</h5>
+                </div>
+                <p class="fs-4 fw-bold text-danger" th:text="${absentCount}">0</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compensation Status & Total Employees (Same Row) -->
+    <div class="row g-4 mb-4">
+        <!-- Compensation Status -->
+        <div class="col-md-6">
+            <div class="dashboard-card text-center">
+                <div class="d-flex justify-content-between align-items-center mb-2 px-3">
+                    <h5 class="mb-0">Compensation Status</h5>
+                    <select id="departmentSelect" class="form-select w-50">
+                        <option th:each="dept : ${departments}"
+                                th:value="${dept.departmentId}"
+                                th:text="${dept.name}"></option>
+                    </select>
+
+                </div>
+                <canvas id="compensationChart" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+
+        <!-- Total Employees -->
         <div class="col-md-6">
             <div class="dashboard-card text-center">
                 <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
@@ -31,47 +85,6 @@
                 </div>
                 <p class="fs-4 fw-bold" th:text="${employeeCount}">0</p>
                 <canvas id="employeeBarChart" style="max-height: 200px;"></canvas>
-            </div>
-        </div>
-
-        <!-- Departments -->
-        <div class="col-md-3">
-            <div class="dashboard-card text-center">
-                <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
-                    <i class="bi bi-building fs-3"></i>
-                    <h5 class="mb-0">Departments</h5>
-                </div>
-                <div class="mt-2" style="max-height: 4.8rem; overflow-y: auto;">
-                    <ul class="list-unstyled mb-0">
-                        <li th:each="dept : ${departments}" th:text="${dept.name}"></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- Attendance Today -->
-        <div class="col-md-3">
-            <div class="dashboard-card text-center">
-                <div class="d-flex align-items-center justify-content-center gap-2">
-                    <i class="bi bi-calendar-check fs-3"></i>
-                    <h5 class="mb-0">Attendance Today</h5>
-                </div>
-                <p class="fs-4 fw-bold">0</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Compensation Status -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-6">
-            <div class="dashboard-card text-center">
-                <div class="d-flex justify-content-between align-items-center mb-2 px-3">
-                    <h5 class="mb-0">Compensation Status</h5>
-                    <select id="departmentSelect" class="form-select w-50">
-                        <option th:each="dept : ${departments}" th:value="${dept.departmentId}" th:text="${dept.name}"></option>
-                    </select>
-                </div>
-                <canvas id="compensationChart" style="max-height: 250px;"></canvas>
             </div>
         </div>
     </div>
@@ -86,17 +99,17 @@
 <script th:inline="javascript">
     /* <![CDATA[ */
     const departmentData = /*[[${departmentBreakdown}]]*/ {};
-    const labels = Object.keys(departmentData);
-    const counts = Object.values(departmentData);
+    const departmentLabels = Object.keys(departmentData);
+    const departmentCounts = Object.values(departmentData);
 
     const ctx = document.getElementById('employeeBarChart').getContext('2d');
     new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: labels,
+            labels: departmentLabels,
             datasets: [{
                 label: 'Employees per Department',
-                data: counts,
+                data: departmentCounts,
                 backgroundColor: 'rgba(13, 110, 253, 0.7)',
                 borderColor: 'rgba(13, 110, 253, 1)',
                 borderWidth: 1
@@ -128,7 +141,6 @@
     let ctxComp = document.getElementById('compensationChart').getContext('2d');
     let compensationChart;
 
-    // Always show all statuses (even when count is 0)
     const statusLabels = ['Pending', 'Generated', 'Approved'];
     const statusColors = {
         'Pending': '#808080',
@@ -137,50 +149,50 @@
     };
 
     function loadCompensationChart(deptId) {
-        $.ajax({
-            url: '/dashboard/compensation-status',
-            type: 'GET',
-            data: { departmentId: deptId },
-            success: function(data) {
-                // Fill missing statuses with 0
-                const values = statusLabels.map(label => data[label] || 0);
-                const colors = statusLabels.map(label => statusColors[label]);
+    $.ajax({
+        url: /*[[@{/dashboard/compensation-status}]]*/,
+        type: 'GET',
+        data: { departmentId: deptId },
+        success: function(data) {
+            const values = statusLabels.map(label => data[label] || 0);
+            const colors = statusLabels.map(label => statusColors[label]);
 
-                if (compensationChart) compensationChart.destroy();
+            if (compensationChart) compensationChart.destroy();
 
-                compensationChart = new Chart(ctxComp, {
-                    type: 'doughnut',
-                    data: {
-                        labels: statusLabels,
-                        datasets: [{
-                            data: values,
-                            backgroundColor: colors,
-                            borderColor: colors,
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: { position: 'bottom' },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        const label = context.label || '';
-                                        const value = context.raw || 0;
-                                        const total = context.chart._metasets[0].total || 1;
-                                        const percentage = ((value / total) * 100).toFixed(1);
-                                        return ${label}: ${value} (${percentage}%);
-                                    }
+            compensationChart = new Chart(ctxComp, {
+                type: 'doughnut',
+                data: {
+                    labels: statusLabels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: colors,
+                        borderColor: colors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0) || 1;
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return label + ': ' + value + ' (' + percentage + '%)';
                                 }
                             }
-                        },
-                        cutout: '50%'
-                    }
-                });
-            }
-        });
-    }
+                        }
+                    },
+                    cutout: '50%'
+                }
+            });
+        }
+    });
+}
+
 
     $(document).ready(function() {
         loadCompensationChart($('#departmentSelect').val());
@@ -190,6 +202,54 @@
     });
     /* ]]> */
 </script>
+
+<!-- Weekly Attendance Line Chart -->
+<script th:inline="javascript">
+    /* <![CDATA[ */
+    const dailyAttendance = /*[[${dailyAttendance}]]*/ {};
+    const weeklyLabels = Object.keys(dailyAttendance); // Wednesday → Tuesday
+    const weeklyData = Object.values(dailyAttendance);
+
+    const ctxWeekly = document.getElementById('weeklyAttendanceChart').getContext('2d');
+    new Chart(ctxWeekly, {
+        type: 'line',
+        data: {
+            labels: weeklyLabels,
+            datasets: [{
+                label: 'Employees Present',
+                data: weeklyData,
+                fill: true,
+                borderColor: 'rgba(13, 110, 253, 1)',
+                backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                tension: 0.4,
+                pointBackgroundColor: 'rgba(13, 110, 253, 1)',
+                pointBorderColor: '#fff',
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: true },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.raw + ' employees';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    precision: 0
+                }
+            }
+        }
+    });
+    /* ]]> */
+</script>
+
 
 </body>
 </html>
