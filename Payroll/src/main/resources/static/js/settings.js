@@ -228,64 +228,107 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ==========================
-  // CHANGE PASSWORD TAB LOGIC
+  // CHANGE PASSWORD LOGIC
   // ==========================
   const changePasswordForm = document.getElementById("changePasswordForm");
   const passwordFeedback = document.getElementById("passwordFeedback");
 
-  if (changePasswordForm) {
-    changePasswordForm.addEventListener("submit", async function (e) {
-      e.preventDefault();
+  changePasswordForm.addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const currentPassword = document.getElementById("currentPassword").value.trim();
+    const newPassword = document.getElementById("newPassword").value.trim();
+    const confirmPassword = document.getElementById("confirmPassword").value.trim();
 
-      const currentPassword = document.getElementById("currentPassword").value.trim();
-      const newPassword = document.getElementById("newPassword").value.trim();
-      const confirmPassword = document.getElementById("confirmPassword").value.trim();
+    passwordFeedback.textContent = "";
 
-      passwordFeedback.textContent = "";
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      passwordFeedback.textContent = "All fields are required.";
+      passwordFeedback.className = "text-danger small mb-2";
+      return;
+    }
 
-      // Validate
-      if (!currentPassword || !newPassword || !confirmPassword) {
-        passwordFeedback.classList.add("text-danger");
-        passwordFeedback.textContent = "All fields are required.";
-        return;
+    if (newPassword !== confirmPassword) {
+      passwordFeedback.textContent = "New passwords do not match.";
+      passwordFeedback.className = "text-danger small mb-2";
+      return;
+    }
+
+    try {
+      const res = await fetch("/settings/update-credentials", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword
+        })
+      });
+
+      const result = await res.json();
+      if(result.success) {
+        passwordFeedback.textContent = "Password changed successfully!";
+        passwordFeedback.className = "text-success small mb-2";
+        changePasswordForm.reset();
+      } else {
+        passwordFeedback.textContent = result.message || "Current password incorrect.";
+        passwordFeedback.className = "text-danger small mb-2";
       }
+    } catch(err) {
+      passwordFeedback.textContent = "Error occurred. Try again.";
+      passwordFeedback.className = "text-danger small mb-2";
+    }
+  });
 
-      if (newPassword !== confirmPassword) {
-        passwordFeedback.classList.add("text-danger");
-        passwordFeedback.textContent = "New passwords do not match.";
-        return;
+
+
+
+  // ==========================
+  // CHANGE EMAIL LOGIC
+  // ==========================
+  const changeEmailForm = document.getElementById("changeEmailForm");
+  const emailFeedback = document.getElementById("emailFeedback");
+
+  changeEmailForm.addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const currentPassword = document.getElementById("currentPasswordForEmail").value.trim();
+    const newEmail = document.getElementById("newEmail").value.trim();
+    const confirmEmail = document.getElementById("confirmEmail").value.trim();
+
+    emailFeedback.textContent = "";
+
+    if (!currentPassword || !newEmail || !confirmEmail) {
+      emailFeedback.textContent = "All fields are required.";
+      emailFeedback.className = "text-danger small mb-2";
+      return;
+    }
+
+    if (newEmail !== confirmEmail) {
+      emailFeedback.textContent = "New emails do not match.";
+      emailFeedback.className = "text-danger small mb-2";
+      return;
+    }
+
+    try {
+      const res = await fetch("/settings/update-credentials", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newEmail })
+      });
+      const result = await res.json();
+
+      if(result.success) {
+        emailFeedback.textContent = "Email changed successfully!";
+        emailFeedback.className = "text-success small mb-2";
+        changeEmailForm.reset();
+      } else {
+        emailFeedback.textContent = result.message || "Current password incorrect.";
+        emailFeedback.className = "text-danger small mb-2";
       }
-
-      try {
-        const response = await fetch("/settings/change-password", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            currentPassword: currentPassword,
-            newPassword: newPassword
-          }),
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-          passwordFeedback.classList.remove("text-danger");
-          passwordFeedback.classList.add("text-success");
-          passwordFeedback.textContent = "Password changed successfully!";
-          changePasswordForm.reset();
-        } else {
-          passwordFeedback.classList.remove("text-success");
-          passwordFeedback.classList.add("text-danger");
-          passwordFeedback.textContent = result.message || "Current password incorrect.";
-        }
-
-      } catch (error) {
-        console.error("Error changing password:", error);
-        passwordFeedback.classList.remove("text-success");
-        passwordFeedback.classList.add("text-danger");
-        passwordFeedback.textContent = "An error occurred. Please try again.";
-      }
-    });
-  }
+    } catch(err) {
+      emailFeedback.textContent = "Error occurred. Try again.";
+      emailFeedback.className = "text-danger small mb-2";
+      console.error(err);
+    }
+  });
 
 });
