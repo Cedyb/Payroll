@@ -254,4 +254,21 @@ public class EmployeeServiceImpl implements EmployeeService {
             employee.setActive(true);
         }
     }
+
+    @Override
+    public boolean changePassword(Long employeeId, String currentPassword, String newPassword) {
+        Employee employee = getEmployeeById(employeeId);
+
+        // Check if current password matches
+        if (!passwordEncoder.matches(currentPassword, employee.getPassword())) {
+            return false;
+        }
+
+        // Encode and save new password
+        employee.setPassword(passwordEncoder.encode(newPassword));
+        employeeRepository.save(employee);
+
+        return true;
+    }
+
 }

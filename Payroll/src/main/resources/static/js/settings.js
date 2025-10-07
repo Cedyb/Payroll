@@ -227,4 +227,65 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // ==========================
+  // CHANGE PASSWORD TAB LOGIC
+  // ==========================
+  const changePasswordForm = document.getElementById("changePasswordForm");
+  const passwordFeedback = document.getElementById("passwordFeedback");
+
+  if (changePasswordForm) {
+    changePasswordForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const currentPassword = document.getElementById("currentPassword").value.trim();
+      const newPassword = document.getElementById("newPassword").value.trim();
+      const confirmPassword = document.getElementById("confirmPassword").value.trim();
+
+      passwordFeedback.textContent = "";
+
+      // Validate
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        passwordFeedback.classList.add("text-danger");
+        passwordFeedback.textContent = "All fields are required.";
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        passwordFeedback.classList.add("text-danger");
+        passwordFeedback.textContent = "New passwords do not match.";
+        return;
+      }
+
+      try {
+        const response = await fetch("/settings/change-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            currentPassword: currentPassword,
+            newPassword: newPassword
+          }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          passwordFeedback.classList.remove("text-danger");
+          passwordFeedback.classList.add("text-success");
+          passwordFeedback.textContent = "Password changed successfully!";
+          changePasswordForm.reset();
+        } else {
+          passwordFeedback.classList.remove("text-success");
+          passwordFeedback.classList.add("text-danger");
+          passwordFeedback.textContent = result.message || "Current password incorrect.";
+        }
+
+      } catch (error) {
+        console.error("Error changing password:", error);
+        passwordFeedback.classList.remove("text-success");
+        passwordFeedback.classList.add("text-danger");
+        passwordFeedback.textContent = "An error occurred. Please try again.";
+      }
+    });
+  }
+
 });

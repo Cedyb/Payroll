@@ -1,10 +1,16 @@
 package com.example.Payroll.Controller;
 
+import com.example.Payroll.Entity.Employee;
 import com.example.Payroll.Entity.PayslipConfig;
 import com.example.Payroll.Entity.Positions;
 import com.example.Payroll.Entity.Settings;
+import com.example.Payroll.Repository.EmployeeRepository;
+import com.example.Payroll.Service.EmployeeService;
 import com.example.Payroll.Service.PayslipConfigService;
 import com.example.Payroll.Service.SettingsService;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,12 +21,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
+
 @Controller
 @RequestMapping("/settings")
 public class SettingsPageController {
 
     private final SettingsService settingsService;
     private final PayslipConfigService payslipConfigService;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
 
     public SettingsPageController(SettingsService settingsService,
     PayslipConfigService payslipConfigService) {
@@ -225,7 +239,55 @@ public class SettingsPageController {
         return "redirect:/settings";
     }
 
+    @PostMapping("/change-password")
+    @ResponseBody
+    public Map<String, Object> changePassword(@RequestBody Map<String, String> payload, HttpSession session) {
+        Map<String, Object> resp = new HashMap<>();
+        try {
+            String currentPassword = payload.get("currentPassword");
+            String newPassword = payload.get("newPassword");
 
+            // 1) session user
+            Employee sessionUser = (Employee) session.getAttribute("employee");
+            if (sessionUser == null) {
+                resp.put("success", false);
+                resp.put("message", "User not logged in.");
+                return resp;
+            }
 
+            // 2) fetch latest employee from DB (use DB record for matching)
+            Long empId = sessionUser.getEmployeeId();
+            Employee dbUser = employeeRepository.findById(empId).orElse(null);
+            if (dbUser == null) {
+                resp.put("success", false);
+                resp.put("message", "User not found in DB.");
+                return resp;
+            }
+
+            // 3) use DB hash for comparison
+            if (!passwordEncoder.matches(currentPassword, dbUser.getPassword())) {
+                resp.put("success", false);
+                resp.put("message", "Current password incorrect.");
+                return resp;
+            }
+
+            // 4) encode & save new password
+            dbUser.setPassword(passwordEncoder.encode(newPassword));
+            employeeRepository.save(dbUser);
+
+            // 5) update session user password so future checks use the new hash
+            sessionUser.setPassword(dbUser.getPassword());
+            session.setAttribute("employee", sessionUser);
+
+            resp.put("success", true);
+            resp.put("message", "Password changed successfully!");
+            return resp;
+        } catch (Exception e) {
+            e.printStackTrace();
+            resp.put("success", false);
+            resp.put("message", "Error: " + e.getMessage());
+            return resp;
+        }
+    }
 
 }

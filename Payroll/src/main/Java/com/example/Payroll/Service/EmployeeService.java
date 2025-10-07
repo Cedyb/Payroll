@@ -56,4 +56,7 @@ public interface EmployeeService {
     List<Positions> getDistinctActivePositions();
     List<Positions> getActivePositionsByDepartment(Long departmentId);
 
+    boolean changePassword(Long employeeId, String currentPassword, String newPassword);
+
+
 }

@@ -20,7 +20,8 @@ public class PasswordEncoderRunner implements CommandLineRunner {
     public void run(String... args) {
         for (Employee employee : employeeRepository.findAll()) {
             String pwd = employee.getPassword();
-            if (pwd != null && !pwd.startsWith("$2a$")) {
+            // ✅ check for any valid BCrypt prefix ($2a$, $2b$, or $2y$)
+            if (pwd != null && !pwd.matches("^\\$2[aby]\\$.*")) {
                 employee.setPassword(passwordEncoder.encode(pwd));
                 employeeRepository.save(employee);
                 System.out.println("Encoded password for: " + employee.getEmail());
