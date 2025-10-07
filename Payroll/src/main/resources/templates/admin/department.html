@@ -27,23 +27,26 @@
     <nav th:replace="fragments/nav :: nav"></nav>
     <main class="col-md-10 offset-md-2 content p-4">
 
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h2>Departments</h2>
-          <button id="openAddDeptModal" type="button" class="btn btn-success"
-                  th:classappend="${session.role == 'SITE_ADMIN'} ? ' readonly'">
-            Add Department
-          </button>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>Departments</h2>
         </div>
-      </div>
 
-      <!-- Search -->
-      <div class="mb-3 w-50">
-        <input type="text" id="deptSearchInput" class="form-control"
-               placeholder="Search departments by name...">
-      </div>
+        <div class="row mb-3 align-items-end">
+            <div class="col-md-6">
+                <input type="text" id="deptSearchInput" class="form-control"
+                       placeholder="Search departments by name...">
+            </div>
+            <div class="col-md-6 text-end" th:if="${session.role != 'SITE_ADMIN'}">
+                <button id="openAddDeptModal" type="button" class="btn btn-primary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#deptAddModal">
+                    <i class="bi bi-plus-circle"></i> Add Department
+                </button>
+            </div>
+        </div>
 
-      <!-- Table -->
+
+        <!-- Table -->
       <div class="table-responsive table-container"
            th:if="${not #lists.isEmpty(departmentList)}">
         <table id="deptTable" class="table table-striped table-bordered align-middle">

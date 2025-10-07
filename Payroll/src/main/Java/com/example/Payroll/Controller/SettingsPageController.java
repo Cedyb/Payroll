@@ -1,20 +1,21 @@
 package com.example.Payroll.Controller;
 
-import com.example.Payroll.Entity.Employee;
-import com.example.Payroll.Entity.PayslipConfig;
-import com.example.Payroll.Entity.Positions;
-import com.example.Payroll.Entity.Settings;
+import com.example.Payroll.Entity.*;
 import com.example.Payroll.Repository.EmployeeRepository;
+import com.example.Payroll.Repository.HolidayRepository;
 import com.example.Payroll.Service.PayslipConfigService;
 import com.example.Payroll.Service.SettingsService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Controller
@@ -29,6 +30,9 @@ public class SettingsPageController {
 
     @Autowired
     private EmployeeRepository employeeRepository;
+
+    @Autowired
+    private HolidayRepository holidayRepository;
 
     public SettingsPageController(SettingsService settingsService,
                                   PayslipConfigService payslipConfigService) {
@@ -65,6 +69,10 @@ public class SettingsPageController {
             uniqueConfigs.putIfAbsent(title, conf);
         }
         model.addAttribute("payslipConfigs", uniqueConfigs.values());
+
+        List<Holiday> holidays = holidayRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+        model.addAttribute("holidays", holidays);
+
 
         return "admin/settings";
     }
@@ -263,4 +271,36 @@ public class SettingsPageController {
         }
         return "redirect:/settings";
     }
+
+    @PostMapping("/holidays/add")
+    public String addHoliday(@RequestParam String name,
+                             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                             @RequestParam String type) {
+        Holiday h = new Holiday();
+        h.setName(name);
+        h.setDate(date);
+        h.setType(type);
+        holidayRepository.save(h);
+        return "redirect:/settings#holidays"; // bumalik sa tab
+    }
+
+    @PostMapping("/holidays/update")
+    public String updateHoliday(@RequestParam Long id,
+                                @RequestParam String name,
+                                @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                                @RequestParam String type) {
+        Holiday h = holidayRepository.findById(id).orElseThrow();
+        h.setName(name);
+        h.setDate(date);
+        h.setType(type);
+        holidayRepository.save(h);
+        return "redirect:/settings#holidays";
+    }
+
+    @PostMapping("/holidays/delete")
+    public String deleteHoliday(@RequestParam Long id) {
+        holidayRepository.deleteById(id);
+        return "redirect:/settings#holidays";
+    }
+
 }

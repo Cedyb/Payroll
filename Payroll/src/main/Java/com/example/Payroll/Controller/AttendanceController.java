@@ -1,10 +1,14 @@
 package com.example.Payroll.Controller;
 
+import com.example.Payroll.Constants.AuditActions;
 import com.example.Payroll.Entity.AttendanceLog;
+import com.example.Payroll.Entity.Employee;
+import com.example.Payroll.Service.AuditLogService;
 import com.example.Payroll.Repository.AttendanceLogRepository;
 import com.example.Payroll.Repository.EmployeeRepository;
 import com.example.Payroll.Service.UnifiedImportService;
 import com.example.Payroll.dto.AttendanceSummaryDTO;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,13 +29,16 @@ public class AttendanceController {
     private final AttendanceLogRepository attendanceLogRepo;
     private final EmployeeRepository employeeRepo;
     private final UnifiedImportService importService;
+    private final AuditLogService auditLogService;
 
     public AttendanceController(AttendanceLogRepository attendanceLogRepo,
                                 EmployeeRepository employeeRepo,
-                                UnifiedImportService importService) {
+                                UnifiedImportService importService,
+                                AuditLogService auditLogService) {
         this.attendanceLogRepo = attendanceLogRepo;
         this.employeeRepo = employeeRepo;
         this.importService = importService;
+        this.auditLogService = auditLogService;
     }
 
     @GetMapping
@@ -77,7 +84,7 @@ public class AttendanceController {
         // --- Pagination logic ---
         int pageSize = 10;
         int totalPages = (int) Math.ceil((double) summaries.size() / pageSize);
-        totalPages = totalPages == 0 ? 1 : totalPages; // <-- ensures at least 1 page
+        totalPages = totalPages == 0 ? 1 : totalPages; // ensures at least 1 page
 
         // Adjust page if it exceeds totalPages
         if (page > totalPages) page = totalPages;
@@ -107,9 +114,28 @@ public class AttendanceController {
 
     @PostMapping("/upload")
     public String uploadFile(@RequestParam("file") MultipartFile file,
-                             RedirectAttributes redirectAttributes) {
+                             RedirectAttributes redirectAttributes,
+                             HttpSession session,
+                             HttpServletRequest request) {
+
+        Employee currentUser = (Employee) session.getAttribute("employee");
+        String role = (String) session.getAttribute("system_role");
+
         try {
             importService.importK4File(file);
+
+            // Audit log: only audit if role is SUPER_ADMIN, CLERK, or SITE_ADMIN
+            if (currentUser != null && (role.equalsIgnoreCase("SUPER_ADMIN")
+                    || role.equalsIgnoreCase("CLERK")
+                    || role.equalsIgnoreCase("SITE_ADMIN"))) {
+                auditLogService.logAction(
+                        currentUser,
+                        AuditActions.UPLOAD_ATTENDANCE,
+                        "Uploaded attendance file: " + file.getOriginalFilename(),
+                        request
+                );
+            }
+
             redirectAttributes.addFlashAttribute("message", "✅ File imported successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("message", "❌ Failed to import file: " + e.getMessage());

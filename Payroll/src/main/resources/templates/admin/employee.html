@@ -22,18 +22,11 @@
         <nav class="col-md-2 p-0" th:replace="fragments/nav :: nav"></nav>
         <main class="col-md-10 px-4 py-4">
 
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2>Employees</h2>
-                    <!-- Only show Add button for SUPER_ADMIN or CLERK -->
-                    <button id="openModalBtn" type="button" class="btn btn-primary"
-                            th:if="${session.system_role == 'SUPER_ADMIN' or session.system_role == 'CLERK'}">
-                        Add Employee
-                    </button>
-                </div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Employees</h2>
             </div>
 
-            <div class="row mb-3">
+            <div class="row mb-3 align-items-end">
                 <div class="col-md-3">
                     <input type="text" id="searchName" class="form-control" placeholder="Search by name">
                 </div>
@@ -48,7 +41,15 @@
                         <option value="">All Positions</option>
                     </select>
                 </div>
+                <div class="col-md-3 text-end">
+                    <!-- Only show Add button for SUPER_ADMIN or CLERK -->
+                    <button id="openModalBtn" type="button" class="btn btn-primary"
+                            th:if="${session.system_role == 'SUPER_ADMIN' or session.system_role == 'CLERK'}">
+                        <i class="bi bi-plus-circle"></i> Add Employee
+                    </button>
+                </div>
             </div>
+
 
             <div class="table-container p-3">
                 <table class="table table-striped table-hover mt-3" th:if="${not #lists.isEmpty(employeeList)}">

@@ -2,8 +2,12 @@ package com.example.Payroll.Controller;
 
 import com.example.Payroll.Entity.Department;
 import com.example.Payroll.Forms.DepartmentsForm;
+import com.example.Payroll.Service.AuditLogService;
 import com.example.Payroll.Service.DepartmentService;
+import com.example.Payroll.Constants.AuditActions;
+import com.example.Payroll.Entity.Employee;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,6 +24,9 @@ public class DepartmentPageController {
 
     @Autowired
     private DepartmentService departmentService;
+
+    @Autowired
+    private AuditLogService auditLogService;
 
     @GetMapping
     public String showPage(@RequestParam(defaultValue = "0") int page,
@@ -57,32 +64,84 @@ public class DepartmentPageController {
     }
 
     @PostMapping("/create")
-    public String create(@ModelAttribute DepartmentsForm form, HttpSession session) {
+    public String create(@ModelAttribute DepartmentsForm form,
+                         HttpSession session,
+                         HttpServletRequest request) {
+
         String role = (String) session.getAttribute("role");
+        Employee currentUser = (Employee) session.getAttribute("employee");
+
         if ("SITE_ADMIN".equals(role)) {
             return "redirect:/departments?error=forbidden";
         }
-        departmentService.createDepartment(form);
+
+        Department dept = departmentService.createDepartment(form);
+
+        // Audit log
+        if (currentUser != null && ("SUPER_ADMIN".equals(role) || "CLERK".equals(role))) {
+            auditLogService.logAction(
+                    currentUser,
+                    AuditActions.CREATE_DEPARTMENT,
+                    "Created department: " + dept.getName(),
+                    request
+            );
+        }
+
         return "redirect:/departments";
     }
 
     @PostMapping("/update")
-    public String update(@ModelAttribute DepartmentsForm form, HttpSession session) {
+    public String update(@ModelAttribute DepartmentsForm form,
+                         HttpSession session,
+                         HttpServletRequest request) {
+
         String role = (String) session.getAttribute("role");
+        Employee currentUser = (Employee) session.getAttribute("employee");
+
         if ("SITE_ADMIN".equals(role)) {
             return "redirect:/departments?error=forbidden";
         }
-        departmentService.updateDepartment(form);
+
+        Department updated = departmentService.updateDepartment(form);
+
+        // Audit log
+        if (currentUser != null && ("SUPER_ADMIN".equals(role) || "CLERK".equals(role))) {
+            auditLogService.logAction(
+                    currentUser,
+                    AuditActions.UPDATE_DEPARTMENT,
+                    "Updated department: " + updated.getName(),
+                    request
+            );
+        }
+
         return "redirect:/departments#updatecomplete";
     }
 
     @GetMapping("/delete/{id}")
-    public String delete(@PathVariable Long id, HttpSession session) {
+    public String delete(@PathVariable Long id,
+                         HttpSession session,
+                         HttpServletRequest request) {
+
         String role = (String) session.getAttribute("role");
+        Employee currentUser = (Employee) session.getAttribute("employee");
+
         if ("SITE_ADMIN".equals(role)) {
             return "redirect:/departments?error=forbidden";
         }
+
+        Department existing = departmentService.getDepartmentById(id);
         departmentService.deleteDepartment(id);
+
+        // Audit log
+        if (currentUser != null && ("SUPER_ADMIN".equals(role) || "CLERK".equals(role))) {
+            auditLogService.logAction(
+                    currentUser,
+                    AuditActions.DELETE_DEPARTMENT,
+                    "Deleted department: " + existing.getName(),
+                    request
+            );
+        }
+
         return "redirect:/departments";
     }
 

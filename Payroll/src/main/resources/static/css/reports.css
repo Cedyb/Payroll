@@ -1,0 +1,42 @@
+
+    /* Main content spacing for fixed sidebar */
+main {
+    margin-left: 240px;
+    margin-top: 70px;
+    width: calc(100% - 240px);
+}
+
+.table-container {
+    margin-top: 20px;
+    background-color: #f8f9fa;
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    padding: 0;
+}
+
+.table-container .table-responsive {
+    padding: 20px;
+}
+
+/* Nav tabs styling */
+.nav-tabs .nav-link {
+    font-weight: 500;
+}
+.nav-tabs .nav-link.active {
+    background-color: #0d6efd;
+    color: white;
+}
+
+/* Center align all table text */
+#auditTable th,
+#auditTable td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Pagination styling */
+.pagination-wrapper {
+    text-align: center;
+    margin-top: 20px;
+}

@@ -23,22 +23,13 @@
         <nav th:replace="fragments/nav :: nav"></nav>
 
         <main class="col-md-10 p-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2>Positions</h2>
-
-                <!-- Add Position button -->
-                <button id="openModalBtn" type="button" class="btn btn-primary"
-                        th:classappend="${session.role == 'SITE_ADMIN'} ? ' readonly'"
-                        th:attr="data-bs-toggle=${session.role != 'SITE_ADMIN'} ? 'modal' : null,
-                                 data-bs-target=${session.role != 'SITE_ADMIN'} ? '#myModal' : null">
-                    <i class="bi bi-plus-circle"></i> Add Position
-                </button>
             </div>
 
-            <!-- Search bar -->
-            <div class="row search-row">
+            <div class="row mb-3 align-items-end">
                 <div class="col-md-3">
-                    <input type="text" id="searchTitle" class="form-control" placeholder="Search by title">
+                    <input type="text" id="searchName" class="form-control" placeholder="Search by name">
                 </div>
                 <div class="col-md-3">
                     <select id="searchDepartment" class="form-control">
@@ -46,7 +37,22 @@
                         <option th:each="dept : ${departments}" th:value="${dept.departmentId}" th:text="${dept.name}"></option>
                     </select>
                 </div>
+                <div class="col-md-3">
+                    <select id="searchPosition" class="form-control">
+                        <option value="">All Positions</option>
+                    </select>
+                </div>
+                <div class="col-md-3 text-end">
+                    <!-- Only show Add button for SUPER_ADMIN or CLERK -->
+                    <button id="openModalBtn" type="button" class="btn btn-primary"
+                            th:if="${session.system_role == 'SUPER_ADMIN' or session.system_role == 'CLERK'}"
+                            th:attr="data-bs-toggle=${session.system_role != 'SITE_ADMIN'} ? 'modal' : null,
+                         data-bs-target=${session.system_role != 'SITE_ADMIN'} ? '#myModal' : null">
+                        <i class="bi bi-plus-circle"></i> Add Positions
+                    </button>
+                </div>
             </div>
+
 
             <!-- Table -->
             <div class="card shadow-sm">

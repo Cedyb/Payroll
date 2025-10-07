@@ -23,6 +23,9 @@ public class AuditActions {
     public static final String GENERATE_PAYROLL = "GENERATE_PAYROLL";
     public static final String APPROVE_PAYROLL = "APPROVE_PAYROLL";
 
+    // Attendance actions
+    public static final String UPLOAD_ATTENDANCE = "UPLOAD_ATTENDANCE";
+
     private AuditActions() {
         // Prevent instantiation
     }
