@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 
 @Controller
@@ -62,6 +63,13 @@ public class SettingsPageController {
         model.addAttribute("earningsList", settingsService.getActiveEarnings());
         model.addAttribute("deductionsList", settingsService.getActiveDeductions());
 
+        // <-- ADD THIS
+        List<Settings> earningsAndDeductions = new ArrayList<>();
+        earningsAndDeductions.addAll(settingsService.getActiveEarnings());
+        earningsAndDeductions.addAll(settingsService.getActiveDeductions());
+        model.addAttribute("earningsAndDeductions", earningsAndDeductions);
+        // <-- END ADD
+
         List<PayslipConfig> allConfigs = payslipConfigService.getAllConfigurations();
         Map<String, PayslipConfig> uniqueConfigs = new HashMap<>();
         for (PayslipConfig conf : allConfigs) {
@@ -73,9 +81,9 @@ public class SettingsPageController {
         List<Holiday> holidays = holidayRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
         model.addAttribute("holidays", holidays);
 
-
         return "admin/settings";
     }
+
 
     // ==========================
     // UPDATE EMAIL & PASSWORD
@@ -157,10 +165,18 @@ public class SettingsPageController {
         Settings s = new Settings();
         s.setType("EARNING");
         s.setName(payload.get("name"));
+        s.setCalculationType(payload.get("calculationType"));
+        s.setValue(payload.get("value") != null && !payload.get("value").isEmpty()
+                ? Double.parseDouble(payload.get("value")) : null);
+        s.setStartTime(payload.get("startTime") != null && !payload.get("startTime").isEmpty()
+                ? LocalTime.parse(payload.get("startTime")) : null);
+        s.setEndTime(payload.get("endTime") != null && !payload.get("endTime").isEmpty()
+                ? LocalTime.parse(payload.get("endTime")) : null);
         s.setDescription(payload.get("description"));
         s.setIsActive(true);
-        Settings saved = settingsService.saveSetting(s);
 
+        Settings saved = settingsService.saveSetting(s);
+        System.out.println("✅ Saved Setting Type: " + saved.getType());
         return Map.of("id", saved.getId(), "name", saved.getName());
     }
 
@@ -170,12 +186,20 @@ public class SettingsPageController {
         Settings s = new Settings();
         s.setType("DEDUCTION");
         s.setName(payload.get("name"));
+        s.setCalculationType(payload.get("calculationType"));
+        s.setValue(payload.get("value") != null && !payload.get("value").isEmpty()
+                ? Double.parseDouble(payload.get("value")) : null);
+        s.setStartTime(payload.get("startTime") != null && !payload.get("startTime").isEmpty()
+                ? LocalTime.parse(payload.get("startTime")) : null);
+        s.setEndTime(payload.get("endTime") != null && !payload.get("endTime").isEmpty()
+                ? LocalTime.parse(payload.get("endTime")) : null);
         s.setDescription(payload.get("description"));
         s.setIsActive(true);
-        Settings saved = settingsService.saveSetting(s);
 
+        Settings saved = settingsService.saveSetting(s);
         return Map.of("id", saved.getId(), "name", saved.getName());
     }
+
 
     // ==========================
     // DEACTIVATE SETTING

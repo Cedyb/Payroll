@@ -25,6 +25,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Query("SELECT e FROM Employee e WHERE LOWER(TRIM(CONCAT(e.firstName, ' ', e.lastName))) = LOWER(TRIM(:fullName))")
     Optional<Employee> findByFullName(@Param("fullName") String fullName);
 
+    // ✅ Add this method for Spring Security login
+    Optional<Employee> findByUsername(String username);
+
     // ✅ Search only by Full Name or Employee ID
     @Query("SELECT e FROM Employee e " +
             "WHERE e.isActive = true AND (" +
@@ -64,5 +67,4 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     Page<Employee> findByIsActiveFalseAndPosition_Department_DepartmentId(Long departmentId, Pageable pageable);
 
     List<Employee> findByDepartmentId(Long departmentId);
-
 }

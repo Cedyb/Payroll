@@ -94,6 +94,11 @@
 			<artifactId>spring-security-crypto</artifactId>
 		</dependency>
 
+        <!-- ✅ Spring Boot Security Starter -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
 
 
 		<!-- Testing -->

@@ -7,11 +7,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Controller
 @RequestMapping("/reports")
@@ -28,10 +32,20 @@ public class ReportsPageController {
     @GetMapping("")
     public String showReportsPage(
             Model model,
-            @RequestParam(defaultValue = "0") int page // current page index (0-based)
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) {
         Pageable pageable = PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<AuditLog> auditPage = auditLogRepository.findAll(pageable);
+        Page<AuditLog> auditPage;
+
+        if (startDate != null && endDate != null) {
+            LocalDateTime from = startDate.atStartOfDay();
+            LocalDateTime to = endDate.plusDays(1).atStartOfDay().minusSeconds(1); // include entire end date
+            auditPage = auditLogRepository.findByCreatedAtBetween(from, to, pageable);
+        } else {
+            auditPage = auditLogRepository.findAll(pageable);
+        }
 
         model.addAttribute("auditLogs", auditPage.getContent());
         model.addAttribute("currentPage", page);
@@ -46,16 +60,43 @@ public class ReportsPageController {
     @GetMapping("/audit")
     public String getAuditLogsFragment(
             Model model,
-            @RequestParam(defaultValue = "0") int page
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String search
     ) {
         Pageable pageable = PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<AuditLog> auditPage = auditLogRepository.findAll(pageable);
+        Page<AuditLog> auditPage;
+
+        LocalDateTime from = null;
+        LocalDateTime to = null;
+
+        // 🧩 Determine filtering range
+        if (startDate != null) {
+            from = startDate.atStartOfDay();
+        } else {
+            from = LocalDate.of(1970, 1, 1).atStartOfDay();
+        }
+
+        if (endDate != null) {
+            to = endDate.plusDays(1).atStartOfDay().minusSeconds(1);
+        } else {
+            to = LocalDateTime.now();
+        }
+
+        if ((startDate != null || endDate != null) || (search != null && !search.isEmpty())) {
+            auditPage = auditLogRepository.findByCreatedAtBetweenAndSearch(from, to, search, pageable);
+        } else {
+            auditPage = auditLogRepository.findAll(pageable);
+        }
 
         model.addAttribute("auditLogs", auditPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", auditPage.getTotalPages());
 
-        // Return the fragment defined inside the same reports.html
         return "admin/reports :: auditTableContainer";
     }
+
+
+
 }

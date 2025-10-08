@@ -10,7 +10,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const div = document.createElement("div");
         div.classList.add("form-check", "d-flex", "align-items-center", "justify-content-between", "mb-1");
 
-        // Left side: checkbox + label
         const leftDiv = document.createElement("div");
         leftDiv.classList.add("d-flex", "align-items-center");
 
@@ -31,7 +30,6 @@ document.addEventListener("DOMContentLoaded", function () {
         leftDiv.appendChild(label);
         div.appendChild(leftDiv);
 
-        // Only add remove button if removable
         if (removable) {
             const removeBtn = document.createElement("button");
             removeBtn.type = "button";
@@ -58,7 +56,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // ==========================
     // Initialize remove buttons for existing items
     // ==========================
-    function addRemoveButtons(containerId, type) {
+    ["earningsContainer", "deductionsContainer"].forEach(containerId => {
+        const type = containerId.includes("earnings") ? "EARNING" : "DEDUCTION";
         const container = document.getElementById(containerId);
         if (!container) return;
 
@@ -96,66 +95,102 @@ document.addEventListener("DOMContentLoaded", function () {
                 div.appendChild(removeBtn);
             }
         });
-    }
-
-    // Apply remove buttons on load
-    addRemoveButtons("earningsContainer", "EARNING");
-    addRemoveButtons("deductionsContainer", "DEDUCTION");
+    });
 
     // ==========================
-    // Add Earning via AJAX
+    // Open modal for Edit (Earning/Deduction)
     // ==========================
-    const addEarningForm = document.querySelector("#addEarningModal form");
-    if (addEarningForm) {
-        addEarningForm.addEventListener("submit", function (e) {
+    document.querySelectorAll(".edit-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const type = this.getAttribute("data-type");
+            const id = this.getAttribute("data-id");
+            if (!type || !id) return console.error("Missing type or id for edit");
+
+            const modalId = type === "EARNING" ? "addEarningModal" : "addDeductionModal";
+            const modalEl = document.getElementById(modalId);
+            const modal = new bootstrap.Modal(modalEl);
+
+            const form = modalEl.querySelector("form");
+            const nameInput = form.querySelector("input[name='name']");
+            const descInput = form.querySelector("[name='description']");
+            const calcTypeSelect = form.querySelector("select[name='calcType']");
+            const valueInput = form.querySelector("input[name='value']");
+            const startTimeInput = form.querySelector("input[name='startTime']");
+            const endTimeInput = form.querySelector("input[name='endTime']");
+            const idInput = form.querySelector("input[type='hidden']");
+
+            fetch(`/settings/get/${type.toLowerCase()}/${id}`)
+                .then(res => res.json())
+                .then(data => {
+                    nameInput.value = data.name || "";
+                    descInput.value = data.description || "";
+                    calcTypeSelect.value = data.calculationType || "";
+                    valueInput.value = data.value != null ? data.value : "";
+                    if (startTimeInput) startTimeInput.value = data.startTime || "";
+                    if (endTimeInput) endTimeInput.value = data.endTime || "";
+                    idInput.value = data.id;
+
+                    modalEl.querySelector(".modal-title").textContent = `Edit ${type.charAt(0) + type.slice(1).toLowerCase()}`;
+                    modal.show();
+                })
+                .catch(err => console.error("Error fetching data for edit:", err));
+        });
+    });
+
+    // ==========================
+    // Submit Add/Edit via AJAX
+    // ==========================
+    ["addEarningModal", "addDeductionModal"].forEach(modalId => {
+        const modalEl = document.getElementById(modalId);
+        if (!modalEl) return;
+        const form = modalEl.querySelector("form");
+
+        form.addEventListener("submit", function (e) {
             e.preventDefault();
-            const name = this.querySelector('input[name="name"]').value.trim();
-            const description = this.querySelector('input[name="description"]').value.trim();
-            if (!name) return;
+            const type = modalId === "addEarningModal" ? "EARNING" : "DEDUCTION";
+            const id = this.querySelector("input[type='hidden']").value;
 
-            fetch("/settings/add-earning-ajax", {
+            const payload = {
+                name: this.querySelector("[name='name']").value.trim(),
+                description: this.querySelector("[name='description']").value.trim(),
+                calculationType: this.querySelector("[name='calcType']").value,
+                value: this.querySelector("[name='value']").value,
+                startTime: this.querySelector("[name='startTime']") ? this.querySelector("[name='startTime']").value : null,
+                endTime: this.querySelector("[name='endTime']") ? this.querySelector("[name='endTime']").value : null
+            };
+
+            const endpoint = id
+                ? `/settings/update-${type.toLowerCase()}/${id}`
+                : `/settings/add-${type.toLowerCase()}-ajax`;
+
+            fetch(endpoint, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, description }),
+                body: JSON.stringify(payload)
             })
                 .then(res => res.json())
                 .then(data => {
-                    createCheckbox("earningsContainer", "EARNING", data.id, data.name);
-                    bootstrap.Modal.getInstance(document.getElementById("addEarningModal")).hide();
-                    addEarningForm.reset();
+                    if (!data || !data.id) return console.error("Invalid response from server");
+
+                    const containerId = type === "EARNING" ? "earningsContainer" : "deductionsContainer";
+                    const existing = document.getElementById(`${type}_${data.id}`);
+                    if (existing) {
+                        const label = existing.nextElementSibling;
+                        if (label) label.textContent = data.name;
+                    } else {
+                        createCheckbox(containerId, type, data.id, data.name);
+                    }
+
+                    bootstrap.Modal.getInstance(modalEl).hide();
+                    form.reset();
+                    form.querySelector("input[type='hidden']").value = "";
                 })
                 .catch(err => console.error(err));
         });
-    }
+    });
 
     // ==========================
-    // Add Deduction via AJAX
-    // ==========================
-    const addDeductionForm = document.querySelector("#addDeductionModal form");
-    if (addDeductionForm) {
-        addDeductionForm.addEventListener("submit", function (e) {
-            e.preventDefault();
-            const name = this.querySelector('input[name="name"]').value.trim();
-            const description = this.querySelector('textarea[name="description"]').value.trim();
-            if (!name) return;
-
-            fetch("/settings/add-deduction-ajax", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, description }),
-            })
-                .then(res => res.json())
-                .then(data => {
-                    createCheckbox("deductionsContainer", "DEDUCTION", data.id, data.name);
-                    bootstrap.Modal.getInstance(document.getElementById("addDeductionModal")).hide();
-                    addDeductionForm.reset();
-                })
-                .catch(err => console.error(err));
-        });
-    }
-
-    // ==========================
-    // Edit Payslip Configuration
+    // Edit Payslip Configuration Modal
     // ==========================
     document.querySelectorAll(".edit-config-btn").forEach(btn => {
         btn.addEventListener("click", function () {
@@ -168,21 +203,41 @@ document.addEventListener("DOMContentLoaded", function () {
                     return res.json();
                 })
                 .then(data => {
-                    document.getElementById("editConfigId").value = data.id;
-                    document.getElementById("editConfigPosition").value = data.positionTitle;
-
                     const earningsContainer = document.getElementById("editEarningsContainer");
                     const deductionsContainer = document.getElementById("editDeductionsContainer");
+
+                    if (!earningsContainer || !deductionsContainer) {
+                        console.error('Earnings or Deductions container not found');
+                        return;
+                    }
+
                     earningsContainer.innerHTML = "";
                     deductionsContainer.innerHTML = "";
 
+                    const selectedEarnings = data.earnings.map(Number);
                     data.allEarnings.forEach(e => {
-                        createCheckbox("editEarningsContainer", "EARNING", e.id, e.name, data.earnings.includes(e.id));
+                        createCheckbox(
+                            "editEarningsContainer",
+                            "EARNING",
+                            e.id,
+                            e.name,
+                            selectedEarnings.includes(Number(e.id))
+                        );
                     });
 
+                    const selectedDeductions = data.deductions.map(Number);
                     data.allDeductions.forEach(d => {
-                        createCheckbox("editDeductionsContainer", "DEDUCTION", d.id, d.name, data.deductions.includes(d.id));
+                        createCheckbox(
+                            "editDeductionsContainer",
+                            "DEDUCTION",
+                            d.id,
+                            d.name,
+                            selectedDeductions.includes(Number(d.id))
+                        );
                     });
+
+                    document.getElementById("editConfigId").value = data.id;
+                    document.getElementById("editConfigPosition").value = data.positionTitle;
 
                     const modalEl = document.getElementById("editConfigModal");
                     if (!modalEl) return console.error('Edit Modal element not found');
@@ -193,22 +248,15 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // ==========================
-    // Save Edited Configuration
-    // ==========================
     const editForm = document.getElementById("editConfigForm");
     if (editForm) {
         editForm.addEventListener("submit", function (e) {
             e.preventDefault();
             const configId = document.getElementById("editConfigId").value;
 
-            // Collect selected earnings and deductions
-            const earnings = Array.from(document.querySelectorAll("#editEarningsContainer input[type='checkbox']:checked"))
-                .map(cb => cb.value);
-            const deductions = Array.from(document.querySelectorAll("#editDeductionsContainer input[type='checkbox']:checked"))
-                .map(cb => cb.value);
+            const earnings = Array.from(document.querySelectorAll("#editEarningsContainer input[type='checkbox']:checked")).map(cb => cb.value);
+            const deductions = Array.from(document.querySelectorAll("#editDeductionsContainer input[type='checkbox']:checked")).map(cb => cb.value);
 
-            // Send to server
             fetch(`/settings/config/update/${configId}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -228,11 +276,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ==========================
-    // CHANGE PASSWORD LOGIC
+    // CHANGE PASSWORD
     // ==========================
     const changePasswordForm = document.getElementById("changePasswordForm");
     const passwordFeedback = document.getElementById("passwordFeedback");
-
     if (changePasswordForm) {
         changePasswordForm.addEventListener("submit", async function (e) {
             e.preventDefault();
@@ -241,72 +288,44 @@ document.addEventListener("DOMContentLoaded", function () {
             const confirmPassword = document.getElementById("confirmPassword").value.trim();
 
             passwordFeedback.textContent = "";
+            if (!currentPassword || !newPassword || !confirmPassword) return passwordFeedback.textContent = "All fields are required.";
 
-            if (!currentPassword || !newPassword || !confirmPassword) {
-                passwordFeedback.textContent = "All fields are required.";
-                passwordFeedback.className = "text-danger small mb-2";
-                return;
-            }
-
-            if (newPassword !== confirmPassword) {
-                passwordFeedback.textContent = "New passwords do not match.";
-                passwordFeedback.className = "text-danger small mb-2";
-                return;
-            }
+            if (newPassword !== confirmPassword) return passwordFeedback.textContent = "New passwords do not match.";
 
             try {
                 const res = await fetch("/settings/update-credentials", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        currentPassword,
-                        newPassword
-                    })
+                    body: JSON.stringify({ currentPassword, newPassword })
                 });
-
                 const result = await res.json();
                 if (result.success) {
                     passwordFeedback.textContent = "Password changed successfully!";
-                    passwordFeedback.className = "text-success small mb-2";
                     changePasswordForm.reset();
                 } else {
                     passwordFeedback.textContent = result.message || "Current password incorrect.";
-                    passwordFeedback.className = "text-danger small mb-2";
                 }
             } catch (err) {
                 passwordFeedback.textContent = "Error occurred. Try again.";
-                passwordFeedback.className = "text-danger small mb-2";
             }
         });
     }
 
     // ==========================
-    // CHANGE EMAIL LOGIC
+    // CHANGE EMAIL
     // ==========================
     const changeEmailForm = document.getElementById("changeEmailForm");
     const emailFeedback = document.getElementById("emailFeedback");
-
     if (changeEmailForm) {
         changeEmailForm.addEventListener("submit", async function (e) {
             e.preventDefault();
-
             const currentPassword = document.getElementById("currentPasswordForEmail").value.trim();
             const newEmail = document.getElementById("newEmail").value.trim();
             const confirmEmail = document.getElementById("confirmEmail").value.trim();
 
             emailFeedback.textContent = "";
-
-            if (!currentPassword || !newEmail || !confirmEmail) {
-                emailFeedback.textContent = "All fields are required.";
-                emailFeedback.className = "text-danger small mb-2";
-                return;
-            }
-
-            if (newEmail !== confirmEmail) {
-                emailFeedback.textContent = "New emails do not match.";
-                emailFeedback.className = "text-danger small mb-2";
-                return;
-            }
+            if (!currentPassword || !newEmail || !confirmEmail) return emailFeedback.textContent = "All fields are required.";
+            if (newEmail !== confirmEmail) return emailFeedback.textContent = "New emails do not match.";
 
             try {
                 const res = await fetch("/settings/update-credentials", {
@@ -315,18 +334,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     body: JSON.stringify({ currentPassword, newEmail })
                 });
                 const result = await res.json();
-
-                if (result.success) {
-                    emailFeedback.textContent = "Email changed successfully!";
-                    emailFeedback.className = "text-success small mb-2";
-                    changeEmailForm.reset();
-                } else {
-                    emailFeedback.textContent = result.message || "Current password incorrect.";
-                    emailFeedback.className = "text-danger small mb-2";
-                }
+                emailFeedback.textContent = result.success ? "Email changed successfully!" : (result.message || "Current password incorrect.");
             } catch (err) {
                 emailFeedback.textContent = "Error occurred. Try again.";
-                emailFeedback.className = "text-danger small mb-2";
                 console.error(err);
             }
         });
