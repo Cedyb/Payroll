@@ -14,4 +14,5 @@ public interface SettingsService {
     List<Settings> getActiveDeductions();
 
     Settings getSettingById(Long id);
+    void deleteSetting(Long id);
 }

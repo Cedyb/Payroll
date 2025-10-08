@@ -1,91 +1,266 @@
+/* ================================
+   PAYROLL PAGE STYLING
+   ================================ */
+
+/* Base layout */
+body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Sidebar */
+nav.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 240px;
+    background-color: #fff;
+    border-right: 1px solid #dee2e6;
+    z-index: 1000;
+}
+
+/* Main content area */
+main {
+    margin-left: 240px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    padding-bottom: 100px; /* space for pagination */
+}
+
+/* ================================
+   HEADER
+   ================================ */
+main h4 {
+    color: #007bff;
+    font-weight: 700;
+    font-size: 1.6rem;
+    text-transform: capitalize; /* Only first letter capitalized */
+    letter-spacing: 0.5px;
+    margin-bottom: 25px;
+}
+
+/* ================================
+   BUTTON STYLING
+   ================================ */
+.btn-primary,
+.btn-outline-primary {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 6px 14px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+}
+
+.btn-outline-primary:hover {
+    background-color: #007bff;
+    color: #fff;
+}
+
+/* ================================
+   EMPLOYEE BADGE & TAGS
+   ================================ */
 .initials {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #dee2e6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  text-transform: uppercase;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    text-transform: uppercase;
 }
+
 .employee-email {
-  font-size: 0.875rem;
-  color: #6c757d;
+    font-size: 0.875rem;
+    color: #6c757d;
 }
+
 .tag {
-  background-color: #f1f3f5;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-.ellipsis {
-  cursor: pointer;
-  font-size:30px;
-}
-.dropdown-menu-custom {
-  position: absolute;
-  right: 0;
-  top: 100%;
-  background-color: white;
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  padding: 5px 0;
-  display: none;
-  z-index: 999;
-  min-width: 120px;
-  border-radius: 4px;
+    background-color: #f1f3f5;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
 }
 
-.dropdown-menu-custom .dropdown-item {
-  padding: 8px 15px;
-  text-decoration: none;
-  display: block;
-  color: #212529;
-}
-
-.dropdown-menu-custom .dropdown-item:hover {
-  background-color: #f8f9fa;
-}
+/* ================================
+   TABLE DESIGN
+   ================================ */
 .table-container {
-  margin-top: 20px;
-  padding: 20px;
-  background-color: #f8f9fa ;
-  border: 2px solid #dee2e6;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
 }
 
 .table-container table {
-  margin-bottom: 0;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 15px;
 }
 
+.table-container th,
+.table-container td {
+    text-align: center;
+    padding: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: 1px solid #dee2e6;
+}
+
+/* Clean white table header */
+.table-container th {
+    background-color: #ffffff; /* White header */
+    color: #212529;           /* Dark text */
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+/* Alternate row shading */
+.table-container tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+/* Hover effect */
+.table-container tr:hover {
+    background-color: #e9f3ff;
+    transition: 0.2s;
+}
+
+/* ================================
+   PAGINATION (CLEAN FLOATING STYLE)
+   ================================ */
 .pagination-wrapper {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
-  background-color: #fff;
-  padding: 10px 0;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    width: calc(100% - 240px);
+    display: flex;
+    justify-content: center;
+    background-color: transparent; /* remove white box */
+    padding: 0; /* no extra padding */
+    box-shadow: none; /* remove shadow bar */
 }
 
-/* Floating Action Button */
-#actionButton {
-  display: none;
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 1100;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-size: 16px;
-  box-shadow: 0px 4px 6px rgba(0,0,0,0.2);
+.pagination {
+    margin-bottom: 0;
 }
-/* Disable interaction for read-only buttons */
-    .readonly {
-      pointer-events: none;
-      opacity: 0.6;
-      cursor: not-allowed;
+
+.pagination .page-link {
+    border: none;
+    color: #007bff;
+    font-weight: 500;
+    border-radius: 8px;
+    margin: 0 4px;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #007bff;
+    color: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #adb5bd;
+    background-color: #f8f9fa;
+}
+
+/* ================================
+   FLOATING ACTION BUTTON
+   ================================ */
+#actionButton {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1100;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    box-shadow: 0px 4px 6px rgba(0,0,0,0.2);
+}
+
+/* ================================
+   DROPDOWN MENU
+   ================================ */
+.dropdown-menu-custom {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background-color: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 5px 0;
+    display: none;
+    z-index: 999;
+    min-width: 120px;
+    border-radius: 4px;
+}
+
+.dropdown-menu-custom .dropdown-item {
+    padding: 8px 15px;
+    text-decoration: none;
+    display: block;
+    color: #212529;
+}
+
+.dropdown-menu-custom .dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* ================================
+   READONLY BUTTON
+   ================================ */
+.readonly {
+    pointer-events: none;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ================================
+   RESPONSIVE DESIGN
+   ================================ */
+@media (max-width: 992px) {
+    nav.sidebar {
+        display: none;
     }
+
+    main {
+        margin-left: 0;
+        padding: 15px;
+        padding-bottom: 120px;
+    }
+
+    main h4 {
+        text-align: center;
+        font-size: 22px;
+    }
+
+    .table-container th,
+    .table-container td {
+        font-size: 14px;
+        padding: 6px;
+    }
+
+    .pagination-wrapper {
+        width: 100%;
+        bottom: 10px;
+    }
+}

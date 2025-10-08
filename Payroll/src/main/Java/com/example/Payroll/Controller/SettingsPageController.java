@@ -327,4 +327,57 @@ public class SettingsPageController {
         return "redirect:/settings#holidays";
     }
 
+    @PostMapping("/update-earning/{id}")
+    @ResponseBody
+    public Map<String, Object> updateEarning(@PathVariable Long id, @RequestBody Map<String,String> payload) {
+        Settings s = settingsService.getSettingById(id);
+        if (s == null || !s.getType().equals("EARNING")) return Map.of("success", false);
+
+        s.setName(payload.get("name"));
+        s.setDescription(payload.get("description"));
+        s.setCalculationType(payload.get("calculationType"));
+        s.setValue(payload.get("value") != null && !payload.get("value").isEmpty() ? Double.parseDouble(payload.get("value")) : null);
+        s.setStartTime(payload.get("startTime") != null && !payload.get("startTime").isEmpty() ? LocalTime.parse(payload.get("startTime")) : null);
+        s.setEndTime(payload.get("endTime") != null && !payload.get("endTime").isEmpty() ? LocalTime.parse(payload.get("endTime")) : null);
+
+        settingsService.saveSetting(s);
+        return Map.of("success", true, "id", s.getId(), "name", s.getName());
+    }
+
+    @PostMapping("/update-deduction/{id}")
+    @ResponseBody
+    public Map<String, Object> updateDeduction(@PathVariable Long id, @RequestBody Map<String,String> payload) {
+        Settings s = settingsService.getSettingById(id);
+        if (s == null || !s.getType().equals("DEDUCTION")) return Map.of("success", false);
+
+        s.setName(payload.get("name"));
+        s.setDescription(payload.get("description"));
+        s.setCalculationType(payload.get("calculationType"));
+        s.setValue(payload.get("value") != null && !payload.get("value").isEmpty() ? Double.parseDouble(payload.get("value")) : null);
+        s.setStartTime(payload.get("startTime") != null && !payload.get("startTime").isEmpty() ? LocalTime.parse(payload.get("startTime")) : null);
+        s.setEndTime(payload.get("endTime") != null && !payload.get("endTime").isEmpty() ? LocalTime.parse(payload.get("endTime")) : null);
+
+        settingsService.saveSetting(s);
+        return Map.of("success", true, "id", s.getId(), "name", s.getName());
+    }
+
+    @PostMapping("/delete/{type}/{id}")
+    @ResponseBody
+    public Map<String, Object> deleteSetting(@PathVariable String type, @PathVariable Long id) {
+        Map<String, Object> resp = new HashMap<>();
+        try {
+            Settings setting = settingsService.getSettingById(id);
+            if (setting != null && setting.getType().equalsIgnoreCase(type)) {
+                settingsService.deleteSetting(id); // DELETE from DB
+                resp.put("success", true);
+            } else {
+                resp.put("success", false);
+                resp.put("message", "Setting not found");
+            }
+        } catch (Exception e) {
+            resp.put("success", false);
+            resp.put("message", e.getMessage());
+        }
+        return resp;
+    }
 }

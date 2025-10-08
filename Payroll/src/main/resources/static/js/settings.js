@@ -98,48 +98,47 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // ==========================
-    // Open modal for Edit (Earning/Deduction)
+    // Unified modal edit handler
     // ==========================
-    document.querySelectorAll(".edit-btn").forEach(btn => {
+    function openEditModal(type, id, row) {
+        const modalId = type === "EARNING" ? "addEarningModal" : "addDeductionModal";
+        const modalEl = document.getElementById(modalId);
+        if (!modalEl) return;
+        const modal = new bootstrap.Modal(modalEl);
+        const form = modalEl.querySelector("form");
+
+        // Modal inputs
+        const nameInput = form.querySelector("input[name='name']");
+        const descInput = form.querySelector("[name='description']");
+        const calcTypeSelect = form.querySelector("select[name='calcType']");
+        const valueInput = form.querySelector("input[name='value']");
+        const startTimeInput = form.querySelector("input[name='startTime']");
+        const endTimeInput = form.querySelector("input[name='endTime']");
+        const idInput = form.querySelector("input[type='hidden']");
+
+        if (row) {
+            nameInput.value = row.querySelector(".name")?.textContent.trim() || row.children[1]?.textContent.trim() || "";
+            descInput.value = row.querySelector(".description")?.textContent.trim() || row.children[6]?.textContent.trim() || "";
+            calcTypeSelect.value = row.querySelector(".calcType")?.textContent.trim() || row.children[2]?.textContent.trim() || "";
+            valueInput.value = row.querySelector(".value")?.textContent.trim() || row.children[3]?.textContent.trim() || "";
+            if (startTimeInput) startTimeInput.value = row.querySelector(".startTime")?.textContent.trim() || row.children[4]?.textContent.trim() || "";
+            if (endTimeInput) endTimeInput.value = row.querySelector(".endTime")?.textContent.trim() || row.children[5]?.textContent.trim() || "";
+        }
+
+        idInput.value = id;
+        modalEl.querySelector(".modal-title").textContent = `Edit ${type.charAt(0) + type.slice(1).toLowerCase()}`;
+        modal.show();
+    }
+
+    document.querySelectorAll(".edit-btn, #earningsDeductionTable button.btn-warning").forEach(btn => {
         btn.addEventListener("click", function () {
-            const type = this.getAttribute("data-type");
-            const id = this.getAttribute("data-id");
-            if (!type || !id) return console.error("Missing type or id for edit");
-
-            const modalId = type === "EARNING" ? "addEarningModal" : "addDeductionModal";
-            const modalEl = document.getElementById(modalId);
-            const modal = new bootstrap.Modal(modalEl);
-
-            const form = modalEl.querySelector("form");
-            const nameInput = form.querySelector("input[name='name']");
-            const descInput = form.querySelector("[name='description']");
-            const calcTypeSelect = form.querySelector("select[name='calcType']");
-            const valueInput = form.querySelector("input[name='value']");
-            const startTimeInput = form.querySelector("input[name='startTime']");
-            const endTimeInput = form.querySelector("input[name='endTime']");
-            const idInput = form.querySelector("input[type='hidden']");
-
-            fetch(`/settings/get/${type.toLowerCase()}/${id}`)
-                .then(res => res.json())
-                .then(data => {
-                    nameInput.value = data.name || "";
-                    descInput.value = data.description || "";
-                    calcTypeSelect.value = data.calculationType || "";
-                    valueInput.value = data.value != null ? data.value : "";
-                    if (startTimeInput) startTimeInput.value = data.startTime || "";
-                    if (endTimeInput) endTimeInput.value = data.endTime || "";
-                    idInput.value = data.id;
-
-                    modalEl.querySelector(".modal-title").textContent = `Edit ${type.charAt(0) + type.slice(1).toLowerCase()}`;
-                    modal.show();
-                })
-                .catch(err => console.error("Error fetching data for edit:", err));
+            const type = btn.dataset.type || btn.getAttribute("data-type");
+            const id = btn.dataset.id || btn.getAttribute("data-id");
+            const row = btn.closest("tr");
+            openEditModal(type, id, row);
         });
     });
 
-    // ==========================
-    // Submit Add/Edit via AJAX
-    // ==========================
     ["addEarningModal", "addDeductionModal"].forEach(modalId => {
         const modalEl = document.getElementById(modalId);
         if (!modalEl) return;
@@ -148,15 +147,15 @@ document.addEventListener("DOMContentLoaded", function () {
         form.addEventListener("submit", function (e) {
             e.preventDefault();
             const type = modalId === "addEarningModal" ? "EARNING" : "DEDUCTION";
-            const id = this.querySelector("input[type='hidden']").value;
+            const id = form.querySelector("input[type='hidden']").value;
 
             const payload = {
-                name: this.querySelector("[name='name']").value.trim(),
-                description: this.querySelector("[name='description']").value.trim(),
-                calculationType: this.querySelector("[name='calcType']").value,
-                value: this.querySelector("[name='value']").value,
-                startTime: this.querySelector("[name='startTime']") ? this.querySelector("[name='startTime']").value : null,
-                endTime: this.querySelector("[name='endTime']") ? this.querySelector("[name='endTime']").value : null
+                name: form.querySelector("[name='name']").value.trim(),
+                description: form.querySelector("[name='description']").value.trim(),
+                calculationType: form.querySelector("[name='calcType']").value,
+                value: form.querySelector("[name='value']")?.value || "",
+                startTime: form.querySelector("[name='startTime']")?.value || null,
+                endTime: form.querySelector("[name='endTime']")?.value || null
             };
 
             const endpoint = id
@@ -168,81 +167,89 @@ document.addEventListener("DOMContentLoaded", function () {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             })
-                .then(res => res.json())
-                .then(data => {
-                    if (!data || !data.id) return console.error("Invalid response from server");
+            .then(res => res.json())
+            .then(data => {
+                if (!data || (!data.id && !data.success)) return alert("Failed to save item.");
 
+                // Add new checkbox if adding
+                if (!id && data.id) {
                     const containerId = type === "EARNING" ? "earningsContainer" : "deductionsContainer";
-                    const existing = document.getElementById(`${type}_${data.id}`);
-                    if (existing) {
-                        const label = existing.nextElementSibling;
-                        if (label) label.textContent = data.name;
-                    } else {
-                        createCheckbox(containerId, type, data.id, data.name);
-                    }
+                    createCheckbox(containerId, type, data.id, data.name);
+                }
 
-                    bootstrap.Modal.getInstance(modalEl).hide();
-                    form.reset();
-                    form.querySelector("input[type='hidden']").value = "";
-                })
-                .catch(err => console.error(err));
+                // Update table row if editing
+                if (id && data.success) {
+                    const row = document.querySelector(`#${type}_${id}`)?.closest("tr");
+                    if (row) {
+                        row.children[1].textContent = payload.name;
+                        row.children[2].textContent = payload.calculationType;
+                        row.children[3].textContent = payload.value;
+                        if (type === "EARNING") {
+                            row.children[4].textContent = payload.startTime;
+                            row.children[5].textContent = payload.endTime;
+                        }
+                        row.children[6].textContent = payload.description;
+                    }
+                }
+
+                bootstrap.Modal.getInstance(modalEl).hide();
+                form.reset();
+                form.querySelector("input[type='hidden']").value = "";
+            })
+            .catch(err => console.error(err));
         });
     });
 
+
+        // ==========================
+        // Delete row
+        // ==========================
+        document.querySelectorAll(".delete-btn").forEach(btn => {
+            btn.addEventListener("click", function () {
+                const type = btn.dataset.type; // "EARNING" or "DEDUCTION"
+                const id = btn.dataset.id;
+
+                if (!confirm("Are you sure you want to delete this item?")) return;
+
+                fetch(`/settings/delete/${type}/${id}`, {
+                    method: "POST"
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const row = btn.closest("tr");
+                        if (row) row.remove();
+                    } else {
+                        alert("Failed to delete item: " + (data.message || ""));
+                    }
+                })
+                .catch(err => console.error(err));
+            });
+        });
+
     // ==========================
-    // Edit Payslip Configuration Modal
+    // Payslip Config Edit Modal
     // ==========================
     document.querySelectorAll(".edit-config-btn").forEach(btn => {
         btn.addEventListener("click", function () {
-            const configId = this.getAttribute("data-config-id");
+            const configId = btn.dataset.configId;
             if (!configId) return console.error('Config ID not found');
 
             fetch(`/settings/config/get/${configId}`)
-                .then(res => {
-                    if (!res.ok) throw new Error('Network response was not ok');
-                    return res.json();
-                })
+                .then(res => res.json())
                 .then(data => {
                     const earningsContainer = document.getElementById("editEarningsContainer");
                     const deductionsContainer = document.getElementById("editDeductionsContainer");
-
-                    if (!earningsContainer || !deductionsContainer) {
-                        console.error('Earnings or Deductions container not found');
-                        return;
-                    }
-
                     earningsContainer.innerHTML = "";
                     deductionsContainer.innerHTML = "";
 
-                    const selectedEarnings = data.earnings.map(Number);
-                    data.allEarnings.forEach(e => {
-                        createCheckbox(
-                            "editEarningsContainer",
-                            "EARNING",
-                            e.id,
-                            e.name,
-                            selectedEarnings.includes(Number(e.id))
-                        );
-                    });
-
-                    const selectedDeductions = data.deductions.map(Number);
-                    data.allDeductions.forEach(d => {
-                        createCheckbox(
-                            "editDeductionsContainer",
-                            "DEDUCTION",
-                            d.id,
-                            d.name,
-                            selectedDeductions.includes(Number(d.id))
-                        );
-                    });
+                    data.allEarnings.forEach(e => createCheckbox("editEarningsContainer", "EARNING", e.id, e.name, data.earnings.includes(Number(e.id))));
+                    data.allDeductions.forEach(d => createCheckbox("editDeductionsContainer", "DEDUCTION", d.id, d.name, data.deductions.includes(Number(d.id))));
 
                     document.getElementById("editConfigId").value = data.id;
                     document.getElementById("editConfigPosition").value = data.positionTitle;
 
-                    const modalEl = document.getElementById("editConfigModal");
-                    if (!modalEl) return console.error('Edit Modal element not found');
-                    const modal = new bootstrap.Modal(modalEl);
-                    modal.show();
+                    new bootstrap.Modal(document.getElementById("editConfigModal")).show();
                 })
                 .catch(err => console.error('Error fetching config:', err));
         });
@@ -253,7 +260,6 @@ document.addEventListener("DOMContentLoaded", function () {
         editForm.addEventListener("submit", function (e) {
             e.preventDefault();
             const configId = document.getElementById("editConfigId").value;
-
             const earnings = Array.from(document.querySelectorAll("#editEarningsContainer input[type='checkbox']:checked")).map(cb => cb.value);
             const deductions = Array.from(document.querySelectorAll("#editDeductionsContainer input[type='checkbox']:checked")).map(cb => cb.value);
 
@@ -289,7 +295,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             passwordFeedback.textContent = "";
             if (!currentPassword || !newPassword || !confirmPassword) return passwordFeedback.textContent = "All fields are required.";
-
             if (newPassword !== confirmPassword) return passwordFeedback.textContent = "New passwords do not match.";
 
             try {

@@ -1,3 +1,25 @@
+/* ================================
+   DEPARTMENTS PAGE STYLING
+   ================================ */
+
+/* General Layout */
+main {
+    margin-left: 240px; /* space for sidebar */
+    width: calc(100% - 240px);
+    padding: 2rem;
+    background-color: #f9fafb;
+    min-height: 100vh;
+}
+
+/* Headings */
+main h2 {
+    font-weight: 600;
+    color: #0d6efd;
+}
+
+/* ================================
+   TABLE DESIGN
+   ================================ */
 .table-container {
     margin-top: 20px;
     padding: 20px;
@@ -8,18 +30,140 @@
 }
 
 .table-container table {
-    margin-bottom: 0;
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 0; /* remove extra space below table */
 }
 
-/* Fixed bottom pagination */
+.table-container th,
+.table-container td {
+    border: 1px solid #dee2e6;
+    padding: 12px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.table-container thead {
+    background-color: #0d6efd;
+    color: white;
+    font-weight: 600;
+}
+
+.table-container tbody tr:nth-child(even) {
+    background-color: #f1f3f5;
+}
+
+.table-container tbody tr:hover {
+    background-color: #e7f1ff;
+    transition: background-color 0.2s ease;
+}
+
+/* ================================
+   BUTTONS
+   ================================ */
+.btn-primary,
+.btn-secondary,
+.btn-warning,
+.btn-danger {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 6px 12px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+}
+
+.btn-secondary:hover {
+    background-color: #6c757d;
+}
+
+.btn-warning:hover {
+    background-color: #ffc107;
+}
+
+.btn-danger:hover {
+    background-color: #dc3545;
+}
+
+/* Readonly Buttons */
+.readonly {
+    pointer-events: none;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ================================
+   PAGINATION FIXED BOTTOM CENTER
+   ================================ */
 .pagination-wrapper {
-    position: fixed;       /* Fix it relative to viewport */
+    position: fixed;       /* Fix relative to viewport */
     bottom: 20px;          /* Distance from bottom */
-    left: 50%;             /* Start from center horizontally */
-    transform: translateX(-50%); /* Shift left by 50% of its width to center */
-    z-index: 1000;         /* Make sure it stays on top */
+    left: 50%;             /* Horizontally center */
+    transform: translateX(-50%);
+    z-index: 1000;
+    text-align: center;
 }
 
 .pagination-wrapper ul {
     margin-bottom: 0;
+}
+
+.pagination .page-link {
+    border: none;
+    color: #0d6efd;
+    font-weight: 500;
+    border-radius: 8px;
+    margin: 0 4px;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    color: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #adb5bd;
+    background-color: #f8f9fa;
+}
+
+/* ================================
+   MODAL STYLING
+   ================================ */
+.modal-dialog {
+    max-width: 600px;
+}
+
+.modal-body input,
+.modal-body select,
+.modal-body textarea {
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Modal Form Rows */
+.modal-body .form-group {
+    margin-bottom: 15px;
+}
+
+/* ================================
+   RESPONSIVE DESIGN
+   ================================ */
+@media (max-width: 992px) {
+    main {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .table-container th,
+    .table-container td {
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    .pagination-wrapper {
+        font-size: 14px;
+    }
 }
