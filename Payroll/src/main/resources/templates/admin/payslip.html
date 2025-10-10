@@ -114,7 +114,7 @@
                         <tr>
                             <td>Basic Pay</td>
                             <td>
-                                <input type="number" name="basicPay" class="form-control" th:value="${payroll.basicPay}" disabled readonly>
+                                <input type="number" name="basicPay" class="form-control" th:value="${payroll.basicPay}" readonly>
                             </td>
 
                             <td th:text="${!#lists.isEmpty(deductionFields) ? deductionFields[0].name : '-'}"></td>
@@ -156,13 +156,13 @@
                         <!-- Totals -->
                         <tr class="fw-bold">
                             <td>Gross Pay</td>
-                            <td><input type="number" name="subtotal" class="form-control" disabled readonly></td>
+                            <td><input type="number" name="subtotal" class="form-control" readonly></td>
                             <td>Total Deductions</td>
-                            <td><input type="number" name="totalDeductions" class="form-control" disabled readonly></td>
+                            <td><input type="number" name="totalDeductions" class="form-control" readonly></td>
                         </tr>
                         <tr class="fw-bold table-success">
                             <td colspan="2">Net Pay</td>
-                            <td colspan="2"><input type="number" name="netPay" class="form-control" disabled readonly></td>
+                            <td colspan="2"><input type="number" name="netPay" class="form-control" readonly></td>
                         </tr>
                         </tbody>
 

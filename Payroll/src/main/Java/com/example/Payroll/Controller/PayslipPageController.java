@@ -5,6 +5,7 @@ import com.example.Payroll.Repository.*;
 import com.example.Payroll.Service.PayslipConfigService;
 import com.example.Payroll.dto.AttendanceSummaryDTO;
 import jakarta.servlet.http.HttpSession;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,6 +18,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static org.apache.poi.sl.draw.geom.GuideIf.Op.val;
+
 @Controller
 @RequestMapping("/admin")
 public class PayslipPageController {
@@ -26,7 +29,6 @@ public class PayslipPageController {
 
     @Autowired
     private PayslipConfigService payslipConfigService;
-
 
     @Autowired
     private PayslipConfigRepository payslipConfigRepository;
@@ -46,6 +48,9 @@ public class PayslipPageController {
     @Autowired
     private PayrollItemRepository payrollItemRepository;
 
+    @Autowired
+    private HolidayRepository holidayRepository;
+
     @GetMapping("/payslip/{employeeId}")
     public String getPayslipPage(
             @PathVariable Long employeeId,
@@ -59,7 +64,6 @@ public class PayslipPageController {
         Employee employee = employeeRepository.findByEmployeeId(employeeId)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
 
-        // Always fetch the latest config for the employee's position
         PayslipConfig config = payslipConfigService.getAllConfigurations()
                 .stream()
                 .filter(c -> c.getPosition().getPositionId().equals(employee.getPosition().getPositionId()))
@@ -72,7 +76,6 @@ public class PayslipPageController {
                     return defaultConfig;
                 });
 
-
         List<Settings> earnings = (config != null && config.getEarnings() != null)
                 ? new ArrayList<>(config.getEarnings())
                 : new ArrayList<>();
@@ -81,10 +84,8 @@ public class PayslipPageController {
                 ? new ArrayList<>(config.getDeductions())
                 : new ArrayList<>();
 
-
         List<AttendanceLog> logs = attendanceLogRepository.findByEmployeeOrderByLogDateAsc(employee);
 
-        // ---------- FETCH CURRENT PAYROLL ----------
         LocalDate today = LocalDate.now();
         int selectedYear = (year != null) ? year : today.getYear();
         int selectedMonth = (month != null) ? month : today.getMonthValue();
@@ -111,11 +112,12 @@ public class PayslipPageController {
                     return payPeriodRepository.save(p);
                 });
 
+        List<AttendanceSummaryDTO> attendanceSummary = buildAttendanceSummary(employee, logs, weekStart, weekEnd);
+
         Payroll payroll = payrollRepository
                 .findByEmployee_EmployeeIdAndPayPeriod(employeeId, currentPayPeriod)
-                .orElseGet(() -> calculatePayroll(employee, buildAttendanceSummary(employee, logs, weekStart, weekEnd)));
+                .orElseGet(() -> calculatePayroll(employee, attendanceSummary));
 
-        // ---------- MAP SAVED AMOUNTS TO SETTINGS ----------
         Map<Long, Double> savedEarnings = new HashMap<>();
         Map<Long, Double> savedDeductions = new HashMap<>();
 
@@ -130,33 +132,49 @@ public class PayslipPageController {
             }
         }
 
-        // Set default values for Thymeleaf display
         for (Settings e : earnings) {
-            Double value = savedEarnings.get(e.getId()); // get value from map
-            e.setDefaultValue(value); // if value is null, input will be empty
+            double applicableHours = 0.0;
+
+            if (e.getStartTime() != null && e.getEndTime() != null) {
+                for (AttendanceSummaryDTO dto : attendanceSummary) {
+                    applicableHours += computeHours(dto, e);
+                }
+            } else {
+                applicableHours = attendanceSummary.stream()
+                        .mapToDouble(dto -> Double.parseDouble(dto.getTotalHours()))
+                        .sum();
+            }
+
+            double computedValue = 0.0;
+            if ("Percentage".equalsIgnoreCase(e.getCalculationType())) {
+                computedValue = applicableHours * employee.getPosition().getHourlyRate() * (e.getValue() / 100.0);
+            } else if ("Fixed".equalsIgnoreCase(e.getCalculationType())) {
+                computedValue = e.getValue() != null ? e.getValue() : 0.0;
+            }
+
+            Double saved = savedEarnings.get(e.getId());
+            e.setDefaultValue(saved != null ? saved : computedValue);
         }
+
         for (Settings d : deductions) {
             Double value = savedDeductions.get(d.getId());
-            d.setDefaultValue(value); // null -> empty input
+            d.setDefaultValue(value);
         }
 
         model.addAttribute("earningFields", earnings);
         model.addAttribute("deductionFields", deductions);
 
-        // map for label display (optional)
         Map<String, String> payrollLabels = new HashMap<>();
         earnings.forEach(e -> payrollLabels.put("earning_" + e.getId(), e.getName()));
         deductions.forEach(d -> payrollLabels.put("deduction_" + d.getId(), d.getName()));
         model.addAttribute("payrollLabels", payrollLabels);
 
-        // Dropdowns
         model.addAttribute("years", generateYears(today.getYear()));
         model.addAttribute("months", generateMonths());
         model.addAttribute("weeks", generateWeeks(baseDate, endOfMonth));
 
-        // Data
         model.addAttribute("employee", employee);
-        model.addAttribute("attendanceList", buildAttendanceSummary(employee, logs, weekStart, weekEnd));
+        model.addAttribute("attendanceList", attendanceSummary);
         model.addAttribute("payroll", payroll);
         model.addAttribute("weekStart", weekStart);
         model.addAttribute("weekEnd", weekEnd);
@@ -169,15 +187,13 @@ public class PayslipPageController {
         return "admin/payslip";
     }
 
-    // ---------- HELPER METHODS ----------
-
     private int resolveWeekOffset(Integer week, LocalDate today, int year, int month, LocalDate baseDate) {
         if (week != null) return week;
         if (today.getYear() == year && today.getMonthValue() == month) {
             long daysBetween = ChronoUnit.DAYS.between(baseDate, today);
             return (daysBetween >= 0) ? (int) (daysBetween / 7) + 1 : 1;
         }
-        return 0; // default "All Weeks"
+        return 0;
     }
 
     private List<AttendanceSummaryDTO> buildAttendanceSummary(Employee employee, List<AttendanceLog> logs,
@@ -254,6 +270,7 @@ public class PayslipPageController {
         Payroll payroll = new Payroll();
         payroll.setEmployee(employee);
         payroll.setBasicPay(calculatedBasicPay);
+        payroll.setItems(new ArrayList<>());
 
         return payroll;
     }
@@ -287,6 +304,7 @@ public class PayslipPageController {
     }
 
     @PostMapping("/payslip/{employeeId}/save")
+    @Transactional
     public String savePayroll(
             @PathVariable Long employeeId,
             HttpSession session,
@@ -294,8 +312,9 @@ public class PayslipPageController {
     ) {
         LocalDate weekStart = (LocalDate) session.getAttribute("weekStart");
         LocalDate weekEnd = (LocalDate) session.getAttribute("weekEnd");
-        if (weekStart == null || weekEnd == null)
+        if (weekStart == null || weekEnd == null) {
             throw new RuntimeException("Week range not found in session");
+        }
 
         PayPeriod payPeriod = payPeriodRepository.findByStartDateAndEndDate(weekStart, weekEnd)
                 .orElseGet(() -> {
@@ -305,75 +324,111 @@ public class PayslipPageController {
                     return payPeriodRepository.save(newPeriod);
                 });
 
+        Employee employee = employeeRepository.findByEmployeeId(employeeId)
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+
+        Map<LocalDate, Holiday> holidaysMap = holidayRepository.findByDateBetween(weekStart, weekEnd)
+                .stream()
+                .collect(Collectors.toMap(Holiday::getDate, h -> h));
+
         Payroll payroll = payrollRepository
                 .findByEmployee_EmployeeIdAndPayPeriod(employeeId, payPeriod)
                 .orElseGet(() -> {
-                    Employee emp = employeeRepository.findByEmployeeId(employeeId)
-                            .orElseThrow(() -> new RuntimeException("Employee not found"));
                     Payroll p = new Payroll();
-                    p.setEmployee(emp);
+                    p.setEmployee(employee);
                     p.setPayPeriod(payPeriod);
                     p.setWeekStart(weekStart);
                     p.setWeekEnd(weekEnd);
+                    p.setItems(new ArrayList<>());
                     return p;
                 });
 
-        // Clear previous items before saving
         if (payroll.getItems() == null) payroll.setItems(new ArrayList<>());
         else payroll.getItems().clear();
 
-        double totalEarnings = 0.0;
+        List<AttendanceLog> logs = attendanceLogRepository.findByEmployeeOrderByLogDateAsc(employee);
+        List<AttendanceSummaryDTO> attendanceSummary = buildAttendanceSummary(employee, logs, weekStart, weekEnd);
+
+        PayslipConfig config = payslipConfigService.getAllConfigurations()
+                .stream()
+                .filter(c -> c.getPosition().getPositionId().equals(employee.getPosition().getPositionId()))
+                .findFirst()
+                .orElseGet(() -> {
+                    PayslipConfig defaultConfig = new PayslipConfig();
+                    defaultConfig.setPosition(employee.getPosition());
+                    defaultConfig.setEarnings(new ArrayList<>());
+                    defaultConfig.setDeductions(new ArrayList<>());
+                    return defaultConfig;
+                });
+
+        List<Settings> earnings = (config != null && config.getEarnings() != null)
+                ? new ArrayList<>(config.getEarnings())
+                : new ArrayList<>();
+        List<Settings> deductions = (config != null && config.getDeductions() != null)
+                ? new ArrayList<>(config.getDeductions())
+                : new ArrayList<>();
+
+
         double totalDeductions = 0.0;
+        double totalEarnings = 0.0;
 
-        for (Map.Entry<String, String> entry : allParams.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
+// Loop through earnings configured in PayslipConfig
+        for (Settings e : earnings) {
+            for (AttendanceSummaryDTO dto : attendanceSummary) {
+                LocalDate logDate = dto.getLogDate();
+                Holiday holiday = holidaysMap.get(logDate);
+                if (holiday == null) continue;
 
-            if (List.of("basicPay", "subtotal", "totalDeductions", "netPay", "payPeriodId").contains(key))
-                continue;
-            if (value == null || value.trim().isEmpty()) continue;
+                String holidayType = holiday.getType();
 
-            double amount;
-            try {
-                amount = Double.parseDouble(value.trim());
-            } catch (NumberFormatException e) {
-                continue;
-            }
-            if (amount == 0.0) continue;
+                double amount = 0.0;
+                if (e.getName().equalsIgnoreCase(holidayType + " Holiday")) {
+                    amount = safeParse(dto.getRegularHours()) * employee.getPosition().getHourlyRate() * safeParse(String.valueOf(e.getValue())) / 100.0;
+                } else if (e.getName().equalsIgnoreCase(holidayType + " Holiday OT")) {
+                    amount = safeParse(dto.getOvertimeHours()) * employee.getPosition().getHourlyRate() * safeParse(String.valueOf(e.getValue())) / 100.0;
+                } else if (e.getName().equalsIgnoreCase(holidayType + " Holiday Night Diff")) {
+                    amount = computeNightHours(dto) * employee.getPosition().getHourlyRate() * safeParse(String.valueOf(e.getValue())) / 100.0;
+                }
 
-            Settings setting = null;
-            PayrollItem.ItemType type = null;
+                totalEarnings += amount;
 
-            if (key.startsWith("earning_")) {
-                Long settingId = Long.parseLong(key.replace("earning_", ""));
-                setting = settingsRepository.findById(settingId).orElse(null);
-                type = PayrollItem.ItemType.EARNING;
-            } else if (key.startsWith("deduction_")) {
-                Long settingId = Long.parseLong(key.replace("deduction_", ""));
-                setting = settingsRepository.findById(settingId).orElse(null);
-                type = PayrollItem.ItemType.DEDUCTION;
-            }
-
-            if (setting != null) {
-                PayrollItem item = new PayrollItem();
-                item.setPayroll(payroll);
-                item.setName(setting.getName());
-                item.setAmount(amount);
-                item.setSetting(setting);
-                item.setType(type);
-
-                if (type == PayrollItem.ItemType.EARNING) totalEarnings += amount;
-                else if (type == PayrollItem.ItemType.DEDUCTION) totalDeductions += amount;
-
-                payroll.getItems().add(item);
+                if (amount > 0) {
+                    PayrollItem item = new PayrollItem();
+                    item.setPayroll(payroll);
+                    item.setName(e.getName());
+                    item.setAmount(amount);
+                    item.setSetting(e);
+                    item.setType(PayrollItem.ItemType.EARNING);
+                    payroll.getItems().add(item);
+                }
             }
         }
 
-        double basicPay = allParams.containsKey("basicPay") ? parseSafeDouble(allParams.get("basicPay")) : 0.0;
+
+
+
+        double basicPay = parseSafeDouble(allParams.get("basicPay"));
         payroll.setBasicPay(basicPay);
-        payroll.setGrossPay(totalEarnings);
+
+        for (Settings d : deductions) {
+            double amount = parseSafeDouble(allParams.get("deduction_" + d.getId()));
+            totalDeductions += amount;
+
+            PayrollItem item = new PayrollItem();
+            item.setPayroll(payroll);
+            item.setName(d.getName());
+            item.setAmount(amount);
+            item.setSetting(d);
+            item.setType(PayrollItem.ItemType.DEDUCTION);
+            payroll.getItems().add(item);
+        }
+
+        double grossPay = basicPay + totalEarnings;
+        double netPay = grossPay - totalDeductions;
+
+        payroll.setGrossPay(grossPay);
         payroll.setTotalDeductions(totalDeductions);
-        payroll.setNetPay(basicPay + totalEarnings - totalDeductions);
+        payroll.setNetPay(netPay);
 
         String role = (String) session.getAttribute("role");
         payroll.setStatus("SUPER_ADMIN".equalsIgnoreCase(role)
@@ -385,11 +440,75 @@ public class PayslipPageController {
         return "redirect:/admin/payslip/" + employeeId + "?payPeriodId=" + payPeriod.getId();
     }
 
+    private double safeParse(String val) {
+        try {
+            return Double.parseDouble(val);
+        } catch (Exception ex) {
+            return 0;
+        }
+    }
+
+
+    private double computeHours(AttendanceSummaryDTO dto, Settings e) {
+        double hours = 0.0;
+        try {
+            if (e.getStartTime() != null && e.getEndTime() != null) {
+                if (!"-".equals(dto.getMorningIn()) && !"-".equals(dto.getMorningOut())) {
+                    LocalTime in = LocalTime.parse(dto.getMorningIn());
+                    LocalTime out = LocalTime.parse(dto.getMorningOut());
+                    LocalTime overlapStart = in.isAfter(e.getStartTime()) ? in : e.getStartTime();
+                    LocalTime overlapEnd = out.isBefore(e.getEndTime()) ? out : e.getEndTime();
+                    hours += Math.max(0, Duration.between(overlapStart, overlapEnd).toMinutes() / 60.0);
+                }
+                if (!"-".equals(dto.getAfternoonIn()) && !"-".equals(dto.getAfternoonOut())) {
+                    LocalTime in = LocalTime.parse(dto.getAfternoonIn());
+                    LocalTime out = LocalTime.parse(dto.getAfternoonOut());
+                    LocalTime overlapStart = in.isAfter(e.getStartTime()) ? in : e.getStartTime();
+                    LocalTime overlapEnd = out.isBefore(e.getEndTime()) ? out : e.getEndTime();
+                    hours += Math.max(0, Duration.between(overlapStart, overlapEnd).toMinutes() / 60.0);
+                }
+            } else {
+                hours += Double.parseDouble(dto.getTotalHours());
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return hours;
+    }
+
+    private double computeNightHours(AttendanceSummaryDTO dto) {
+        LocalTime nightStart = LocalTime.of(18, 0);
+        LocalTime nightEnd = LocalTime.of(23, 0);
+        double nightHours = 0;
+
+        try {
+            if (dto.getMorningOut() != null && !dto.getMorningOut().equals("-")) {
+                LocalTime in = LocalTime.parse(dto.getMorningIn());
+                LocalTime out = LocalTime.parse(dto.getMorningOut());
+                nightHours += computeOverlap(nightStart, nightEnd, in, out);
+            }
+            if (dto.getAfternoonOut() != null && !dto.getAfternoonOut().equals("-")) {
+                LocalTime in = LocalTime.parse(dto.getAfternoonIn());
+                LocalTime out = LocalTime.parse(dto.getAfternoonOut());
+                nightHours += computeOverlap(nightStart, nightEnd, in, out);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return nightHours;
+    }
+
+    private double computeOverlap(LocalTime start1, LocalTime end1, LocalTime start2, LocalTime end2) {
+        LocalTime maxStart = start1.isAfter(start2) ? start1 : start2;
+        LocalTime minEnd = end1.isBefore(end2) ? end1 : end2;
+        return maxStart.isBefore(minEnd) ? Duration.between(maxStart, minEnd).toMinutes() / 60.0 : 0;
+    }
+
     private double parseSafeDouble(String value) {
-        if (value == null || value.trim().isEmpty()) return 0.0;
         try {
             return Double.parseDouble(value.trim());
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             return 0.0;
         }
     }

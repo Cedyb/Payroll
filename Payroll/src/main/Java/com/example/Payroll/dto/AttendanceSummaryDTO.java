@@ -65,31 +65,58 @@ public class AttendanceSummaryDTO {
      * Compute regular hours (max 8) and overtime hours based on morning/afternoon in/out times.
      */
     public void computeTotalHoursAndOT() {
-        double total = 0;
-        double morning = 0;
-        double afternoon = 0;
+        LocalTime shiftStart = LocalTime.of(7, 00);
+        LocalTime lunchStart = LocalTime.of(12, 0);
+        LocalTime lunchEnd = LocalTime.of(13, 0);
+        LocalTime shiftEnd = LocalTime.of(16, 0);
+
+        double regularWorked = 0;
+        double overtime = 0;
 
         try {
+            // ========== MORNING SESSION ==========
             if (morningIn != null && morningOut != null && !morningIn.equals("-") && !morningOut.equals("-")) {
-                morning = computeHours(LocalTime.parse(morningIn), LocalTime.parse(morningOut));
+                LocalTime in = LocalTime.parse(morningIn);
+                LocalTime out = LocalTime.parse(morningOut);
+
+                // cap to shift
+                if (in.isBefore(shiftStart)) in = shiftStart;
+                if (out.isAfter(lunchStart)) out = lunchStart;
+
+                morningHours = computeHours(in, out);
+                regularWorked += morningHours;
             }
+
+            // ========== AFTERNOON SESSION ==========
             if (afternoonIn != null && afternoonOut != null && !afternoonIn.equals("-") && !afternoonOut.equals("-")) {
-                afternoon = computeHours(LocalTime.parse(afternoonIn), LocalTime.parse(afternoonOut));
+                LocalTime in = LocalTime.parse(afternoonIn);
+                LocalTime out = LocalTime.parse(afternoonOut);
+
+                // cap to shift
+                if (in.isBefore(lunchEnd)) in = lunchEnd;
+                LocalTime actualOut = out.isAfter(shiftEnd) ? shiftEnd : out;
+                afternoonHours = computeHours(in, actualOut);
+                regularWorked += afternoonHours;
+
+                // Overtime after 16:00
+                if (out.isAfter(shiftEnd)) {
+                    overtime += computeHours(shiftEnd, out);
+                }
             }
+
         } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        this.morningHours = morning;
-        this.afternoonHours = afternoon;
-        total = morning + afternoon;
+        // Cap regular hours to 8
+        regularWorked = Math.min(regularWorked, 8);
 
-        double regular = Math.min(total, 8);
-        double overtime = Math.max(total - 8, 0);
-
-        this.regularHours = String.format("%.2f", regular);
+        this.regularHours = String.format("%.2f", regularWorked);
         this.overtimeHours = String.format("%.2f", overtime);
-        this.totalHours = String.format("%.2f", total);
+        this.totalHours = String.format("%.2f", regularWorked + overtime);
     }
+
+
 
     private double computeHours(LocalTime start, LocalTime end) {
         return Duration.between(start, end).toMinutes() / 60.0;
